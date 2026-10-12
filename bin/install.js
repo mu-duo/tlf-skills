@@ -10,6 +10,9 @@ const PKG_ROOT = path.join(__dirname, "..");
 const SKILLS_DIR = path.join(PKG_ROOT, "skills");
 const MAIN_SKILL = "project-docs-workflow";
 const DEFAULT_TARGET = path.join(os.homedir(), ".agents", "skills");
+// 安装清单：记录本包每次安装处理过的 skill 及其归属，供 uninstall 精确卸载。
+const MANIFEST_NAME = ".project-docs-workflow.install.json";
+const PKG_VERSION = require(path.join(PKG_ROOT, "package.json")).version;
 
 // 可选上游：mattpocock/skills 的完整版依赖 skill。
 // 官方安装器是 vercel-labs/skills 提供的 `skills` CLI（npm 包 skills），
@@ -57,10 +60,12 @@ function usage() {
       "用法：",
       "  project-docs-workflow [install] [选项]   安装 skill 到目标目录（默认动作）",
       "  project-docs-workflow check   [选项]     检查依赖 skill 的解析状态",
+      "  project-docs-workflow uninstall [选项]   依据安装清单卸载本包安装的 skill",
       "",
       "选项：",
       "  --dir <path>   指定目标 skills 根目录（默认 ~/.agents/skills）",
-      "  --force        覆盖已存在的 project-docs-workflow（仅主 skill；依赖仍不覆盖）",
+      "  --force        覆盖已存在的 project-docs-workflow（仅主 skill；依赖仍不覆盖）；",
+      "                 uninstall 时为非交互确认（非 TTY 下必须显式传入）",
       "  --dry-run      仅打印将执行的操作，不实际写入",
       "  --with-matt-skills",
       "                 可选：改从上游 mattpocock/skills 安装依赖 skill 的完整版",
@@ -84,7 +89,7 @@ function parseArgs(argv) {
   const positional = [];
   for (let i = 0; i < argv.length; i++) {
     const arg = argv[i];
-    if (arg === "install" || arg === "check") {
+    if (arg === "install" || arg === "check" || arg === "uninstall") {
       opts.command = arg;
     } else if (arg === "--force") {
       opts.force = true;
@@ -268,6 +273,130 @@ function copySkill(name, dest, dryRun) {
   console.log("  ✓ 已安装 " + name + " → " + dest);
 }
 
+// —— 安装清单（manifest）——
+
+function manifestPath(target) {
+  return path.join(target, MANIFEST_NAME);
+}
+
+function loadManifest(target) {
+  const p = manifestPath(target);
+  if (!isFile(p)) {
+    return null;
+  }
+  try {
+    const data = JSON.parse(fs.readFileSync(p, "utf8"));
+    if (data && typeof data === "object" && data.entries && typeof data.entries === "object") {
+      return data;
+    }
+  } catch (e) {
+    /* 忽略：清单损坏时按缺失处理 */
+  }
+  return null;
+}
+
+// 合并新旧条目：归属一旦记在本包名下（installed/forced），后续因「已存在」而 skip 时不被降级；
+// 而初次即为 skipped（安装时已存在、非本包安装）的名字始终保持 skipped。
+function mergeEntries(prev, fresh) {
+  const out = Object.assign({}, prev);
+  for (const name of Object.keys(fresh)) {
+    const f = fresh[name];
+    const p = out[name];
+    if (f.action === "skipped" && p && p.action !== "skipped") {
+      continue;
+    }
+    out[name] = f;
+  }
+  return out;
+}
+
+function writeManifest(target, entries) {
+  const p = manifestPath(target);
+  const data = {
+    version: PKG_VERSION,
+    target: path.resolve(target),
+    updatedAt: new Date().toISOString(),
+    entries,
+  };
+  fs.writeFileSync(p, JSON.stringify(data, null, 2) + "\n");
+  console.log("已写入安装清单：" + p);
+}
+
+function removeManifest(target) {
+  const p = manifestPath(target);
+  if (!isFile(p)) {
+    return;
+  }
+  try {
+    fs.rmSync(p, { force: true });
+    console.log("已删除安装清单：" + p);
+  } catch (e) {
+    console.log("⚠ 无法删除安装清单：" + p + "（" + e.message + "）");
+  }
+}
+
+// 依赖 skill 的 kind：doc-opt 单列，其余依赖（含其它 skills/* 目录）视为 lite。
+function depKind(name) {
+  return name === "doc-opt" ? "doc-opt" : "lite";
+}
+
+// —— 上游卸载命令组装 ——
+
+function buildUpstreamRemoveArgs(names, agent) {
+  return ["--yes", "skills@latest", "remove"].concat(names).concat(["-g", "-y", "-a", agent]);
+}
+
+function upstreamRemoveString(names, agent) {
+  return [npxCommand()].concat(buildUpstreamRemoveArgs(names, agent)).map(quoteArg).join(" ");
+}
+
+function groupByAgent(list) {
+  const map = new Map();
+  for (const item of list) {
+    if (!map.has(item.agent)) {
+      map.set(item.agent, []);
+    }
+    map.get(item.agent).push(item.name);
+  }
+  return map;
+}
+
+// 优先委托上游 skills CLI 卸载；不可用时（Node 过旧 / npx 缺失 / 非 0 退出）回退直接删除目录。
+function removeUpstreamWithFallback(names, agent, target) {
+  const directFallback = (reason) => {
+    console.log("  ⚠ " + reason);
+    for (const name of names) {
+      const dest = path.join(target, name);
+      if (existsAt(dest)) {
+        fs.rmSync(dest, { recursive: true, force: true });
+        console.log("  ✓ 已直接删除 " + name);
+      } else {
+        console.log("  - 未找到 " + name + "（跳过）");
+      }
+    }
+    console.log(
+      "  注意：上游锁文件 ~/.agents/.skill-lock.json 可能残留过期条目；可用 `npx skills@latest list` 核对。"
+    );
+  };
+
+  if (!nodeMeetsUpstream()) {
+    directFallback("当前 Node " + process.versions.node + " < 22.20，无法运行上游卸载器。");
+    return;
+  }
+  console.log("  将执行：" + upstreamRemoveString(names, agent));
+  const res = spawnSync(npxCommand(), buildUpstreamRemoveArgs(names, agent), {
+    stdio: "inherit",
+    env: Object.assign({}, process.env, { DISABLE_TELEMETRY: "1", DO_NOT_TRACK: "1" }),
+  });
+  if (res.error) {
+    directFallback("上游卸载无法执行（" + (res.error.code || res.error.message) + "）。");
+  } else if (res.status !== 0) {
+    directFallback("上游卸载失败（退出码 " + res.status + "）。");
+  } else {
+    console.log("  ✓ 已通过 skills CLI 卸载：" + names.join("、"));
+  }
+}
+
 function runInstall(opts) {
   const dirs = listSkillDirs();
   if (dirs === null || dirs.length === 0) {
@@ -284,6 +413,12 @@ function runInstall(opts) {
   // 是否启用上游完整版安装（可能触发一次交互式询问，仅限 TTY + install + 非 dry-run）。
   const upstreamEnabled = decideUpstream(opts);
 
+  const nowIso = new Date().toISOString();
+  const freshEntries = {};
+  const record = (name, entry) => {
+    freshEntries[name] = Object.assign({ at: nowIso }, entry);
+  };
+
   const target = opts.target;
   console.log("目标目录：" + target + (opts.dryRun ? "（dry-run，不会写入）" : ""));
   if (!opts.dryRun) {
@@ -296,6 +431,7 @@ function runInstall(opts) {
   console.log("主 skill：" + MAIN_SKILL);
   if (mainExists && !opts.force) {
     console.log("  同名 skill 已存在，保留用户版本：" + MAIN_SKILL + "（如需覆盖请加 --force）");
+    record(MAIN_SKILL, { kind: "main", action: "skipped" });
   } else if (mainExists && opts.force) {
     if (opts.dryRun) {
       console.log("  [dry-run] 将覆盖 " + MAIN_SKILL + " → " + mainDest);
@@ -303,8 +439,10 @@ function runInstall(opts) {
       fs.rmSync(mainDest, { recursive: true, force: true });
       copySkill(MAIN_SKILL, mainDest, false);
     }
+    record(MAIN_SKILL, { kind: "main", action: "forced" });
   } else {
     copySkill(MAIN_SKILL, mainDest, opts.dryRun);
+    record(MAIN_SKILL, { kind: "main", action: "installed" });
   }
 
   // 可选：先从上游安装 8 个依赖 skill 的完整版。
@@ -369,21 +507,144 @@ function runInstall(opts) {
           ? "  [dry-run] 将由上游安装完整版，跳过轻量版："
           : "  已由上游安装完整版，跳过轻量版：") + name
       );
+      record(name, { kind: "upstream", action: "installed", agent: opts.mattAgent });
       continue;
     }
     const dest = path.join(target, name);
     if (isDir(dest) || isFile(dest)) {
       console.log("  同名 skill 已存在，保留用户版本：" + name);
+      record(name, { kind: depKind(name), action: "skipped" });
       continue;
     }
     copySkill(name, dest, opts.dryRun);
+    record(name, { kind: depKind(name), action: "installed" });
   }
 
   if (opts.dryRun) {
     console.log("dry-run 完成，未写入任何文件。");
   } else {
+    const prev = loadManifest(target);
+    const merged = mergeEntries(prev ? prev.entries : {}, freshEntries);
+    writeManifest(target, merged);
     console.log("安装完成。");
   }
+}
+
+function confirmUninstall(opts) {
+  // 返回 "yes"|"no"|"refuse"。--force 直接视为 yes。
+  if (opts.force) {
+    return "yes";
+  }
+  if (!process.stdin.isTTY || !process.stdout.isTTY) {
+    return "refuse";
+  }
+  process.stdout.write("确认卸载本包安装的 skill？[y/N] ");
+  let answer = "";
+  try {
+    answer = readLineSync().trim().toLowerCase();
+  } catch (e) {
+    answer = "";
+  }
+  return answer === "y" || answer === "yes" ? "yes" : "no";
+}
+
+function runUninstall(opts) {
+  const target = opts.target;
+  const manifest = loadManifest(target);
+
+  // 无清单：尽力而为，仅处理主 skill。
+  if (!manifest) {
+    console.log("⚠ 未找到安装清单：" + manifestPath(target) + "（无清单，尽力而为）");
+    const mainDest = path.join(target, MAIN_SKILL);
+    if (!existsAt(mainDest)) {
+      console.log("目标目录中不存在 " + MAIN_SKILL + "，无需卸载。");
+      process.exit(0);
+    }
+    console.log("仅处理主 skill：" + MAIN_SKILL + "（其余 skill 保持不动）");
+    if (opts.dryRun) {
+      console.log("  [dry-run] 将删除 " + MAIN_SKILL + " → " + mainDest);
+      console.log("dry-run 完成，未写入任何文件。");
+      process.exit(0);
+    }
+    const decision = confirmUninstall(opts);
+    if (decision === "refuse") {
+      console.log("非交互式终端：为避免误删，已拒绝卸载。如确认请显式传入 --force。");
+      process.exit(1);
+    }
+    if (decision === "no") {
+      console.log("已取消卸载。");
+      process.exit(0);
+    }
+    fs.rmSync(mainDest, { recursive: true, force: true });
+    console.log("  ✓ 已删除 " + MAIN_SKILL);
+    console.log("清单缺失：其余 skill 一律保持不动。");
+    process.exit(0);
+  }
+
+  // 依据清单归属构建计划：record 说「本包安装」才删，skipped 永不删。
+  const entries = manifest.entries || {};
+  const removeLocal = [];
+  const removeUpstream = [];
+  const keep = [];
+  for (const name of Object.keys(entries).sort()) {
+    const e = entries[name] || {};
+    if (e.action === "installed" || e.action === "forced") {
+      if (e.kind === "upstream") {
+        removeUpstream.push({ name, agent: e.agent || UPSTREAM_DEFAULT_AGENT });
+      } else {
+        removeLocal.push(name);
+      }
+    } else {
+      // skipped 或未知状态：一律保留。
+      keep.push(name);
+    }
+  }
+
+  console.log("目标目录：" + target + (opts.dryRun ? "（dry-run，不会写入）" : ""));
+  const allRemove = removeLocal.concat(removeUpstream.map((u) => u.name));
+  console.log("将移除（本包安装）：" + (allRemove.length ? allRemove.join("、") : "（无）"));
+  for (const name of keep) {
+    console.log("保留（安装时已存在，非本包安装）：" + name);
+  }
+
+  if (allRemove.length === 0) {
+    console.log("没有需要移除的 skill（清单中无本包安装项）。");
+    process.exit(0);
+  }
+
+  if (opts.dryRun) {
+    for (const name of removeLocal) {
+      console.log("  [dry-run] 将删除 " + name + " → " + path.join(target, name));
+    }
+    for (const [agent, names] of groupByAgent(removeUpstream)) {
+      console.log("  [dry-run] 上游完整版（" + agent + "）：" + upstreamRemoveString(names, agent));
+    }
+    console.log("  [dry-run] 将删除安装清单：" + manifestPath(target));
+    console.log("dry-run 完成，未写入任何文件。");
+    process.exit(0);
+  }
+
+  const decision = confirmUninstall(opts);
+  if (decision === "refuse") {
+    console.log("非交互式终端：为避免误删，已拒绝卸载。如确认请显式传入 --force。");
+    process.exit(1);
+  }
+  if (decision === "no") {
+    console.log("已取消卸载。");
+    process.exit(0);
+  }
+
+  for (const name of removeLocal) {
+    fs.rmSync(path.join(target, name), { recursive: true, force: true });
+    console.log("  ✓ 已删除 " + name);
+  }
+  for (const [agent, names] of groupByAgent(removeUpstream)) {
+    console.log("上游完整版（" + agent + "）：");
+    removeUpstreamWithFallback(names, agent, target);
+  }
+  removeManifest(target);
+  console.log("卸载完成。");
+  process.exit(0);
 }
 
 function runCheck(opts) {
@@ -424,6 +685,8 @@ function main() {
   const opts = parseArgs(process.argv.slice(2));
   if (opts.command === "check") {
     runCheck(opts);
+  } else if (opts.command === "uninstall") {
+    runUninstall(opts);
   } else {
     runInstall(opts);
   }

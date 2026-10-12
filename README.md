@@ -33,6 +33,9 @@ npx @tanlinfeng/project-docs-workflow
 | `npx @tanlinfeng/project-docs-workflow --with-matt-skills` | 可选：依赖 skill 改从上游 `mattpocock/skills` 安装**完整版**（需 Node >= 22.20） |
 | `npx @tanlinfeng/project-docs-workflow --matt-agent <name>` | 上游安装使用的 agent（默认 `codex`，落盘到其全局目录 `~/.agents/skills`） |
 | `npx @tanlinfeng/project-docs-workflow check` | 检查依赖 skill 的解析状态，全部可解析时退出码为 0，否则为 1 |
+| `npx @tanlinfeng/project-docs-workflow uninstall` | 依据**安装清单**卸载本包安装的 skill（只删本包装的，见下文「卸载」） |
+| `npx @tanlinfeng/project-docs-workflow uninstall --dry-run` | 只打印卸载计划（将删除 / 保留哪些），不写入 |
+| `npx @tanlinfeng/project-docs-workflow uninstall --force` | 跳过交互确认；非 TTY 场景下**必须**加此参数 |
 
 ### 覆盖策略（安全优先）
 
@@ -53,6 +56,44 @@ npx --yes skills@latest add mattpocock/skills -g -y -a <agent> -s <name1> <name2
 - **降级、绝不失败**：Node < 22.20、找不到 `npx`、上游非 0 退出或网络错误时，只打印中文告警并回退到缺失项的轻量版安装，整体仍以退出码 0 结束。
 - **agent 与目录注意**：上游固定以 `-a <agent> -g` 安装到该 agent 的**全局目录**（默认 `codex` → `~/.agents/skills`，正好与默认目标一致）。可用 `--matt-agent <name>` 覆盖 agent。若你传入了非默认的 `--dir`，上游部分**无法跟随 `--dir`**（仍落到 agent 全局目录），安装器会明确告警，同时 `--dir` 下的轻量版仍按原逻辑处理。
 - **dry-run**：`--dry-run --with-matt-skills` 只打印将执行的上游命令、以及哪些名字因已存在而跳过，不实际执行。
+
+## 卸载
+
+安装时，本包会在 `<target>/.project-docs-workflow.install.json`（`<target>` 为 `--dir` 或默认 `~/.agents/skills`）写入一份**安装清单**，记录每个被处理过的 skill 及其**归属**。卸载完全依据这份清单，而不是靠猜测。
+
+清单形如：
+
+```json
+{
+  "version": "2.1.0",
+  "target": "/home/me/.agents/skills",
+  "updatedAt": "2026-10-12T05:24:36.386Z",
+  "entries": {
+    "project-docs-workflow": { "kind": "main",     "action": "installed", "at": "…" },
+    "tdd":                    { "kind": "lite",     "action": "installed", "at": "…" },
+    "doc-opt":                { "kind": "doc-opt",  "action": "installed", "at": "…" },
+    "deepwork":               { "kind": "lite",     "action": "skipped",   "at": "…" },
+    "retro":                  { "kind": "upstream", "action": "installed", "agent": "codex", "at": "…" }
+  }
+}
+```
+
+- `kind`：`main` / `lite` / `doc-opt`（本包复制的轻量版）/ `upstream`（委托上游 `skills` CLI 安装的完整版）。
+- `action`：`installed`（本次由本包创建）、`forced`（被 `--force` 覆盖，仍属本包）、`skipped`（安装时已存在，本包原样保留，**永不删除**）。
+- 每次成功 `install` 都会**合并更新**清单（不会丢失旧条目）；`--dry-run` 不写清单。
+
+**归属规则（安全优先）**：`uninstall` 只删除清单中 `action` 为 `installed` / `forced` 的名字——无论是本包复制的轻量版，还是本包委托上游安装的完整版。凡是安装时**已存在**（记为 `skipped`）的名字，一律不碰；首次记为 `skipped` 的名字即使后续再次安装也始终保持 `skipped`。
+
+用法：
+
+```bash
+npx @tanlinfeng/project-docs-workflow uninstall [--dir <path>] [--dry-run] [--force]
+```
+
+- **确认**：在交互式终端会询问一次 `确认卸载本包安装的 skill？[y/N] `，**默认否**。非交互式（管道 / CI / 非 TTY）**拒绝执行**，除非显式传入 `--force`。`--dry-run` 从不询问、从不写入。
+- **删除方式**：`main` / `lite` / `doc-opt` 直接删除 `<target>/<name>` 目录。`upstream` 的完整版**优先委托上游** `skills` CLI 卸载（按 agent 批量）：`npx --yes skills@latest remove <names> -g -y -a <agent>`；当无法委托时（Node < 22.20、找不到 `npx`、上游非 0 退出）会打印告警并**回退直接删除**目录，并提示上游锁文件 `~/.agents/.skill-lock.json` 可能残留过期条目，可用 `npx skills@latest list` 核对。
+- **收尾**：处理完成后删除清单文件本身；**不会**删除目标目录本身，其它文件与空目录保持不动。
+- **幂等**：没有可删项时打印友好提示并以退出码 0 结束。若**清单缺失**，会告警「无清单，尽力而为」，此时**仅**在 `project-docs-workflow` 存在时询问是否删除它，其余 skill 一律不动。
 
 ## 直接复制（不使用 npm 安装器）
 
@@ -111,7 +152,9 @@ MIT，见 [`LICENSE`](./LICENSE)。
 
 `project-docs-workflow` is an npm-packaged agent **skill bundle** for project documentation workflows: issue tracking, ADRs, PDRs, a terminology glossary, and the workflow that ties them together. The main skill is self-contained via internal `references/deps/*.md` fallbacks, and ships with lightweight dependency skills (trimmed from [mattpocock/skills](https://github.com/mattpocock/skills), MIT, Matt Pocock) plus a bundled `doc-opt` bonus skill.
 
-Install with `npx @tanlinfeng/project-docs-workflow` (defaults to `~/.agents/skills`; options: `--dir <path>`, `--force`, `--dry-run`, `--with-matt-skills`, `--matt-agent <name>`, and the `check` subcommand). The installer **never overwrites** an existing skill of the same name — it skips it, preserving your version. `--force` overwrites only the main `project-docs-workflow` skill.
+Install with `npx @tanlinfeng/project-docs-workflow` (defaults to `~/.agents/skills`; options: `--dir <path>`, `--force`, `--dry-run`, `--with-matt-skills`, `--matt-agent <name>`, and the `check` / `uninstall` subcommands). The installer **never overwrites** an existing skill of the same name — it skips it, preserving your version. `--force` overwrites only the main `project-docs-workflow` skill.
+
+Every successful install writes an **install manifest** at `<target>/.project-docs-workflow.install.json` recording, per skill name, the `kind` (`main`/`lite`/`doc-opt`/`upstream`) and `action` (`installed`/`forced`/`skipped`), merged across re-installs. `uninstall [--dir <path>] [--dry-run] [--force]` removes **only** the names this package owns (`installed`/`forced`) and never touches names that pre-existed (`skipped`, decided by the record, not by guessing). On a TTY it asks once (`[y/N]`, default No); on a non-TTY it refuses unless `--force` is given. Lite/main/doc-opt copies are deleted directly; upstream full versions are removed via the `skills` CLI (`npx --yes skills@latest remove <names> -g -y -a <agent>`), falling back to direct deletion with a warning about a possibly-stale `~/.agents/.skill-lock.json` if delegation is impossible. `--dry-run` prints the plan and never prompts or writes; the manifest is deleted afterwards, the target directory itself is left in place.
 
 Optionally, `--with-matt-skills` installs the **full upstream** versions of the dependency skills from `mattpocock/skills` via the official `skills` CLI (`npx --yes skills@latest add mattpocock/skills -g -y -a <agent> -s ...`, requires Node >= 22.20). Without the flag, an interactive TTY gets a single prompt (default **No**); non-TTY/piped/CI runs never prompt. The 8 upstream-managed names are `grilling`, `grill-me`, `grill-with-docs`, `domain-modeling`, `tdd`, `deepwork`, `retro`, `improve-codebase-architecture`; `doc-opt` and the main skill are unaffected. Any name already present is left untouched and never sent upstream, and the installer re-checks afterwards, falling back to the bundled lite copy for anything still missing. If upstream can't run (Node too old, no `npx`, non-zero exit, network error), it warns and falls back — the install still exits 0. Upstream installs into the agent's global dir (`codex` → `~/.agents/skills`), so it cannot follow a custom `--dir` (a warning is printed).
 

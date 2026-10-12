@@ -1,0 +1,5 @@
+interface:
+  display_name: "Doc Opt"
+  short_description: "Terse professional docs with real diagrams"
+policy:
+  allow_implicit_invocation: false

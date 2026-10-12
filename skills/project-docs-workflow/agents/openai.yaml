@@ -1,0 +1,5 @@
+interface:
+  display_name: "Project Docs Workflow"
+  short_description: "Initialize or align a project's docs workflow"
+policy:
+  allow_implicit_invocation: false

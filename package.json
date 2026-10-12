@@ -1,6 +1,9 @@
 {
-  "name": "project-docs-workflow",
+  "name": "@tlf/project-docs-workflow",
   "version": "2.0.0",
+  "publishConfig": {
+    "access": "public"
+  },
   "description": "项目文档工作流 skill 包：提供 issue tracker / ADR / PDR / 术语表与工作流约定，自带轻量依赖 skill 与 ref 兜底，可独立分发。",
   "license": "MIT",
   "bin": {

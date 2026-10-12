@@ -73,6 +73,14 @@ function usage() {
       "  --matt-agent <name>",
       "                 上游安装使用的 agent（默认 codex，落盘到其全局目录 ~/.agents/skills）",
       "  -h, --help     显示本帮助",
+      "",
+      "示例：",
+      "  project-docs-workflow                          # 安装到默认 ~/.agents/skills",
+      "  project-docs-workflow --dir <path> --dry-run   # 预演到指定目录（不写入）",
+      "  project-docs-workflow --with-matt-skills       # 依赖改从上游装完整版",
+      "  project-docs-workflow check                    # 检查依赖解析状态",
+      "  project-docs-workflow uninstall --dry-run      # 卸载预演",
+      "  project-docs-workflow uninstall --force        # 非交互卸载（只删本包装的）",
     ].join("\n")
   );
 }

@@ -95,6 +95,30 @@ npx @tanlinfeng/project-docs-workflow uninstall [--dir <path>] [--dry-run] [--fo
 - **收尾**：处理完成后删除清单文件本身；**不会**删除目标目录本身，其它文件与空目录保持不动。
 - **幂等**：没有可删项时打印友好提示并以退出码 0 结束。若**清单缺失**，会告警「无清单，尽力而为」，此时**仅**在 `project-docs-workflow` 存在时询问是否删除它，其余 skill 一律不动。
 
+## 用法示例
+
+```bash
+# —— 安装 ——
+npx @tanlinfeng/project-docs-workflow                       # 装到默认 ~/.agents/skills（轻量依赖）
+npx @tanlinfeng/project-docs-workflow --dir ~/.config/opencode/skills
+npx @tanlinfeng/project-docs-workflow --dry-run             # 预演，不写入
+npx @tanlinfeng/project-docs-workflow --force               # 覆盖主 skill（依赖仍不覆盖）
+npx @tanlinfeng/project-docs-workflow --with-matt-skills    # 依赖改从上游装完整版（需 Node >= 22.20）
+npx @tanlinfeng/project-docs-workflow --with-matt-skills --matt-agent opencode
+
+# —— 检查依赖解析 ——
+npx @tanlinfeng/project-docs-workflow check                 # 全部可解析退出 0，否则 1
+
+# —— 卸载 ——
+npx @tanlinfeng/project-docs-workflow uninstall --dry-run   # 只出计划
+npx @tanlinfeng/project-docs-workflow uninstall             # 交互确认（默认否）
+npx @tanlinfeng/project-docs-workflow uninstall --force     # 非交互必传；只删本包安装的
+npx @tanlinfeng/project-docs-workflow uninstall --dir ~/.config/opencode/skills --force
+```
+
+- 交互式终端下、不带 `--with-matt-skills` 安装时，会**询问一次**是否装上游完整版（默认否）；管道 / CI 不提示、不挂起。
+- 卸载在非 TTY 下没有 `--force` 会**拒绝执行**（退出码 1）；`--dry-run` 从不询问、从不写入。
+
 ## 直接复制（不使用 npm 安装器）
 
 也可以完全跳过安装器，手动把 `skills/` 下需要的内容复制进你的 skills 根目录：
@@ -161,3 +185,14 @@ Optionally, `--with-matt-skills` installs the **full upstream** versions of the 
 You can also copy `skills/*` directly into your skills root (skip any existing directory name, never overwrite); copying just `skills/project-docs-workflow` works standalone thanks to the internal ref fallbacks.
 
 Resolution is two-level: use an installed skill by name if present, otherwise follow `references/deps/*.md` inside the skill. Version `2.x` aligns with template generation v2. Licensed MIT (see `LICENSE` and `NOTICE`).
+
+**Examples**
+
+```bash
+npx @tanlinfeng/project-docs-workflow                       # install (default ~/.agents/skills)
+npx @tanlinfeng/project-docs-workflow --dir <path> --dry-run
+npx @tanlinfeng/project-docs-workflow --with-matt-skills    # full upstream deps (Node >= 22.20)
+npx @tanlinfeng/project-docs-workflow check
+npx @tanlinfeng/project-docs-workflow uninstall --dry-run
+npx @tanlinfeng/project-docs-workflow uninstall --force     # only removes what this package installed
+```

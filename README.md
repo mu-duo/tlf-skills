@@ -65,7 +65,7 @@ npx --yes skills@latest add mattpocock/skills -g -y -a <agent> -s <name1> <name2
 
 ```json
 {
-  "version": "2.1.0",
+  "version": "2.2.0",
   "target": "/home/me/.agents/skills",
   "updatedAt": "2026-10-12T05:24:36.386Z",
   "entries": {

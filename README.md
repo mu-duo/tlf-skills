@@ -30,11 +30,29 @@ npx @tanlinfeng/project-docs-workflow
 | `npx @tanlinfeng/project-docs-workflow --dir <path>` | 指定 skills 根目录（默认 `~/.agents/skills`） |
 | `npx @tanlinfeng/project-docs-workflow --force` | 覆盖已存在的 `project-docs-workflow`（**仅主 skill**；依赖 skill 仍不覆盖） |
 | `npx @tanlinfeng/project-docs-workflow --dry-run` | 只打印将执行的操作，不写入任何文件 |
+| `npx @tanlinfeng/project-docs-workflow --with-matt-skills` | 可选：依赖 skill 改从上游 `mattpocock/skills` 安装**完整版**（需 Node >= 22.20） |
+| `npx @tanlinfeng/project-docs-workflow --matt-agent <name>` | 上游安装使用的 agent（默认 `codex`，落盘到其全局目录 `~/.agents/skills`） |
 | `npx @tanlinfeng/project-docs-workflow check` | 检查依赖 skill 的解析状态，全部可解析时退出码为 0，否则为 1 |
 
 ### 覆盖策略（安全优先）
 
 安装器**永不覆盖用户已存在的同名 skill**。若目标目录中已存在同名目录，会打印 `同名 skill 已存在，保留用户版本：<name>` 并跳过。只有对主 skill `project-docs-workflow` 使用 `--force` 时才会覆盖它；依赖 skill 即使加了 `--force` 也仍会跳过。
+
+### 可选：从上游安装「完整版」依赖 skill
+
+包内自带的依赖 skill 是来自 `mattpocock/skills` 的**轻量版**。如果你更想要**完整上游版本**，可以启用 `--with-matt-skills`：安装器会调用官方 `skills` CLI（npm 包 `skills`）执行
+
+```bash
+npx --yes skills@latest add mattpocock/skills -g -y -a <agent> -s <name1> <name2> ...
+```
+
+- **交互式询问**：不带 `--with-matt-skills` 时，仅当 stdout 与 stdin **都是 TTY**、动作为 `install`（非 `check`）、且非 `--dry-run` 时，才提示一次 `是否从上游安装依赖 skill 的完整版（mattpocock/skills）？[y/N] `，**默认否**（空输入或其它输入均视为否）。非 TTY / 管道 / CI 场景**完全不询问**，不会挂起。
+- **受管集合**：仅这 8 个名字参与上游安装：`grilling`、`grill-me`、`grill-with-docs`、`domain-modeling`、`tdd`、`deepwork`、`retro`、`improve-codebase-architecture`；`doc-opt` 与主 skill 不属于上游集合，维持原有行为。
+- **永不覆盖**：调用上游前会先检测这 8 个名字里哪些在目标目录中**已存在**，已存在者**原样保留、绝不提交给上游**；只有缺失的名字才会通过 `-s` 传给上游。
+- **顺序与去重**：先跑上游；随后复核上游目标目录，仍然缺失的名字才回退复制本包的轻量版。启用上游时，由上游负责的名字不会再复制轻量版；未启用时（默认）行为与之前完全一致。
+- **降级、绝不失败**：Node < 22.20、找不到 `npx`、上游非 0 退出或网络错误时，只打印中文告警并回退到缺失项的轻量版安装，整体仍以退出码 0 结束。
+- **agent 与目录注意**：上游固定以 `-a <agent> -g` 安装到该 agent 的**全局目录**（默认 `codex` → `~/.agents/skills`，正好与默认目标一致）。可用 `--matt-agent <name>` 覆盖 agent。若你传入了非默认的 `--dir`，上游部分**无法跟随 `--dir`**（仍落到 agent 全局目录），安装器会明确告警，同时 `--dir` 下的轻量版仍按原逻辑处理。
+- **dry-run**：`--dry-run --with-matt-skills` 只打印将执行的上游命令、以及哪些名字因已存在而跳过，不实际执行。
 
 ## 直接复制（不使用 npm 安装器）
 
@@ -77,6 +95,8 @@ skill 在引用依赖能力时，遵循两级解析：
 
 部分内置 skill 内容摘自 <https://github.com/mattpocock/skills>（MIT License，Copyright (c) 2026 Matt Pocock），详见 [`NOTICE`](./NOTICE)。
 
+上表中的 8 个上游依赖 skill 都可以改用完整版：安装时加 `--with-matt-skills` 即会从上游安装（见上文「可选：从上游安装『完整版』依赖 skill」）。
+
 ## 版本说明
 
 本包版本 `2.x` 与「模板生成 v2」对齐：模板结构与生成约定以 v2 为准。
@@ -91,7 +111,9 @@ MIT，见 [`LICENSE`](./LICENSE)。
 
 `project-docs-workflow` is an npm-packaged agent **skill bundle** for project documentation workflows: issue tracking, ADRs, PDRs, a terminology glossary, and the workflow that ties them together. The main skill is self-contained via internal `references/deps/*.md` fallbacks, and ships with lightweight dependency skills (trimmed from [mattpocock/skills](https://github.com/mattpocock/skills), MIT, Matt Pocock) plus a bundled `doc-opt` bonus skill.
 
-Install with `npx @tanlinfeng/project-docs-workflow` (defaults to `~/.agents/skills`; options: `--dir <path>`, `--force`, `--dry-run`, and the `check` subcommand). The installer **never overwrites** an existing skill of the same name — it skips it, preserving your version. `--force` overwrites only the main `project-docs-workflow` skill.
+Install with `npx @tanlinfeng/project-docs-workflow` (defaults to `~/.agents/skills`; options: `--dir <path>`, `--force`, `--dry-run`, `--with-matt-skills`, `--matt-agent <name>`, and the `check` subcommand). The installer **never overwrites** an existing skill of the same name — it skips it, preserving your version. `--force` overwrites only the main `project-docs-workflow` skill.
+
+Optionally, `--with-matt-skills` installs the **full upstream** versions of the dependency skills from `mattpocock/skills` via the official `skills` CLI (`npx --yes skills@latest add mattpocock/skills -g -y -a <agent> -s ...`, requires Node >= 22.20). Without the flag, an interactive TTY gets a single prompt (default **No**); non-TTY/piped/CI runs never prompt. The 8 upstream-managed names are `grilling`, `grill-me`, `grill-with-docs`, `domain-modeling`, `tdd`, `deepwork`, `retro`, `improve-codebase-architecture`; `doc-opt` and the main skill are unaffected. Any name already present is left untouched and never sent upstream, and the installer re-checks afterwards, falling back to the bundled lite copy for anything still missing. If upstream can't run (Node too old, no `npx`, non-zero exit, network error), it warns and falls back — the install still exits 0. Upstream installs into the agent's global dir (`codex` → `~/.agents/skills`), so it cannot follow a custom `--dir` (a warning is printed).
 
 You can also copy `skills/*` directly into your skills root (skip any existing directory name, never overwrite); copying just `skills/project-docs-workflow` works standalone thanks to the internal ref fallbacks.
 

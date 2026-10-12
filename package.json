@@ -1,5 +1,5 @@
 {
-  "name": "@tlf/project-docs-workflow",
+  "name": "@tanlinfeng/project-docs-workflow",
   "version": "2.0.0",
   "publishConfig": {
     "access": "public"

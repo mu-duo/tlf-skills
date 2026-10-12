@@ -1,4 +1,4 @@
-# @tlf/project-docs-workflow
+# @tanlinfeng/project-docs-workflow
 
 > 项目文档工作流 skill 包：提供 issue tracker、ADR、PDR、术语表与协作工作流约定，自带轻量依赖 skill 与 ref 兜底，可独立分发。
 
@@ -19,18 +19,18 @@ skill 本身是自包含的：主 skill 内部带 `references/deps/*.md` 兜底�
 通过 npx 直接安装到默认的 skills 根目录（`~/.agents/skills`）：
 
 ```bash
-npx @tlf/project-docs-workflow
+npx @tanlinfeng/project-docs-workflow
 ```
 
 常用选项：
 
 | 命令 | 说明 |
 | --- | --- |
-| `npx @tlf/project-docs-workflow` | 默认动作 `install`：安装主 skill 及所有依赖 skill |
-| `npx @tlf/project-docs-workflow --dir <path>` | 指定 skills 根目录（默认 `~/.agents/skills`） |
-| `npx @tlf/project-docs-workflow --force` | 覆盖已存在的 `project-docs-workflow`（**仅主 skill**；依赖 skill 仍不覆盖） |
-| `npx @tlf/project-docs-workflow --dry-run` | 只打印将执行的操作，不写入任何文件 |
-| `npx @tlf/project-docs-workflow check` | 检查依赖 skill 的解析状态，全部可解析时退出码为 0，否则为 1 |
+| `npx @tanlinfeng/project-docs-workflow` | 默认动作 `install`：安装主 skill 及所有依赖 skill |
+| `npx @tanlinfeng/project-docs-workflow --dir <path>` | 指定 skills 根目录（默认 `~/.agents/skills`） |
+| `npx @tanlinfeng/project-docs-workflow --force` | 覆盖已存在的 `project-docs-workflow`（**仅主 skill**；依赖 skill 仍不覆盖） |
+| `npx @tanlinfeng/project-docs-workflow --dry-run` | 只打印将执行的操作，不写入任何文件 |
+| `npx @tanlinfeng/project-docs-workflow check` | 检查依赖 skill 的解析状态，全部可解析时退出码为 0，否则为 1 |
 
 ### 覆盖策略（安全优先）
 
@@ -91,7 +91,7 @@ MIT，见 [`LICENSE`](./LICENSE)。
 
 `project-docs-workflow` is an npm-packaged agent **skill bundle** for project documentation workflows: issue tracking, ADRs, PDRs, a terminology glossary, and the workflow that ties them together. The main skill is self-contained via internal `references/deps/*.md` fallbacks, and ships with lightweight dependency skills (trimmed from [mattpocock/skills](https://github.com/mattpocock/skills), MIT, Matt Pocock) plus a bundled `doc-opt` bonus skill.
 
-Install with `npx @tlf/project-docs-workflow` (defaults to `~/.agents/skills`; options: `--dir <path>`, `--force`, `--dry-run`, and the `check` subcommand). The installer **never overwrites** an existing skill of the same name — it skips it, preserving your version. `--force` overwrites only the main `project-docs-workflow` skill.
+Install with `npx @tanlinfeng/project-docs-workflow` (defaults to `~/.agents/skills`; options: `--dir <path>`, `--force`, `--dry-run`, and the `check` subcommand). The installer **never overwrites** an existing skill of the same name — it skips it, preserving your version. `--force` overwrites only the main `project-docs-workflow` skill.
 
 You can also copy `skills/*` directly into your skills root (skip any existing directory name, never overwrite); copying just `skills/project-docs-workflow` works standalone thanks to the internal ref fallbacks.
 

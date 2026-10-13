@@ -1,198 +1,100 @@
 # @tanlinfeng/project-docs-workflow
 
-> 项目文档工作流 skill 包：提供 issue tracker、ADR、PDR、术语表与协作工作流约定，自带轻量依赖 skill 与 ref 兜底，可独立分发。
+面向 AI agent 的项目文档工作流 skill：帮助项目建立并维护 issue tracker、ADR、PDR、领域术语和开发工作流。主 skill 自带依赖兜底材料，可独立使用。
 
-## 这是什么
+## 快速开始
 
-`project-docs-workflow` 是一套面向 AI agent 的「项目文档工作流」skill。它把项目中的几类关键文档沉淀为可复用的模板与约定：
-
-- **issue tracker**：任务 / 缺陷的登记与追踪约定
-- **ADR**（Architecture Decision Record）：架构决策记录
-- **PDR**（Product/Project Design Record）：设计与需求记录
-- **terminology**：领域术语表，统一团队与 agent 的词汇
-- **workflow**：上述文档之间的协作与更新流程
-
-skill 本身是自包含的：主 skill 内部带 `references/deps/*.md` 兜底材料，因此即使没有安装任何依赖 skill，也能独立工作。包内同时附带了若干**轻量依赖 skill**（来自 `mattpocock/skills` 的精简版本）以及一个**附赠的 `doc-opt` skill**。
-
-## 安装
-
-通过 npx 直接安装到默认的 skills 根目录（`~/.agents/skills`）：
+**前置条件：** Node.js >= 18，并可使用 `npx`。安装器默认将 skill 安装到 `~/.agents/skills`。
 
 ```bash
 npx @tanlinfeng/project-docs-workflow
 ```
 
-常用选项：
+这一步只安装 skill，**不会初始化任何项目文档**。安装完成后，进入要设置文档的**目标项目根目录**，使用当前 agent 自己的 skill 调用方式手动运行 `project-docs-workflow`。例如可以这样请求：
 
-| 命令 | 说明 |
-| --- | --- |
-| `npx @tanlinfeng/project-docs-workflow` | 默认动作 `install`：安装主 skill 及所有依赖 skill |
-| `npx @tanlinfeng/project-docs-workflow --dir <path>` | 指定 skills 根目录（默认 `~/.agents/skills`） |
-| `npx @tanlinfeng/project-docs-workflow --force` | 覆盖已存在的 `project-docs-workflow`（**仅主 skill**；依赖 skill 仍不覆盖） |
-| `npx @tanlinfeng/project-docs-workflow --dry-run` | 只打印将执行的操作，不写入任何文件 |
-| `npx @tanlinfeng/project-docs-workflow --with-matt-skills` | 可选：依赖 skill 改从上游 `mattpocock/skills` 安装**完整版**（需 Node >= 22.20） |
-| `npx @tanlinfeng/project-docs-workflow --matt-agent <name>` | 上游安装使用的 agent（默认 `codex`，落盘到其全局目录 `~/.agents/skills`） |
-| `npx @tanlinfeng/project-docs-workflow check` | 检查依赖 skill 的解析状态，全部可解析时退出码为 0，否则为 1 |
-| `npx @tanlinfeng/project-docs-workflow uninstall` | 依据**安装清单**卸载本包安装的 skill（只删本包装的，见下文「卸载」） |
-| `npx @tanlinfeng/project-docs-workflow uninstall --dry-run` | 只打印卸载计划（将删除 / 保留哪些），不写入 |
-| `npx @tanlinfeng/project-docs-workflow uninstall --force` | 跳过交互确认；非 TTY 场景下**必须**加此参数 |
+> 请使用 project-docs-workflow skill，为当前项目初始化项目文档工作流。
 
-### 覆盖策略（安全优先）
+skill 会检查并创建缺少的内容，包括：
 
-安装器**永不覆盖用户已存在的同名 skill**。若目标目录中已存在同名目录，会打印 `同名 skill 已存在，保留用户版本：<name>` 并跳过。只有对主 skill `project-docs-workflow` 使用 `--force` 时才会覆盖它；依赖 skill 即使加了 `--force` 也仍会跳过。
+- `AGENTS.md` 中的 `## Agent skills` 区块
+- `docs/agents/issues.md`、`docs/agents/domain.md`、`docs/agents/workflow.md`
+- `docs/agents/deps/` 依赖兜底文件
+- `docs/issues/` issue 目录树
+- `docs/adr/README.md`、`docs/pdr/00-README.md` 和 `CONTEXT.md`
 
-### 可选：从上游安装「完整版」依赖 skill
+每个项目手动运行一次即可。以后模板更新时可以再次运行，以检查对齐情况并报告差异；运行是幂等的，不会改写已有内容。例外是：若 `AGENTS.md` 已存在但没有 `## Agent skills`，skill 会在文件末尾追加该区块；若区块已存在，则只比较、不重写。
 
-包内自带的依赖 skill 是来自 `mattpocock/skills` 的**轻量版**。如果你更想要**完整上游版本**，可以启用 `--with-matt-skills`：安装器会调用官方 `skills` CLI（npm 包 `skills`）执行
+## 命令与选项
 
-```bash
-npx --yes skills@latest add mattpocock/skills -g -y -a <agent> -s <name1> <name2> ...
-```
+| 场景 | 命令 / 选项 | 说明 |
+| --- | --- | --- |
+| 安装到默认目录 | `npx @tanlinfeng/project-docs-workflow` | 默认动作是安装，目标为 `~/.agents/skills`。 |
+| 预览安装 | `npx @tanlinfeng/project-docs-workflow --dry-run` | 仅显示计划，不写入文件。 |
+| 指定 skills 根目录 | `npx @tanlinfeng/project-docs-workflow --dir <path>` | 覆盖默认目录。 |
+| 覆盖主 skill | `npx @tanlinfeng/project-docs-workflow --force` | 安装时只覆盖 `project-docs-workflow`；依赖 skill 不覆盖。卸载时则表示跳过交互确认。 |
+| 安装上游完整版 | `npx @tanlinfeng/project-docs-workflow --with-matt-skills` | 可选；需 Node.js >= 22.20。自定义 agent 可加 `--matt-agent <name>`。 |
+| 检查依赖 | `npx @tanlinfeng/project-docs-workflow check` | 只检查依赖 skill 的解析状态；不检查主 skill 是否安装，也不检查项目文档是否初始化。 |
+| 预览卸载 | `npx @tanlinfeng/project-docs-workflow uninstall --dry-run` | 只显示删除计划，不询问、不删除。 |
+| 交互卸载 | `npx @tanlinfeng/project-docs-workflow uninstall` | 根据安装清单卸载本包记录的内容；TTY 下询问确认（默认否）。 |
+| 非交互卸载 | `npx @tanlinfeng/project-docs-workflow uninstall --force` | 跳过确认；非 TTY 下必须显式传入 `--force`。 |
 
-- **交互式询问**：不带 `--with-matt-skills` 时，仅当 stdout 与 stdin **都是 TTY**、动作为 `install`（非 `check`）、且非 `--dry-run` 时，才提示一次 `是否从上游安装依赖 skill 的完整版（mattpocock/skills）？[y/N] `，**默认否**（空输入或其它输入均视为否）。非 TTY / 管道 / CI 场景**完全不询问**，不会挂起。
-- **受管集合**：仅这 8 个名字参与上游安装：`grilling`、`grill-me`、`grill-with-docs`、`domain-modeling`、`tdd`、`deepwork`、`retro`、`improve-codebase-architecture`；`doc-opt` 与主 skill 不属于上游集合，维持原有行为。
-- **永不覆盖**：调用上游前会先检测这 8 个名字里哪些在目标目录中**已存在**，已存在者**原样保留、绝不提交给上游**；只有缺失的名字才会通过 `-s` 传给上游。
-- **顺序与去重**：先跑上游；随后复核上游目标目录，仍然缺失的名字才回退复制本包的轻量版。启用上游时，由上游负责的名字不会再复制轻量版；未启用时（默认）行为与之前完全一致。
-- **降级、绝不失败**：Node < 22.20、找不到 `npx`、上游非 0 退出或网络错误时，只打印中文告警并回退到缺失项的轻量版安装，整体仍以退出码 0 结束。
-- **agent 与目录注意**：上游固定以 `-a <agent> -g` 安装到该 agent 的**全局目录**（默认 `codex` → `~/.agents/skills`，正好与默认目标一致）。可用 `--matt-agent <name>` 覆盖 agent。若你传入了非默认的 `--dir`，上游部分**无法跟随 `--dir`**（仍落到 agent 全局目录），安装器会明确告警，同时 `--dir` 下的轻量版仍按原逻辑处理。
-- **dry-run**：`--dry-run --with-matt-skills` 只打印将执行的上游命令、以及哪些名字因已存在而跳过，不实际执行。
+更多安装依赖的选项及行为见下方「高级细节」。
 
-## 卸载
+## 卸载安全须知
 
-安装时，本包会在 `<target>/.project-docs-workflow.install.json`（`<target>` 为 `--dir` 或默认 `~/.agents/skills`）写入一份**安装清单**，记录每个被处理过的 skill 及其**归属**。卸载完全依据这份清单，而不是靠猜测。
+安装器会在目标 skills 根目录写入 `<target>/.project-docs-workflow.install.json`，卸载时依据清单记录的 skill **名称和操作类型**决定删除哪些路径：`installed` / `forced` 项会删除，`skipped` 项保留。清单记录的是名称和操作，**不记录内容哈希**：如果你之后把自己或其他工具的内容放到一个记录为本包安装的同名路径下，卸载仍会删除该路径。运行卸载前请先检查清单和目标目录；不确定时先使用 `--dry-run`。
 
-清单形如：
+如果清单不存在，卸载器只会处理主 skill `project-docs-workflow`，不会推测或删除其他依赖。实际卸载中，只有存在可移除条目时才会在完成后删除清单；dry-run、取消操作和没有可移除条目的运行都会保留清单。清单里的上游完整版会尽量通过 `skills` CLI 卸载；无法调用 CLI 时会回退为直接删除，可能留下上游锁文件中的过期条目。
+
+## 手动复制
+
+也可以不使用 npm 安装器，直接将 `skills/` 中需要的目录复制到 skills 根目录；只复制 `skills/project-docs-workflow` 也可以独立工作，因为主 skill 内含依赖 ref 兜底。手动复制不创建安装清单，也**不由安装器强制执行不覆盖规则**。之后运行 `uninstall` 时无法识别手动复制的依赖；若没有安装清单，它只会处理主 skill。
+
+## English summary
+
+`@tanlinfeng/project-docs-workflow` is an agent skill for setting up and maintaining project documentation workflows: issues, ADRs, PDRs, domain terminology, and development practices. Install it with `npx @tanlinfeng/project-docs-workflow` (Node.js >= 18; default destination `~/.agents/skills`). Installation does not initialize a project: from the target project root, manually invoke the skill using your agent's own skill mechanism. It creates missing documentation, reports drift on reruns, and does not overwrite existing content, except that it appends a missing `## Agent skills` block to an existing `AGENTS.md`.
+
+The installer supports custom directories, dry runs, dependency checks, and manifest-based uninstall. Uninstall removes recorded package-owned paths by name, not by content hash; review the manifest or use a dry run before deleting anything. See the advanced details below for optional upstream dependencies and manifest behavior.
+
+<details>
+<summary>高级细节</summary>
+
+### 可选上游依赖
+
+本包默认安装自带的轻量依赖 skill。可以通过 `--with-matt-skills` 改为尝试从 `mattpocock/skills` 安装完整版；上游 `skills` CLI 需要 Node.js >= 22.20。没有传此选项时，只有在 stdin 和 stdout 都是 TTY、执行安装且不是 dry-run 时，才会询问一次是否安装上游版本，默认否；非 TTY 场景不询问。可以用 `--matt-agent <name>` 指定上游 CLI 的 agent，默认是 `codex`。
+
+仅以下 8 个依赖名参与上游安装：`grilling`、`grill-me`、`grill-with-docs`、`domain-modeling`、`tdd`、`deepwork`、`retro`、`improve-codebase-architecture`。主 skill 和 `doc-opt` 不属于上游集合。目标目录中已存在的同名 skill 路径会保留，不会提交给上游。安装器通过 `npx --yes skills@latest` 调用上游；如果 Node 版本不足、找不到 `npx`、上游命令失败或网络错误，会回退复制缺失项的轻量版本，包安装仍以退出码 0 结束。
+
+**上游安装目录注意：** 上游 CLI 使用 `-g -a <agent>`，安装到所选 agent 的全局 skills 目录，而不保证与 `--dir` 相同。安装器的安装后复核针对 `--dir`：两处目录不一致时，可能在 agent 全局目录安装完整版，同时在 `--dir` 下复制轻量版；`--dir` 中的清单只记录该目录里的项目，不记录独立的全局安装。这种错配既可能由自定义 `--dir` 引起，也可能由将 `--matt-agent` 改为其他 agent 引起。启用 `--with-matt-skills` 前，请确认 `--dir` 与所选 agent 的全局 skills 目录一致；否则建议使用默认轻量版。
+
+### 安装清单格式
+
+清单合并记录每个 skill 名称的处理结果，不含内容哈希。字段包括包版本、目标目录、更新时间和按名称索引的条目；条目记录类型、操作以及上游 agent（适用时）。示例：
 
 ```json
 {
-  "version": "2.2.0",
+  "version": "<package-version>",
   "target": "/home/me/.agents/skills",
-  "updatedAt": "2026-10-12T05:24:36.386Z",
+  "updatedAt": "<iso-timestamp>",
   "entries": {
-    "project-docs-workflow": { "kind": "main",     "action": "installed", "at": "…" },
-    "tdd":                    { "kind": "lite",     "action": "installed", "at": "…" },
-    "doc-opt":                { "kind": "doc-opt",  "action": "installed", "at": "…" },
-    "deepwork":               { "kind": "lite",     "action": "skipped",   "at": "…" },
-    "retro":                  { "kind": "upstream", "action": "installed", "agent": "codex", "at": "…" }
+    "project-docs-workflow": { "kind": "main", "action": "installed", "at": "…" },
+    "tdd": { "kind": "lite", "action": "installed", "at": "…" },
+    "deepwork": { "kind": "lite", "action": "skipped", "at": "…" },
+    "retro": { "kind": "upstream", "action": "installed", "agent": "codex", "at": "…" }
   }
 }
 ```
 
-- `kind`：`main` / `lite` / `doc-opt`（本包复制的轻量版）/ `upstream`（委托上游 `skills` CLI 安装的完整版）。
-- `action`：`installed`（本次由本包创建）、`forced`（被 `--force` 覆盖，仍属本包）、`skipped`（安装时已存在，本包原样保留，**永不删除**）。
-- 每次成功 `install` 都会**合并更新**清单（不会丢失旧条目）；`--dry-run` 不写清单。
+`kind` 可为 `main`、`lite`、`doc-opt` 或 `upstream`；`action` 可为 `installed`、`forced` 或 `skipped`。卸载按记录的路径/名称操作：`skipped` 以及未知状态的条目保留。上游项会尽量通过 `skills` CLI 批量移除；若 CLI 无法运行或返回失败，安装器会直接删除对应目录作为回退，这可能使 `~/.agents/.skill-lock.json` 留有过期记录。
 
-**归属规则（安全优先）**：`uninstall` 只删除清单中 `action` 为 `installed` / `forced` 的名字——无论是本包复制的轻量版，还是本包委托上游安装的完整版。凡是安装时**已存在**（记为 `skipped`）的名字，一律不碰；首次记为 `skipped` 的名字即使后续再次安装也始终保持 `skipped`。
+### 依赖解析与来源
 
-用法：
+`check` 逐项检查依赖是否能通过目标目录中同名 skill 的 `SKILL.md` 解析，或由主 skill 内置的 `references/deps/*.md` 兜底。每项至少有一种解析方式即通过；这不是主 skill 安装检查，也不是项目初始化检查。
 
-```bash
-npx @tanlinfeng/project-docs-workflow uninstall [--dir <path>] [--dry-run] [--force]
-```
+内置轻量依赖来自 [mattpocock/skills](https://github.com/mattpocock/skills)（MIT，Matt Pocock）；`doc-opt` 是本包附带的 skill。主 skill 对引用能力先按名解析已安装 skill，不存在时使用内部 ref 兜底。详见 [`NOTICE`](./NOTICE)。
 
-- **确认**：在交互式终端会询问一次 `确认卸载本包安装的 skill？[y/N] `，**默认否**。非交互式（管道 / CI / 非 TTY）**拒绝执行**，除非显式传入 `--force`。`--dry-run` 从不询问、从不写入。
-- **删除方式**：`main` / `lite` / `doc-opt` 直接删除 `<target>/<name>` 目录。`upstream` 的完整版**优先委托上游** `skills` CLI 卸载（按 agent 批量）：`npx --yes skills@latest remove <names> -g -y -a <agent>`；当无法委托时（Node < 22.20、找不到 `npx`、上游非 0 退出）会打印告警并**回退直接删除**目录，并提示上游锁文件 `~/.agents/.skill-lock.json` 可能残留过期条目，可用 `npx skills@latest list` 核对。
-- **收尾**：处理完成后删除清单文件本身；**不会**删除目标目录本身，其它文件与空目录保持不动。
-- **幂等**：没有可删项时打印友好提示并以退出码 0 结束。若**清单缺失**，会告警「无清单，尽力而为」，此时**仅**在 `project-docs-workflow` 存在时询问是否删除它，其余 skill 一律不动。
-
-## 用法示例
-
-```bash
-# —— 安装 ——
-npx @tanlinfeng/project-docs-workflow                       # 装到默认 ~/.agents/skills（轻量依赖）
-npx @tanlinfeng/project-docs-workflow --dir ~/.config/opencode/skills
-npx @tanlinfeng/project-docs-workflow --dry-run             # 预演，不写入
-npx @tanlinfeng/project-docs-workflow --force               # 覆盖主 skill（依赖仍不覆盖）
-npx @tanlinfeng/project-docs-workflow --with-matt-skills    # 依赖改从上游装完整版（需 Node >= 22.20）
-npx @tanlinfeng/project-docs-workflow --with-matt-skills --matt-agent opencode
-
-# —— 检查依赖解析 ——
-npx @tanlinfeng/project-docs-workflow check                 # 全部可解析退出 0，否则 1
-
-# —— 卸载 ——
-npx @tanlinfeng/project-docs-workflow uninstall --dry-run   # 只出计划
-npx @tanlinfeng/project-docs-workflow uninstall             # 交互确认（默认否）
-npx @tanlinfeng/project-docs-workflow uninstall --force     # 非交互必传；只删本包安装的
-npx @tanlinfeng/project-docs-workflow uninstall --dir ~/.config/opencode/skills --force
-```
-
-- 交互式终端下、不带 `--with-matt-skills` 安装时，会**询问一次**是否装上游完整版（默认否）；管道 / CI 不提示、不挂起。
-- 卸载在非 TTY 下没有 `--force` 会**拒绝执行**（退出码 1）；`--dry-run` 从不询问、从不写入。
-
-## 直接复制（不使用 npm 安装器）
-
-也可以完全跳过安装器，手动把 `skills/` 下需要的内容复制进你的 skills 根目录：
-
-- 逐个复制 `skills/*` 中的目录；**遇到同名目录就跳过，绝不覆盖用户版本**。
-- 也可以**只复制 `skills/project-docs-workflow` 这一个目录**：它会通过内部的 ref 兜底（`references/deps/*.md`）独立工作，无需其他依赖 skill。
-
-## 两级解析协议
-
-skill 在引用依赖能力时，遵循两级解析：
-
-1. **按名解析**：如果 skills 根目录下存在同名 skill（`<target>/<name>/SKILL.md`），直接使用该已安装的 skill。
-2. **ref 兜底**：否则，回退到主 skill 内部自带的 `references/deps/<fallback>.md`。
-
-| 引用名 | 兜底文件 |
-| --- | --- |
-| `grilling` | `grilling.md` |
-| `grill-me` | `grilling.md` |
-| `grill-with-docs` | `grilling.md`、`domain-modeling.md` |
-| `domain-modeling` | `domain-modeling.md` |
-| `tdd` | `tdd.md` |
-| `deepwork` | `boundaries.md` |
-| `retro` | `boundaries.md` |
-| `doc-opt` | `doc-opt.md` |
-| `improve-codebase-architecture` | `boundaries.md` |
-
-`check` 子命令会对照上表逐个报告「按名可解析（skill 已安装）」或「ref 兜底可用」，只要每个名字能通过任一级解析即视为通过。
-
-## 内置 skill 与来源
-
-| skill | 说明 | 来源 |
-| --- | --- | --- |
-| `project-docs-workflow` | 主 skill：issue / ADR / PDR / 术语 / 工作流 | 本包 |
-| `grilling`、`grill-me`、`grill-with-docs` | 需求拷问相关 | `mattpocock/skills` 精简版（MIT，Matt Pocock） |
-| `domain-modeling` | 领域建模 | 同上 |
-| `tdd` | 测试驱动开发 | 同上 |
-| `deepwork`、`retro`、`improve-codebase-architecture` | 精简/占位版本 | 同上 |
-| `doc-opt` | 文档优化（附赠完整版） | 本包附赠 |
-
-部分内置 skill 内容摘自 <https://github.com/mattpocock/skills>（MIT License，Copyright (c) 2026 Matt Pocock），详见 [`NOTICE`](./NOTICE)。
-
-上表中的 8 个上游依赖 skill 都可以改用完整版：安装时加 `--with-matt-skills` 即会从上游安装（见上文「可选：从上游安装『完整版』依赖 skill」）。
-
-## 版本说明
-
-本包版本 `2.x` 与「模板生成 v2」对齐：模板结构与生成约定以 v2 为准。
+</details>
 
 ## License
 
 MIT，见 [`LICENSE`](./LICENSE)。
-
----
-
-## English summary
-
-`project-docs-workflow` is an npm-packaged agent **skill bundle** for project documentation workflows: issue tracking, ADRs, PDRs, a terminology glossary, and the workflow that ties them together. The main skill is self-contained via internal `references/deps/*.md` fallbacks, and ships with lightweight dependency skills (trimmed from [mattpocock/skills](https://github.com/mattpocock/skills), MIT, Matt Pocock) plus a bundled `doc-opt` bonus skill.
-
-Install with `npx @tanlinfeng/project-docs-workflow` (defaults to `~/.agents/skills`; options: `--dir <path>`, `--force`, `--dry-run`, `--with-matt-skills`, `--matt-agent <name>`, and the `check` / `uninstall` subcommands). The installer **never overwrites** an existing skill of the same name — it skips it, preserving your version. `--force` overwrites only the main `project-docs-workflow` skill.
-
-Every successful install writes an **install manifest** at `<target>/.project-docs-workflow.install.json` recording, per skill name, the `kind` (`main`/`lite`/`doc-opt`/`upstream`) and `action` (`installed`/`forced`/`skipped`), merged across re-installs. `uninstall [--dir <path>] [--dry-run] [--force]` removes **only** the names this package owns (`installed`/`forced`) and never touches names that pre-existed (`skipped`, decided by the record, not by guessing). On a TTY it asks once (`[y/N]`, default No); on a non-TTY it refuses unless `--force` is given. Lite/main/doc-opt copies are deleted directly; upstream full versions are removed via the `skills` CLI (`npx --yes skills@latest remove <names> -g -y -a <agent>`), falling back to direct deletion with a warning about a possibly-stale `~/.agents/.skill-lock.json` if delegation is impossible. `--dry-run` prints the plan and never prompts or writes; the manifest is deleted afterwards, the target directory itself is left in place.
-
-Optionally, `--with-matt-skills` installs the **full upstream** versions of the dependency skills from `mattpocock/skills` via the official `skills` CLI (`npx --yes skills@latest add mattpocock/skills -g -y -a <agent> -s ...`, requires Node >= 22.20). Without the flag, an interactive TTY gets a single prompt (default **No**); non-TTY/piped/CI runs never prompt. The 8 upstream-managed names are `grilling`, `grill-me`, `grill-with-docs`, `domain-modeling`, `tdd`, `deepwork`, `retro`, `improve-codebase-architecture`; `doc-opt` and the main skill are unaffected. Any name already present is left untouched and never sent upstream, and the installer re-checks afterwards, falling back to the bundled lite copy for anything still missing. If upstream can't run (Node too old, no `npx`, non-zero exit, network error), it warns and falls back — the install still exits 0. Upstream installs into the agent's global dir (`codex` → `~/.agents/skills`), so it cannot follow a custom `--dir` (a warning is printed).
-
-You can also copy `skills/*` directly into your skills root (skip any existing directory name, never overwrite); copying just `skills/project-docs-workflow` works standalone thanks to the internal ref fallbacks.
-
-Resolution is two-level: use an installed skill by name if present, otherwise follow `references/deps/*.md` inside the skill. Version `2.x` aligns with template generation v2. Licensed MIT (see `LICENSE` and `NOTICE`).
-
-**Examples**
-
-```bash
-npx @tanlinfeng/project-docs-workflow                       # install (default ~/.agents/skills)
-npx @tanlinfeng/project-docs-workflow --dir <path> --dry-run
-npx @tanlinfeng/project-docs-workflow --with-matt-skills    # full upstream deps (Node >= 22.20)
-npx @tanlinfeng/project-docs-workflow check
-npx @tanlinfeng/project-docs-workflow uninstall --dry-run
-npx @tanlinfeng/project-docs-workflow uninstall --force     # only removes what this package installed
-```

@@ -1,6 +1,6 @@
 # Current-state docs
 
-Current = what the product **is now, as built**: actual capabilities, key behavior, and limits, each stated against a project-specified baseline. A peer tree to the PDR (`pdr.md`), not a section of it. Default profile; overridable in project copies.
+Current = what the product **is now, as built**: actual capabilities, key behavior, and limits, each stated against a project-specified baseline. A peer tree to the PDR (`pdr.md`), not a section of it. Default profile; overridable in project copies. Current is in the default render scope, together with the PDR tree and the complete ADR set (`rendering.md`).
 
 ## Structure
 
@@ -18,7 +18,7 @@ The Current tree is **not numbered against PDR**: modules may align by name, but
 - **Limits and known constraints** — what does not work, downside, boundaries, caveats.
 - **Verification confidence** — how claims were established (tested / observed / inferred). Declare the norm centrally in the overview; state confidence per claim only where it matters (an exception), not repetitively for every claim.
 
-Do not record: task logs, todos, planned / future capabilities, per-issue progress. Those live in `docs/issues/` and the PDR.
+Do not record: task logs, todos, planned / future capabilities, per-issue progress. Those live in `docs/issues/` and the PDR. An issue wrap-up updates the affected Current **facts in place**; it never inserts a self-link to the issue or task history.
 
 ## Sync
 
@@ -29,6 +29,8 @@ Do not record: task logs, todos, planned / future capabilities, per-issue progre
 ## Relationship to PDR
 
 - PDR = target (`pdr.md`); Current = as-built. Two independent, user-readable trees; neither embeds the other.
+- **Semantic / navigation / contract links** between the trees are expected — write ordinary relative Markdown links; there is no file/paragraph mirroring.
+- A Current doc may point at an ADR with a **descriptive phrase + a stable path link** (e.g. `支持[离线使用](../../adr/0003-offline.md)`); the description is written independently and the ADR's rationale is not transcluded. ADR links are optional, and the profile never infers them (see `rendering.md`).
 - Gap comparison reads both and yields **candidate** tasks for the user to choose — not every difference is a missing feature. A difference may be drift, a quality gap, unverified behavior, or an outdated target. An already-met coarse goal can still be refined; do not invent gaps.
 
 ## Adoption (existing projects)

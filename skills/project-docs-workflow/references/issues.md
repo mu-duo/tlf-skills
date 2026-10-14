@@ -40,6 +40,7 @@ docs/issues/
 - `## Log` — dated lines appended in place; existing lines are history and never rewritten. Record only key events, briefly: scope change, blocker, handoff, abandonment. Mechanical per-step entries are not required. A skipped-skeleton rationale on a pure fix is a legitimate key entry.
 - `Status` is updated in place.
 - Work that changes an ADR or PDR must sync those documents.
+- An issue may reference FRs / docs. A wrap-up that updates the Current tree changes **facts only** — it never inserts a self-link to the issue or task history (see `current.md`).
 - If the skill is installed, the skeleton lives at `~/.agents/skills/project-docs-workflow/assets/templates/entries/issue-entry.md`; otherwise create from the format above.
 
 ## `suggestion` routing

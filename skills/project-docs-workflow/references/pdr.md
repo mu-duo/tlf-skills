@@ -24,13 +24,14 @@ PDR = target-state product spec ("产品规格书"): the product's currently-eff
 ## PDR ↔ ADR boundary
 
 - PDR = what the product should be (target state).
-- ADR = decisions with rationale and trade-offs.
+- ADR = decisions with rationale and trade-offs. The PDR may point at one with a **descriptive phrase + a stable path link** (e.g. `支持[离线使用](../../adr/0003-offline.md)`); the description is written independently and the ADR's rationale is **not** transcluded or summarized. No requirement must carry an ADR, and the profile never infers ADR links automatically (see `rendering.md`).
 - A suggestion's acceptance routes into an ADR or the PDR (see `issues.md`).
 
 ## PDR ↔ Current boundary
 
 - Two independent, user-readable trees: `docs/pdr/` (target) and `docs/current/` (as-built). Neither embeds the other.
-- Modules may align by name, but there is no file/paragraph mirroring; link module / FR references explicitly, many-to-many. See `current.md`.
+- Modules may align by name, but there is no file/paragraph mirroring; link module / FR references explicitly, many-to-many. **Semantic / navigation / contract links** between the trees are expected — use ordinary relative Markdown links. See `current.md`.
+- PDR and Current are both in the default render scope, together with the complete ADR set; see `rendering.md`.
 
 ## Example (DA_AGENT) — not part of the general rules
 

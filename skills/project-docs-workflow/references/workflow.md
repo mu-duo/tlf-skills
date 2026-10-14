@@ -35,7 +35,7 @@ The default shape for developing a single issue: align, build a thin slice, fill
 ## Docs sync hooks
 
 - **Plan**: gap → issue candidates land in `docs/issues`; the entry's 关联 records the module / FR.
-- **Wrap-up review**: check the change's effect on the Current tree (see `current.md`). If the completed change is part of the described state, update the affected Current docs; otherwise leave them and record a pending sync item in the issue. Baseline advancement refreshes the relevant Current docs; actual state unchanged → no edit. Touch `adr` / `context` / `issues` / `agents` when the change warrants it.
+- **Wrap-up review**: check the change's effect on the Current tree (see `current.md`). If the completed change is part of the described state, update the affected Current docs **in place — facts only, never a self-link to the issue or task history**; otherwise leave them and record a pending sync item in the issue. Baseline advancement refreshes the relevant Current docs; actual state unchanged → no edit. Touch `adr` / `context` / `issues` / `agents` when the change warrants it.
 - **Archival**: archive the issue per `issues.md` when done / dropped.
 
 ## Boundaries
@@ -43,4 +43,4 @@ The default shape for developing a single issue: align, build a thin slice, fill
 - Large or high-risk multi-phase work → `deepwork`（未安装则按 `references/deps/boundaries.md` 执行）; never stack it with this flow.
 - `tdd`（未安装则按 `references/deps/tdd.md` 执行）nests inside Details; seam confirmation folds into the Plan alignment (no second gate).
 - `retro`（未安装则按 `references/deps/boundaries.md` 执行）owns session / agent retrospectives; the fifth step is docs sync only.
-- See `coexistence.md` for how this profile sits beside these skills.
+- Docs HTML rendering is optional and manual (`rendering.md`); it never runs as part of this flow — no auto-build on doc edits. See `coexistence.md` for how this profile sits beside these skills.

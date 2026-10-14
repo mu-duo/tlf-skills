@@ -18,7 +18,8 @@ PDR（Product Design Requirements）= 产品最终功能与形态规格书（目
 ## 组织约定
 
 - 编号即阅读顺序：每模块 = 规格层（`00-README` / `01-spec` / `02-interfaces` / `03-nfr`）+ 设计子区（`design/`，机制级设计，不参与编号）。
-- 现状不在本集内：见平级的 [docs/current/](../current/00-README.md)；两边的模块 / FR 用链接关联，多对多，不逐文件对应。
+- 现状不在本集内：见平级的 [docs/current/](../current/00-README.md)；两边的模块 / FR 用链接关联（语义 / 导航 / 契约链接皆可），多对多，不逐文件对应。
+- 需要指向某项决策时，用描述性短语 + 指向稳定 ADR 文件的普通 Markdown 链接（例：支持 [离线使用](../adr/0003-offline.md)）；不转述 ADR 理由，不要求每条 FR 都挂 ADR，也不自动推断链接。
 - 模块外区：架构总纲、调研等跨模块材料按需单列，不占模块编号。
 
 ## 阅读顺序

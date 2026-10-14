@@ -47,7 +47,7 @@ issue 完成时做一次轻量的文档同步清单（`pdr`、`current`、`adr`�
 - 步骤记录在 issue 的 `## 步骤` 清单（就地更新）；仅在关键节点（范围变化 / 阻塞 / 交接 / 放弃）记 Log，不需要逐步机械追加。
 - session 为软约束：session = 用户注意力窗口，节奏由用户掌握；agent 不得吞并超出对齐范围的工作。
 - 恢复时先读 issue 的 `## 步骤` 与 `## Log`，与用户确认续点后再继续。
-- issue 收尾时对照变更检查 Current：若变更已包含在选定基线内则更新 `docs/current/` 对应文件，否则不更新，在 issue 记待同步项；并按 `issues.md` 归档。
+- issue 收尾时对照变更检查 Current：若变更已包含在选定基线内则更新 `docs/current/` 对应文件（只改事实，不插入指向 issue 的自链接或任务历史），否则不更新，在 issue 记待同步项；并按 `issues.md` 归档。
 
 ## 边界
 
@@ -61,3 +61,4 @@ issue 完成时做一次轻量的文档同步清单（`pdr`、`current`、`adr`�
 - PDR 目标文档集：`../pdr/00-README.md`
 - 现状文档集（Current）：`../current/00-README.md`
 - 依赖兜底文档（外部技能未安装时）：`docs/agents/deps/`
+- 文档 HTML 渲染（可选、手动）：独立技能 `docs-html-view`；本流程不自动安装 / 构建 / 渲染。

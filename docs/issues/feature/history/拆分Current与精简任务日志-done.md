@@ -1,6 +1,6 @@
 # 拆分 Current 与精简任务日志
 
-> 完成: 2026-10-14 ｜ 责任: agent ｜ 创建: 2026-10-14 ｜ 关联: [模糊PDR与探索式开发模型](../../suggestion/agent/模糊PDR与探索式开发模型.md) ｜ [PDR与Current手动渲染Skill](../../suggestion/agent/PDR与Current手动渲染Skill.md)
+> 完成: 2026-10-14 ｜ 责任: agent ｜ 创建: 2026-10-14 ｜ 关联: [模糊PDR与探索式开发模型](../../suggestion/agent/模糊PDR与探索式开发模型.md) ｜ [文档HTML渲染Skill](文档HTML渲染Skill-done.md)
 
 ## 背景与目标
 

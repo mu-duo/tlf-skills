@@ -1,6 +1,6 @@
 # 模糊PDR与探索式开发模型
 
-> 责任: agent ｜ 创建: 2026-10-14 ｜ 关联: [测试治理与可选Skill](测试治理与可选Skill.md) ｜ [拆分Current与精简任务日志](../../feature/history/拆分Current与精简任务日志-done.md)
+> 责任: agent ｜ 创建: 2026-10-14 ｜ 关联: [测试治理与可选Skill](测试治理与可选Skill.md) ｜ [拆分Current与精简任务日志](../../feature/history/拆分Current与精简任务日志-done.md) ｜ [文档HTML渲染Skill](../../feature/history/文档HTML渲染Skill-done.md)
 
 ## 背景
 

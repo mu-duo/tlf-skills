@@ -21,7 +21,7 @@ const UPSTREAM_REPO = "mattpocock/skills";
 const UPSTREAM_DEFAULT_AGENT = "codex";
 // 上游安装器要求 Node >= 22.20（本项目不引入 semver 依赖，手工比较 major/minor）。
 const UPSTREAM_MIN_NODE = { major: 22, minor: 20 };
-// 仅这 8 个依赖 skill 属于上游集合；doc-opt 与主 skill 不属于。
+// 仅这 8 个依赖 skill 属于上游集合；doc-opt、docs-html-view 与主 skill 不属于。
 const MATT_DEP_NAMES = [
   "grilling",
   "grill-me",
@@ -343,9 +343,15 @@ function removeManifest(target) {
   }
 }
 
-// 依赖 skill 的 kind：doc-opt 单列，其余依赖（含其它 skills/* 目录）视为 lite。
+// 依赖 skill 的 kind：本包附带的第一方 skill 各用独立 kind（doc-opt、docs-html-view），
+// 其余非上游目录视为轻量依赖 lite；这样不会把第一方 skill 误记为 lite（上游轻量）归属。
+const FIRST_PARTY_DEP_KINDS = {
+  "doc-opt": "doc-opt",
+  "docs-html-view": "docs-html-view",
+};
+
 function depKind(name) {
-  return name === "doc-opt" ? "doc-opt" : "lite";
+  return FIRST_PARTY_DEP_KINDS[name] || "lite";
 }
 
 // —— 上游卸载命令组装 ——

@@ -20,7 +20,7 @@ skill 会检查并创建缺少的内容，包括：
 - `docs/agents/issues.md`、`docs/agents/domain.md`、`docs/agents/workflow.md`
 - `docs/agents/deps/` 依赖兜底文件
 - `docs/issues/` issue 目录树
-- `docs/adr/README.md`、`docs/pdr/00-README.md` 和 `CONTEXT.md`
+- `docs/adr/README.md`、`docs/pdr/00-README.md`、`docs/current/00-README.md` 和 `CONTEXT.md`
 
 每个项目手动运行一次即可。以后模板更新时可以再次运行，以检查对齐情况并报告差异；运行是幂等的，不会改写已有内容。例外是：若 `AGENTS.md` 已存在但没有 `## Agent skills`，skill 会在文件末尾追加该区块；若区块已存在，则只比较、不重写。
 

@@ -26,7 +26,7 @@ docs/issues/
 - Body: background and goal, as prose.
 - `## 完成判据` — completion criteria.
 - `## 结果（完成后填写，可选）` — outcome, filled in on completion (optional).
-- `## 步骤` — the five-step checklist from `workflow.md`; update it in place, and append a Log line on every step change. Materialized (Chinese) copies show:
+- `## 步骤` — the five-step checklist from `workflow.md`; update it in place. Step changes need no Log entry by themselves. Materialized (Chinese) copies show:
 
   ```
   ## 步骤
@@ -37,7 +37,7 @@ docs/issues/
   - [ ] 回顾（收尾回顾：文档同步）
   ```
 
-- `## Log` — dated lines appended in place; never rewrite history lines.
+- `## Log` — dated lines appended in place; existing lines are history and never rewritten. Record only key events, briefly: scope change, blocker, handoff, abandonment. Mechanical per-step entries are not required. A skipped-skeleton rationale on a pure fix is a legitimate key entry.
 - `Status` is updated in place.
 - Work that changes an ADR or PDR must sync those documents.
 - If the skill is installed, the skeleton lives at `~/.agents/skills/project-docs-workflow/assets/templates/entries/issue-entry.md`; otherwise create from the format above.

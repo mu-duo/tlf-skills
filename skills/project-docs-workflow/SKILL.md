@@ -1,6 +1,6 @@
 ---
 name: project-docs-workflow
-description: Initialize or align a project's documentation workflow — issue tracker, ADRs, PDR product specs (goal/current), recommended five-step development workflow, and domain terminology. Run manually once per project (idempotent); creates missing files and reports alignment without overwriting.
+description: Initialize or align a project's documentation workflow — issue tracker, ADRs, PDR target specs with a separate Current status tree, recommended five-step development workflow, and domain terminology. Run manually once per project (idempotent); creates missing files and reports alignment without overwriting.
 disable-model-invocation: true
 ---
 
@@ -32,7 +32,7 @@ Canonical wording (templates use the same line with the deps path parameterized)
 Run from the target project root (`cwd`).
 
 1. **Inventory** every artifact in the checklist below. Classify each as *missing* or *existing*. Done when every row has a classification.
-2. **Create missing** files from their template, and create the issue directory tree.
+2. **Create missing** files from their template, and create the issue directory tree. Create the `docs/current/00-README.md` overview when missing — do not force module files.
 2b. **Fill placeholders**: fill only obvious, determinable *fill-in* placeholders (e.g. project name from the repo/directory name); list every remaining fill-in placeholder under `Next:` in the report. Format notation such as `<标题>` is documentation, not a placeholder — skip it.
 3. **Compare existing** files against their template: classify *aligned*, or *diff* with the specific differences listed.
 4. **Report** using the format below.
@@ -49,12 +49,14 @@ Run from the target project root (`cwd`).
 | `docs/issues/` directory tree | none — create dirs (below) |
 | `docs/adr/README.md` | `assets/templates/project/adr-readme.md` |
 | `docs/pdr/00-README.md` | `assets/templates/project/pdr-00-readme.md` |
+| `docs/current/00-README.md` | `assets/templates/project/current-00-readme.md` |
 | `CONTEXT.md` | `assets/templates/project/context.md` |
 
 - Create `AGENTS.md` only if missing — its whole content is this block; a file containing only this section is intentional (projects add their own guidance around it). If `AGENTS.md` exists: heading `## Agent skills` present → compare the block in place (never edit); absent → append the block at end of file, separated by one blank line. Only `AGENTS.md` is touched, never `CLAUDE.md`.
 - The provenance line sits immediately under the `## Agent skills` heading and is intentional — keep it (it identifies materialized files and their generation).
 - Issue tree: `bug/{human,agent,history}`, `feature/{human,agent,history}`, `chore/{human,agent,history}`, `suggestion/{human,agent}`; add a `.gitkeep` to each leaf directory (one containing no files). Do not run `git init`.
 - Dep fallbacks: init copies `references/deps/*` into the project's `docs/agents/deps/` as a whole-directory copy (content unchanged), so target projects are self-sufficient even without this skill installed.
+- Current tree: init creates the `docs/current/00-README.md` overview when missing; it does **not** force module files — add them as modules need describing. The Current tree is peer to PDR, never embedded in it.
 - Domain glossaries (e.g. `docs/common/glossary.md`) are **not** scaffolded; the rules cover them and projects create them on demand.
 
 ### Alignment comparison (existing files)
@@ -63,6 +65,8 @@ Compare **rules, not bytes**. An existing file is **aligned** when every require
 
 **diff** = a required rule/section is missing, or a default rule is contradicted. Diffs are informational; init never auto-fixes. One bullet per file: `- <file>: <missing or contradicted rule>`.
 
+**Legacy drift** (existing projects): embedded current/progress material found in an existing project — e.g. per-module `04-current.md`, a `当前进展` section in the PDR README — is reported as informational legacy drift. init never moves, rewrites, or deletes it, and there is no installation migration script; migrating to a separate Current tree requires the user's explicit authorization.
+
 Ignore in every comparison: the provenance line; filled placeholders; index/table rows; module/term/entry names; language; extra content.
 
 Required elements per artifact:
@@ -70,9 +74,10 @@ Required elements per artifact:
 - `AGENTS.md` block: `## Agent skills` heading + three subsections (`### Issue tracker`, `### Domain docs`, `### Development workflow`).
 - `docs/agents/issues.md`: directory contract; human/agent responsibility; entry format (`Status:` line, `## 完成判据`, `## 步骤`, `## Log`; the `## 结果` section itself is optional); archiving suffixes (`-done`/`-drop`); suggestion routing.
 - `docs/agents/domain.md`: read CONTEXT.md + docs/adr before exploring; silently continue if missing; glossary vocabulary rule; ADR-conflict flagging.
-- `docs/agents/workflow.md`: recommended five-step flow (规划 / 骨架 / 细节 / 异常 / 回顾 with 回顾 = docs-sync wrap-up); align-before-build ordering; conversational alignment (no freeze); elastic granularity suggestion (≈0.5 人天 heuristic); issue `## 步骤` tracking + resume anchor; PDR goal/current gap→issue derivation; boundaries (deepwork / tdd / retro / grilling 调用 + 兜底指针).
+- `docs/agents/workflow.md`: recommended five-step flow (规划 / 骨架 / 细节 / 异常 / 回顾 with 回顾 = docs-sync wrap-up); align-before-build ordering; conversational alignment (no freeze); elastic granularity suggestion (≈0.5 人天 heuristic); issue `## 步骤` tracking + resume anchor; PDR-target / Current gap→issue candidate derivation; boundaries (deepwork / tdd / retro / grilling 调用 + 兜底指针).
 - `docs/adr/README.md`: lifecycle rules (edit+Log, delete→tombstone stub, no renumber); catalog table present.
-- `docs/pdr/00-README.md`: purpose; 最终目标 / 当前进展 overview sections; module index; reading order.
+- `docs/pdr/00-README.md`: purpose; end-state overview; module index; reading order; link to the peer Current tree (no progress section, no embedded current).
+- `docs/current/00-README.md`: purpose; the baseline (revision/date) the tree describes; module/topic index; reading order; link to the peer PDR tree; records as-built capabilities/limits, not task logs or planned work.
 - `CONTEXT.md`: glossary structure (term blocks with `_Avoid_`).
 - `docs/issues/` tree: leaf directories exist (`.gitkeep` may be checked); extras informational only.
 - `docs/agents/deps/`: leaf files exist (`grilling.md`, `domain-modeling.md`, `tdd.md`, `doc-opt.md`, `boundaries.md`); extras informational only.
@@ -86,6 +91,7 @@ Write the report in the project's documentation language (default: Chinese, matc
 - Created: …
 - Aligned: …
 - Diff: one bullet per file: `- <file>: <missing or contradicted rule>`（仅供参考，不自动改；multi-file → multiple bullets）
+- Legacy drift: embedded current/progress paths found (e.g. `04-current.md`, `当前进展` section) — informational only, never moved or rewritten; migration needs explicit user authorization.
 - Next: remaining placeholders plus a one-line "do this first".
 ```
 
@@ -95,7 +101,8 @@ Rules carry the detail; read the one you need.
 
 - `references/issues.md` — issue tracker directory contract, entry format, `suggestion` routing.
 - `references/adr.md` — ADR lifecycle (edit + Log, delete → tombstone stub, reference sweep, catalog index), body shape.
-- `references/pdr.md` — PDR product-spec structure (`00-README` / `01-spec` / `02-interfaces` / `03-nfr` / `04-current` + `design/`), the goal/current & gap→issues layer, PDR↔ADR boundary.
+- `references/pdr.md` — PDR target-spec structure (`00-README` / `01-spec` / `02-interfaces` / `03-nfr` + `design/`), the target & gap→candidate-issue layer, PDR↔ADR and PDR↔Current boundaries.
+- `references/current.md` — Current as-built tree (`00-README` + module/topic docs), baseline & verification confidence, sync semantics, peer relationship to PDR, legacy-drift adoption.
 - `references/terminology.md` — `CONTEXT.md` primary glossary, domain glossary, usage rules.
 - `references/workflow.md` — recommended single-issue development flow (five steps, alignment, granularity, tracking, docs-sync hooks, skill boundaries).
 - `references/coexistence.md` — how this profile sits beside `domain-modeling`, `grilling`, `deepwork`, `tdd`, `retro`, and the bundled `doc-opt`; and how its docs/issues conventions supersede older `.scratch`-style trackers.

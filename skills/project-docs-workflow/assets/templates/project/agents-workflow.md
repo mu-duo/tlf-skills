@@ -12,8 +12,9 @@
 
 ## 开工前对齐
 
-读 PDR 目标与现状（`docs/pdr/` 的 `01-spec` 与各模块 `04-current.md`），列出差距候选（模块 / FR、类型、切片、完成判据），与用户确认要做哪条并落 issue。
+读 PDR 目标（`docs/pdr/`）与 Current 现状（`docs/current/`），列出差距候选（模块 / FR、类型、切片、完成判据），与用户确认要做哪条并落 issue。差异只是候选：可能是漂移 / 质量 / 未验证 / 目标过时，不都是缺失功能。
 
+- 对齐范围内 agent 自主实现（遵守 ADR / 契约 / 安全）；高成本、破坏性或难以回退的决定先与用户确认。
 - 对话确认即可：不冻结、不设仪式行。
 - 需求变化时主动重对齐，并更新 issue 内的计划与完成判据。
 - 方向有歧义 → 调用 `grilling`（未安装则按 `docs/agents/deps/grilling.md` 执行）；`grill-me` 仅入口别名。
@@ -23,7 +24,7 @@
 
 ### 规划
 
-细化完成判据与步骤状态，给出 1–2 句方案。产出最小，不新开章节。PDR 的目标 / 现状差距分析在此完成（候选带模块 / FR、类型、切片、完成判据；用户挑选后才落 issue）。
+细化完成判据与步骤状态，给出 1–2 句方案。产出最小，不新开章节。PDR 目标与 Current 现状的差距分析在此完成（对照 `docs/pdr/` 与 `docs/current/`；候选带模块 / FR、类型、切片、完成判据；用户挑选后才落 issue）。
 
 ### 骨架
 
@@ -39,14 +40,14 @@
 
 ### 回顾（收尾回顾）
 
-issue 完成时做一次轻量的文档同步清单（`pdr/current`、`adr`、`context`、`issues`、`agents` 是否有需更新）；若无，一行 Log 即可。仅做文档同步；会话复盘属于 `retro`（未安装则按 `docs/agents/deps/boundaries.md` 执行）。
+issue 完成时做一次轻量的文档同步清单（`pdr`、`current`、`adr`、`context`、`issues`、`agents` 是否有需更新）；若无，一行 Log 即可。仅做文档同步；会话复盘属于 `retro`（未安装则按 `docs/agents/deps/boundaries.md` 执行）。
 
 ## 进度与续接
 
-- 步骤记录在 issue 的 `## 步骤` 清单（就地更新）；步骤变更追加一行 Log。
+- 步骤记录在 issue 的 `## 步骤` 清单（就地更新）；仅在关键节点（范围变化 / 阻塞 / 交接 / 放弃）记 Log，不需要逐步机械追加。
 - session 为软约束：session = 用户注意力窗口，节奏由用户掌握；agent 不得吞并超出对齐范围的工作。
 - 恢复时先读 issue 的 `## 步骤` 与 `## Log`，与用户确认续点后再继续。
-- issue 收尾时更新受影响模块的 `04-current.md`，并按 `issues.md` 归档。
+- issue 收尾时对照变更检查 Current：若变更已包含在选定基线内则更新 `docs/current/` 对应文件，否则不更新，在 issue 记待同步项；并按 `issues.md` 归档。
 
 ## 边界
 
@@ -57,5 +58,6 @@ issue 完成时做一次轻量的文档同步清单（`pdr/current`、`adr`、`c
 ## 相关
 
 - Issue 体系：`issues.md`
-- PDR 文档集：`../pdr/00-README.md`
+- PDR 目标文档集：`../pdr/00-README.md`
+- 现状文档集（Current）：`../current/00-README.md`
 - 依赖兜底文档（外部技能未安装时）：`docs/agents/deps/`

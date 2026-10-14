@@ -48,15 +48,15 @@ docs/issues/
 
 （若本机安装了 project-docs-workflow：条目骨架 ~/.agents/skills/project-docs-workflow/assets/templates/entries/issue-entry.md；未安装则按本文格式创建。）
 
-- `Status` 就地更新；`## Log` 追加式记录，不改历史行。
+- `Status` 就地更新；`## Log` 追加式记录，不改历史行，仅记关键事件（范围变化 / 阻塞 / 交接 / 放弃），不需要逐步机械追加。
 - 涉及 adr / pdr 的改动，须同步更新对应文档。
-- 推进流程见 `workflow.md`（推荐五步：规划 / 骨架 / 细节 / 异常 / 回顾）；步骤状态就地更新，变更记 Log。
+- 推进流程见 `workflow.md`（推荐五步：规划 / 骨架 / 细节 / 异常 / 回顾）；步骤状态就地更新，关键事件记 Log。
 
 ## 与开发流程的衔接
 
-- 开工前与用户对齐本次范围与粒度（差距候选来自 PDR 目标与现状）。
-- 步骤按 `docs/agents/workflow.md` 推荐流程推进，状态就地更新，变更记 Log。
-- 收尾回顾时更新受影响模块的 `04-current.md`。
+- 开工前与用户对齐本次范围与粒度（差距候选来自 PDR 目标与 Current 现状）。
+- 步骤按 `docs/agents/workflow.md` 推荐流程推进，状态就地更新，关键事件记 Log。
+- 收尾回顾时对照变更检查 `docs/current/` 对应文件是否有需更新。
 
 ## 相关
 

@@ -1,10 +1,10 @@
 {
   "name": "@tanlinfeng/project-docs-workflow",
-  "version": "2.3.0",
+  "version": "3.0.0",
   "publishConfig": {
     "access": "public"
   },
-  "description": "项目文档工作流 skill 包：提供 issue tracker / ADR / PDR / 术语表与工作流约定，自带轻量依赖 skill 与 ref 兜底，可独立分发。",
+  "description": "项目文档工作流 skill 包：提供 issue tracker / ADR / PDR / 术语表与工作流约定；随包分发主 skill 与 doc-opt / docs-html-view，内置依赖回退 ref（不随包分发独立依赖 skill），可独立使用。",
   "license": "MIT",
   "bin": {
     "project-docs-workflow": "bin/install.js"

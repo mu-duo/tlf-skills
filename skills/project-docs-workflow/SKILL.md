@@ -20,10 +20,16 @@ Run it manually, once per project — on adoption, or again after the skill's te
 
 ## 依赖解析（两级）
 
-External skill references resolve in two levels:
+External capability references resolve in two levels:
 
-1. **Invoke the skill by name** — the user has the full version installed, or the bundled lite version ships with the package (canonical names: `grilling`, `domain-modeling`, `tdd`, `deepwork`, `retro`, `doc-opt`, `improve-codebase-architecture`; the full version wins when present).
-2. **Fallback** — if that skill is absent, follow `references/deps/<name>.md`; `deepwork` / `retro` / `improve-codebase-architecture` share `references/deps/boundaries.md`.
+1. **Invoke the installed skill by name** — when the user has the standalone skill installed (canonical names: `grilling`, `grill-me`, `grill-with-docs`, `domain-modeling`, `tdd`, `deepwork`, `retro`, `improve-codebase-architecture`, plus the first-party `doc-opt`); the installed version wins.
+2. **Internal fallback** — otherwise **execute** the bundled reference(s) as instructions; do **not** invoke them as skills (there are none). Most names map to `references/deps/<name>.md`; the aliases map explicitly:
+   - `grill-me` → `references/deps/grilling.md` (entry alias of `grilling`, no separate flow)
+   - `grill-with-docs` → `references/deps/grilling.md` **+** `references/deps/domain-modeling.md`, interleaved (grilling rounds + immediate term/ADR writes)
+   - `deepwork` / `retro` / `improve-codebase-architecture` → `references/deps/boundaries.md`
+   The package ships **no** standalone dependency skills; these internal references are the always-available fallback.
+
+> **Trigger policy.** Follow each installed skill's invocation metadata; wrappers such as `grill-me` / `grill-with-docs` may be user-invoked only. An optional name does **not** imply availability: if it is not installed, use the internal fallback — never invoke a missing skill or autonomously invoke a user-only wrapper. Per-name routing lives in `references/workflow.md`.
 
 Canonical wording (templates use the same line with the deps path parameterized): 调用 `<skill>`（未安装则按 `<deps 路径>/<file>.md` 执行）— skill-internal docs use `references/deps/<file>.md`, materialized project files use `docs/agents/deps/<file>.md`.
 
@@ -107,11 +113,11 @@ Rules carry the detail; read the one you need.
 - `references/rendering.md` — optional docs HTML rendering contract: render scope (`docs/pdr` + `docs/current` + the complete `docs/adr`, not issues / agents), link-authoring rules (PDR↔Current, optional descriptive ADR path links), sources never rewritten, manual opt-in.
 - `references/terminology.md` — `CONTEXT.md` primary glossary, domain glossary, usage rules.
 - `references/workflow.md` — recommended single-issue development flow (five steps, alignment, granularity, tracking, docs-sync hooks, skill boundaries).
-- `references/coexistence.md` — how this profile sits beside `domain-modeling`, `grilling`, `deepwork`, `tdd`, `retro`, and the bundled `doc-opt`; and how its docs/issues conventions supersede older `.scratch`-style trackers.
-- `references/deps/` — fallback procedures for the two-level resolution: `grilling` / `domain-modeling` / `tdd` / `doc-opt` / `boundaries` (`deepwork` / `retro` / `improve-codebase-architecture` share `boundaries.md`).
+- `references/coexistence.md` — how this profile sits beside `domain-modeling`, `grilling`, `deepwork`, `tdd`, `retro`, and the first-party `doc-opt`; and how its docs/issues conventions supersede older `.scratch`-style trackers.
+- `references/deps/` — internal fallback references for the two-level resolution: `grilling` / `domain-modeling` / `tdd` / `doc-opt` / `boundaries` (`deepwork` / `retro` / `improve-codebase-architecture` share `boundaries.md`).
 
 ## Templates
 
 - `assets/templates/project/*` — the files init materializes (Chinese). They carry the provenance marker (current generation: `v2`; in `agents-block.md` it sits just under the `## Agent skills` heading) — keep it; future generations update the marker so stale copies are detectable.
-- `references/deps/*` — fallback procedures when an external skill is absent. init copies the whole directory as-is into the project's `docs/agents/deps/`; they are not materialized templates and carry no provenance marker.
+- `references/deps/*` — internal fallback references used when a standalone dependency skill is absent. init copies the whole directory as-is into the project's `docs/agents/deps/`; they are not materialized templates and carry no provenance marker.
 - `assets/templates/entries/*` — day-to-day authoring aids used when this skill is at hand (copy the skeleton when creating a new entry). NOT materialized by init; the rule docs are self-sufficient without them; materialized docs may reference their path opportunistically.

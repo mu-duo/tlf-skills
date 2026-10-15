@@ -2,7 +2,7 @@
 
 > 当需要调用 `tdd` 但环境未安装该 skill 时，按本文执行。
 
-> 轻量精简版，裁剪自 [mattpocock/skills](https://github.com/mattpocock/skills) 的 tdd（MIT License, Copyright (c) 2026 Matt Pocock）。若环境已安装同名完整 skill，请优先使用完整版。
+> 内部回退（精简版），裁剪自 [mattpocock/skills](https://github.com/mattpocock/skills) 的 tdd（MIT License, Copyright (c) 2026 Matt Pocock）。若环境已安装同名完整 skill，请优先使用完整版。
 
 以测试先行的方式构建功能或修 bug：red → green 循环。
 
@@ -12,7 +12,7 @@
 2. **红**：写一个失败的测试。测试通过公共接口验证行为，读起来像规格（描述 WHAT 而非 HOW），每个测试一个逻辑断言。不要 mock 内部协作者，不要走旁路（绕过接口查数据库）。
 3. **绿**：只写刚好让这个测试通过的实现。不加预判未来测试的投机功能。
 4. **重复**：以**纵向切片**推进——一个测试 → 一个实现 → 重复，每个测试是回应上一轮所学的一发**曳光弹**。不要「先写完所有测试再写所有实现」。
-5. **重构**不属于 red → green 循环；它属于评审阶段。
+5. **重构**不属于 red → green 循环；它属于评审阶段（代码评审；若环境有 `code-review` 则按其执行）。
 
 探索代码库时读 `CONTEXT.md`（若存在），让测试名匹配领域语言，并遵守相关 ADR。
 

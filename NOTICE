@@ -8,22 +8,20 @@ Licensed under the MIT License (see LICENSE).
 Third-party attribution
 -----------------------
 
-Portions of the bundled skills in this package are trimmed / adapted from:
+Portions of the internal fallback references in this package are trimmed / adapted from:
 
   https://github.com/mattpocock/skills
   MIT License
   Copyright (c) 2026 Matt Pocock
 
-The following bundled skills contain material derived from the project above:
+This package does not bundle standalone dependency skills. The following internal fallback
+references (used when the standalone skill is absent) contain material derived from the
+project above:
 
-  - skills/grilling
-  - skills/grill-me
-  - skills/grill-with-docs
-  - skills/domain-modeling
-  - skills/tdd
-  - skills/deepwork
-  - skills/retro
-  - skills/improve-codebase-architecture
+  - skills/project-docs-workflow/references/deps/grilling.md
+  - skills/project-docs-workflow/references/deps/domain-modeling.md
+  - skills/project-docs-workflow/references/deps/tdd.md
+  - skills/project-docs-workflow/references/deps/boundaries.md
 
 The MIT permission notice for the upstream material is reproduced below.
 

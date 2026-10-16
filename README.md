@@ -50,7 +50,7 @@ skill 会检查并创建缺少的内容，包括：
 
 ## 安装与更新语义
 
-普通安装（默认动作）对**第一方 skill**（`project-docs-workflow`、`doc-opt`、`docs-html-view`）执行**全目录同步**：
+普通安装（默认动作）对**第一方 skill**（`project-docs-workflow`、`doc-opt`、`docs-html-view`、`lite-task`）执行**全目录同步**：
 
 - 若上一份**有效清单**确认该路径由本包安装（`installed` / `forced`、本地），安装会用源包内容覆盖该目录——**可能覆盖你对本地文件所做的修改**。第一方受管安装目录是可整体替换的分发副本。
 - 若某第一方路径无法被有效清单确认为包内安装（手工复制、清单记为 `skipped`、清单缺失、清单损坏 / 不可解析、符号链接），默认**保留**不动；只有显式 `--force` 才替换该第一方条目。替换的是该路径本身，符号链接指向的 referent 不被改动。
@@ -76,7 +76,7 @@ skill 会检查并创建缺少的内容，包括：
 
 ## docs-html-view（可选：手动渲染文档）
 
-本包附带一个第一方 skill `docs-html-view`（与主 skill、`doc-opt` 一样，不属于上游集合）。安装器会随包一起分发它，但**安装时不会运行它**，项目文档初始化时也不会启用它；它只在用户手动调用时工作。
+本包附带一个第一方 skill `docs-html-view`（与主 skill、`doc-opt`、`lite-task` 一样，不属于上游集合）。安装器会随包一起分发它，但**安装时不会运行它**，项目文档初始化时也不会启用它；它只在用户手动调用时工作。
 
 用途：把项目文档（PDR / Current / ADR）用标准的 Read the Docs（RTD）主题与 MyST Markdown 解析渲染成静态 HTML，输出到 `docs/docsHtmlView/build/html`。仅供本地浏览与分享，不替代源文档。
 
@@ -91,27 +91,35 @@ skill 会检查并创建缺少的内容，包括：
 
 具体的脚本、命令与参数以该 skill 的 `SKILL.md` 为准（安装后位于 `<skills 根目录>/docs-html-view/SKILL.md`），README 不再重复其接口。
 
+## lite-task（可选：轻型任务开发流程）
+
+本包附带一个第一方 skill `lite-task`（与主 skill、`doc-opt`、`docs-html-view` 一样，不属于上游集合）。它是面向**小、低风险任务**（或用户显式选择时）的轻型开发流程：与 `project-docs-workflow` 相同的五步（功能同步 / 骨架 / 实现 / 异常 / 回顾），但不强制 issue、PDR、Current 或 ADR 记录——默认一般只产出代码。
+
+当任务变大（涉及契约变更、跨模块影响，或需要留存长期决策）时，应升级到 `project-docs-workflow`，不要在本流程里静默写文档。具体行为以该 skill 的 `SKILL.md` 为准（安装后位于 `<skills 根目录>/lite-task/SKILL.md`），README 不再重复其接口。
+
 ## English summary
 
 `@tanlinfeng/project-docs-workflow` is an agent skill for setting up and maintaining project documentation workflows: issues, ADRs, PDRs, domain terminology, and development practices. Install it with `npx @tanlinfeng/project-docs-workflow@latest install`, or pin an exact published version with an npm spec such as `@2.2.0` (Node.js >= 18; default destination `~/.agents/skills`). Without a spec, npx may prefer the version already installed in the current project; write `@latest` or `@<version>` to select the installer version (cache/network policy is separate), and the installer never fetches versions itself. Because `npx <pkg>@<version> install` runs that version's own installer code, the sync / `--force` semantics on this page apply only to package versions that contain this installation strategy; older published versions keep their historical behavior (e.g. `--force` may only overwrite the main skill), so pinning an older version is only an equivalent rollback within such compatible versions. Installation does not initialize a project: from the target project root, manually invoke the skill using your agent's own skill mechanism. It creates missing documentation, reports drift on reruns, and does not overwrite existing content, except that it appends a missing `## Agent skills` block to an existing `AGENTS.md`.
 
-An ordinary install full-directory-syncs the first-party skills (`project-docs-workflow`, `doc-opt`, `docs-html-view`) when a valid manifest confirms the package installed them, so it may overwrite local edits; a first-party path not confirmed as package-owned is preserved unless `--force` replaces that entry. External dependencies are preserved by default, and `--force` alone does not update them; explicit `--with-matt-skills` refreshes the eight supported upstream names (updating existing ones and installing missing) only on the default codex target, with other target/agent combinations rejected before any write. The package ships no standalone dependency skills: missing external names are covered by the skill's internal fallback references (`references/deps/*`), no independent lite skill is copied, and existing standalone installs (including older lite copies) are preserved and never auto-cleaned or migrated. A manifest file that is itself a symlink is always refused (even with `--force`), unlike a first-party skill path that is a symlink; per-skill replacement failures restore the old content or retain a backup and report the path, so this is not an all-skills transaction. The installer supports custom directories, dry runs, dependency checks, and manifest-based uninstall. Uninstall removes recorded package-owned paths by name, not by content hash, and records no local-edit fingerprints; review the manifest or use a dry run before deleting anything. See the advanced details below for optional upstream dependencies and manifest behavior.
+An ordinary install full-directory-syncs the first-party skills (`project-docs-workflow`, `doc-opt`, `docs-html-view`, `lite-task`) when a valid manifest confirms the package installed them, so it may overwrite local edits; a first-party path not confirmed as package-owned is preserved unless `--force` replaces that entry. External dependencies are preserved by default, and `--force` alone does not update them; explicit `--with-matt-skills` refreshes the eight supported upstream names (updating existing ones and installing missing) only on the default codex target, with other target/agent combinations rejected before any write. The package ships no standalone dependency skills: missing external names are covered by the skill's internal fallback references (`references/deps/*`), no independent lite skill is copied, and existing standalone installs (including older lite copies) are preserved and never auto-cleaned or migrated. A manifest file that is itself a symlink is always refused (even with `--force`), unlike a first-party skill path that is a symlink; per-skill replacement failures restore the old content or retain a backup and report the path, so this is not an all-skills transaction. The installer supports custom directories, dry runs, dependency checks, and manifest-based uninstall. Uninstall removes recorded package-owned paths by name, not by content hash, and records no local-edit fingerprints; review the manifest or use a dry run before deleting anything. See the advanced details below for optional upstream dependencies and manifest behavior.
 
 The package also ships a first-party `docs-html-view` skill (manual invocation only; distributed but not run at install). It renders PDR/Current/ADR docs to `docs/docsHtmlView/build/html` with Sphinx, MyST, and the stock RTD theme. After approval of packages, environment, and files, it uses `sphinx-quickstart` once and standard `make html` or `sphinx-build` thereafter. It never hooks, opens a browser, serves, deploys, or mutates source docs. `check` does not cover it.
+
+The package also ships a first-party `lite-task` skill: a lightweight development workflow for small, low-risk tasks (or when the user explicitly opts in). It keeps the same five steps as `project-docs-workflow` (功能同步 / 骨架 / 实现 / 异常 / 回顾) but drops its documentation obligations — no forced issue, PDR, Current, or ADR bookkeeping, generally code only. Escalate to `project-docs-workflow` when the task grows (contract change, cross-module impact, or a durable decision).
 
 <details>
 <summary>高级细节</summary>
 
 ### 可选上游依赖
 
-主 skill **自带内部回退**（`references/deps/{grilling,domain-modeling,tdd,doc-opt,boundaries}.md`）：外部依赖未安装时按对应回退执行，功能可用。本包**不**随包分发独立依赖 skill——默认只分发三个第一方 skill（`project-docs-workflow`、`doc-opt`、`docs-html-view`）；安装器也不复制任何独立轻量 skill。
+主 skill **自带内部回退**（`references/deps/{grilling,domain-modeling,tdd,doc-opt,boundaries}.md`）：外部依赖未安装时按对应回退执行，功能可用。本包**不**随包分发独立依赖 skill——默认只分发四个第一方 skill（`project-docs-workflow`、`doc-opt`、`docs-html-view`、`lite-task`）；安装器也不复制任何独立轻量 skill。
 
 **默认（不带 `--with-matt-skills`）：**
 - 已存在的独立依赖一律**保留**（含旧版本曾复制的轻量目录），不判定完整版、不自动清理 / 迁移。
 - 缺失的受支持名称：仅在交互式安装（stdin 与 stdout 均为 TTY、非 dry-run）且上游目标安全、Node >= 22.20 时**可选**询问一次；这是**可选的完整版增强**，不是必需依赖。回答 yes 只安装缺失项；No / 直接回车 / 非 TTY / 非等价的自定义 `--dir` / Node 不足时，直接使用内部回退（**不**复制独立轻量 skill）。
 - `--force` 单独使用**不**安装或更新外部依赖。
 
-**显式 `--with-matt-skills`（可选增强）：** 通过 `npx` 安装缺失 + **更新**已存在的 8 个外部上游完整版；不询问，提示**本地依赖改动可能被覆盖**。第一方自带集合（主 skill、`doc-opt`、`docs-html-view`）**不提交上游**，但仍照常执行普通第一方全目录同步；命名集合之外的外部目录保留不动。需 Node.js >= 22.20。
+**显式 `--with-matt-skills`（可选增强）：** 通过 `npx` 安装缺失 + **更新**已存在的 8 个外部上游完整版；不询问，提示**本地依赖改动可能被覆盖**。第一方自带集合（主 skill、`doc-opt`、`docs-html-view`、`lite-task`）**不提交上游**，但仍照常执行普通第一方全目录同步；命名集合之外的外部目录保留不动。需 Node.js >= 22.20。
 
 仅以下 8 个名称参与上游操作：`grilling`、`grill-me`、`grill-with-docs`、`domain-modeling`、`tdd`、`deepwork`、`retro`、`improve-codebase-architecture`。`/grill-me` 不再由本包提供独立入口；需要独立入口请安装上游，主 skill 的内部回退仍支持相同行为（无斜杠别名）。
 
@@ -132,18 +140,19 @@ The package also ships a first-party `docs-html-view` skill (manual invocation o
     "project-docs-workflow": { "kind": "main", "action": "installed", "at": "…" },
     "doc-opt": { "kind": "doc-opt", "action": "installed", "at": "…" },
     "docs-html-view": { "kind": "docs-html-view", "action": "skipped", "at": "…" },
+    "lite-task": { "kind": "lite-task", "action": "installed", "at": "…" },
     "retro": { "kind": "upstream", "action": "installed", "agent": "codex", "at": "…" }
   }
 }
 ```
 
-`kind` 可为 `main`、`doc-opt`、`docs-html-view` 或 `upstream`；历史清单里还可能出现 `lite`（早期版本曾复制独立轻量 skill）——安装时一律保留，用户主动运行 `uninstall` 时仍按历史归属处理（升级时不会静默清除用户目录；清理 / 迁移仅在用户显式授权时进行）。`action` 可为 `installed`、`forced` 或 `skipped`。卸载按记录的路径/名称操作：`skipped` 以及未知状态的条目保留。上游项会尽量通过 `skills` CLI 批量移除；若 CLI 无法运行或返回失败，安装器会直接删除对应目录作为回退，这可能使 `~/.agents/.skill-lock.json` 留有过期记录。
+`kind` 可为 `main`、`doc-opt`、`docs-html-view`、`lite-task` 或 `upstream`；历史清单里还可能出现 `lite`（早期版本曾复制独立轻量 skill）——安装时一律保留，用户主动运行 `uninstall` 时仍按历史归属处理（升级时不会静默清除用户目录；清理 / 迁移仅在用户显式授权时进行）。`action` 可为 `installed`、`forced` 或 `skipped`。卸载按记录的路径/名称操作：`skipped` 以及未知状态的条目保留。上游项会尽量通过 `skills` CLI 批量移除；若 CLI 无法运行或返回失败，安装器会直接删除对应目录作为回退，这可能使 `~/.agents/.skill-lock.json` 留有过期记录。
 
 ### 依赖解析与来源
 
 `check` 逐项检查依赖：目标目录中存在同名 skill（按名解析即可，**不**验证是否为完整版）**或**主 skill 内置 `references/deps/*.md` 回退可用，即视为通过——因此全新安装（未装任何独立依赖）也会通过。这不是主 skill 安装检查，也不是项目初始化检查。
 
-内部回退文档中**源自上游的部分**（见 [`NOTICE`](./NOTICE)：`references/deps/{grilling,domain-modeling,tdd,boundaries}.md`）裁剪 / 改编自 [mattpocock/skills](https://github.com/mattpocock/skills)（MIT，Matt Pocock）；`references/deps/doc-opt.md` 为本包第一方回退，**非**上游派生。本包**不**随包分发独立依赖 skill；`doc-opt` 与 `docs-html-view` 是本包附带的第一方 skill。主 skill 对引用能力先按名解析已安装的独立 skill，不存在时执行内部 ref 回退。详见 [`NOTICE`](./NOTICE)。
+内部回退文档中**源自上游的部分**（见 [`NOTICE`](./NOTICE)：`references/deps/{grilling,domain-modeling,tdd,boundaries}.md`）裁剪 / 改编自 [mattpocock/skills](https://github.com/mattpocock/skills)（MIT，Matt Pocock）；`references/deps/doc-opt.md` 为本包第一方回退，**非**上游派生。本包**不**随包分发独立依赖 skill；`doc-opt`、`docs-html-view` 与 `lite-task` 是本包附带的第一方 skill。主 skill 对引用能力先按名解析已安装的独立 skill，不存在时执行内部 ref 回退。详见 [`NOTICE`](./NOTICE)。
 
 </details>
 

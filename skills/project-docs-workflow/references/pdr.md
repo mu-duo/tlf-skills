@@ -20,6 +20,7 @@ PDR = target-state product spec ("产品规格书"): the product's currently-eff
 - **Root README is overview/navigation.** It carries the end-state overview, module index, and reading order, and links the peer Current tree; it holds no progress section.
 - **Changes route by kind.** A goal change updates the PDR only after alignment; a decision with rationale and trade-offs routes to an ADR (see `adr.md`). Implementation inside an aligned scope proceeds autonomously, respecting ADRs, contracts, and security; high-cost, destructive, or hard-to-reverse decisions are confirmed with the user first. Implemented details do not flow back into the PDR automatically.
 - **Gap → issue.** At the Plan step the agent reads the PDR target plus Current state (`current.md`), derives **candidate** tasks (module / FR, suggested type, slice, acceptance criteria), and the user picks. Differences are candidates only — a difference may be drift, a quality gap, unverified behavior, or an outdated target, not necessarily a missing feature. An already-met coarse goal can still be refined; do not invent gaps. Accepted candidates land in `docs/issues/` whose 关联 records the module / FR. No idle auto-creation of issues.
+- **Non-goals are scope boundaries.** A PDR may state non-goals / out-of-scope items as positive scope boundaries; they are not rejected alternatives under the ADR negative-decision policy and need no per-item rationale.
 
 ## PDR ↔ ADR boundary
 

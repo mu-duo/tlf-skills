@@ -1,6 +1,6 @@
 ## Agent skills
 
-> 模板来源：project-docs-workflow v2（模板演进后可重跑幂等 init 对齐；本文件可按项目实际修改）
+> 模板来源：project-docs-workflow v3（模板演进后可重跑幂等 init 对齐；本文件可按项目实际修改）
 
 ### Issue tracker
 

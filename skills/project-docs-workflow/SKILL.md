@@ -79,11 +79,11 @@ Ignore in every comparison: the provenance line; filled placeholders; index/tabl
 Required elements per artifact:
 
 - `AGENTS.md` block: `## Agent skills` heading + three subsections (`### Issue tracker`, `### Domain docs`, `### Development workflow`).
-- `docs/agents/issues.md`: directory contract; human/agent responsibility; entry format (`Status:` line, `## 完成判据`, `## 步骤`, `## Log`; the `## 结果` section itself is optional); archiving suffixes (`-done`/`-drop`); suggestion routing.
+- `docs/agents/issues.md`: directory contract; human/agent responsibility; entry format (`Status:` line, `## 完成判据`, `## 步骤`, `## Log`; the `## 结果` section itself is optional); archiving suffixes (`-done`/`-drop`); `-drop` is a work-status archive, not a negative decision (dropped entries are not removed or rewritten); suggestion routing.
 - `docs/agents/domain.md`: read CONTEXT.md + docs/adr before exploring; silently continue if missing; glossary vocabulary rule; ADR-conflict flagging.
-- `docs/agents/workflow.md`: recommended five-step flow (规划 / 骨架 / 细节 / 异常 / 回顾 with 回顾 = docs-sync wrap-up); align-before-build ordering; conversational alignment (no freeze); elastic granularity suggestion (≈0.5 人天 heuristic); issue `## 步骤` tracking + resume anchor; PDR-target / Current gap→issue candidate derivation; wrap-up updates Current in place (facts only, no self-link or task history); boundaries (deepwork / tdd / retro / grilling 调用 + 兜底指针).
-- `docs/adr/README.md`: lifecycle rules (edit+Log, delete→tombstone stub, no renumber); catalog table present; reference sweep covers both `ADR-XXXX` and `adr/<NNNN>-<slug>.md` path links (any relative prefix).
-- `docs/pdr/00-README.md`: purpose; end-state overview; module index; reading order; link to the peer Current tree (no progress section, no embedded current); optional descriptive ADR link rule.
+- `docs/agents/workflow.md`: recommended five-step flow (规划 / 骨架 / 细节 / 异常 / 回顾 with 回顾 = docs-sync wrap-up); align-before-build ordering; conversational alignment (no freeze); elastic granularity suggestion (≈0.5 人天 heuristic); issue `## 步骤` tracking + resume anchor; PDR-target / Current gap→issue candidate derivation; scope-convergence default (feature / scope decisions prefer narrowing; a feature candidate needs a one-sentence rationale; bug / chore exempt; a bias, not a gate); wrap-up updates Current in place (facts only, no self-link or task history); boundaries (deepwork / tdd / retro / grilling 调用 + 兜底指针).
+- `docs/adr/README.md`: lifecycle rules (edit+Log, delete→tombstone stub, no renumber); catalog table present; reference sweep covers both `ADR-XXXX` and `adr/<NNNN>-<slug>.md` path links (any relative prefix); body defaults to no `Considered Options`; rejected alternatives are not recorded by default (durable records only; discussions may explore alternatives).
+- `docs/pdr/00-README.md`: purpose; end-state overview; module index; reading order; link to the peer Current tree (no progress section, no embedded current); non-goals / out-of-scope allowed as scope boundaries, not negative decisions; optional descriptive ADR link rule.
 - `docs/current/00-README.md`: purpose; the baseline (revision/date) the tree describes; module/topic index; reading order; link to the peer PDR tree; records as-built capabilities/limits, not task logs or planned work; optional descriptive ADR link rule.
 - `CONTEXT.md`: glossary structure (term blocks with `_Avoid_`).
 - `docs/issues/` tree: leaf directories exist (`.gitkeep` may be checked); extras informational only.
@@ -118,6 +118,6 @@ Rules carry the detail; read the one you need.
 
 ## Templates
 
-- `assets/templates/project/*` — the files init materializes (Chinese). They carry the provenance marker (current generation: `v2`; in `agents-block.md` it sits just under the `## Agent skills` heading) — keep it; future generations update the marker so stale copies are detectable.
+- `assets/templates/project/*` — the files init materializes (Chinese). They carry the provenance marker (current generation: `v3`; in `agents-block.md` it sits just under the `## Agent skills` heading) — keep it; future generations update the marker so stale copies are detectable.
 - `references/deps/*` — internal fallback references used when a standalone dependency skill is absent. init copies the whole directory as-is into the project's `docs/agents/deps/`; they are not materialized templates and carry no provenance marker.
 - `assets/templates/entries/*` — day-to-day authoring aids used when this skill is at hand (copy the skeleton when creating a new entry). NOT materialized by init; the rule docs are self-sufficient without them; materialized docs may reference their path opportunistically.

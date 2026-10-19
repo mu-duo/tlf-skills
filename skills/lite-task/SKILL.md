@@ -18,7 +18,7 @@ Otherwise use `project-docs-workflow` (or the project's own materialized workflo
 
 Same step set and intent as `project-docs-workflow`, lighter in output:
 
-1. **功能同步 / Sync** — align the feature scope and acceptance criteria with the user (equivalent to `project-docs-workflow`'s 规划). Implementation starts only after this alignment.
+1. **功能同步 / Sync** — align the feature scope and acceptance criteria with the user (equivalent to `project-docs-workflow`'s 规划). Prefer convergence: a new feature / scope candidate needs a one-sentence rationale; bug / chore work is exempt. Implementation starts only after this alignment.
 2. **骨架 / Skeleton** — a minimal runnable vertical slice; leave one piece of run evidence and show it to the user (the first review point). Skippable for pure fixes.
 3. **实现 / Implement** — main-path implementation, detail completion, code quality.
 4. **异常 / Exceptions** — failure paths, boundaries, and stability after the main path. Real blockers are handled immediately.

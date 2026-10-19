@@ -48,10 +48,14 @@ Path links survive tombstoning (the filename is immutable) and a tombstone stays
 
 ## Body shape
 
-H1 title → decision + rationale + trade-off (`代价：…`) → optional `## Log` (appended on every semantic change) → optional `## Considered Options`.
+H1 title → decision + rationale + trade-off (`代价：…`) → optional `## Log` (appended on every semantic change). No `## Considered Options` section by default; `代价` is the cost borne by the chosen option.
 
 An ADR can be a single paragraph; the value is recording *that* a decision was made and *why*.
 
+## Negative decisions
+
+Default: record accepted decisions, not rejected alternatives. Do not add a `## Considered Options` section. A rejected alternative may be mentioned in one sentence only when it prevents foreseeable re-litigation, or when audit / compliance explicitly requires it; never enumerate alternatives. The agent judges the "prevents re-litigation" exception by default; the user / project may override. `代价：…` describes the cost of the chosen option, not what was rejected. Existing entries are history: do not rewrite them; a user may explicitly authorize a cleanup. This policy constrains durable records only; alignment / grilling may still explore alternatives. PDR non-goals / out-of-scope statements are scope boundaries, not rejected alternatives; keep them without per-item rationale.
+
 ## Relationship to domain-modeling
 
-The base ADR format is compatible with the `domain-modeling` skill's ADR-FORMAT (未安装则按 `references/deps/domain-modeling.md` 执行). That skill forbids neither edits nor deletes and carries its own `proposed | accepted | deprecated | superseded` status words; this profile is a superset (reference sweep, tombstone stubs, catalog-style README), and the two coexist. See `coexistence.md`.
+The base ADR format is compatible with the `domain-modeling` skill's ADR-FORMAT (未安装则按 `references/deps/domain-modeling.md` 执行). That skill forbids neither edits nor deletes and carries its own `proposed | accepted | deprecated | superseded` status words; this profile is a superset (reference sweep, tombstone stubs, catalog-style README), and the two coexist. The base format lists `Considered Options` as an optional section; this profile defaults to omitting it (see `## Negative decisions`). See `coexistence.md`.

@@ -18,6 +18,15 @@ The default shape for developing a single issue: align, build a thin slice, fill
 - **Gap analysis** happens here, at Plan: read the PDR target plus Current state, derive **candidate** tasks (module / FR, suggested type, slice, acceptance criteria), and let the user pick. Differences are candidates only — a difference may be drift, a quality gap, unverified behavior, or an outdated target, not necessarily a missing feature; do not invent gaps. No idle auto-creation of issues.
 - **Autonomy within scope**: once aligned, the agent implements autonomously inside the agreed scope, respecting ADRs, contracts, and security; high-cost, destructive, or hard-to-reverse decisions are confirmed with the user first.
 
+## Scope convergence
+
+- **Default bias: converge the function space.** "Function space" is the user-facing alias for the state / solution space constrained by PDRs; do not introduce a second concept.
+- **Trigger = a decision that changes the feature / scope target**, at PDR / ADR level (where the target is defined) or at issue-planning level.
+- A feature candidate not covered by an existing PDR is an **expansion**: state a one-sentence rationale before proposing it. A candidate that implements an existing PDR is convergence / implementation and needs no extra rationale.
+- Bug fixes and chores that restore or maintain existing behavior are exempt. If a bug / chore actually changes the feature set, reclassify it as a feature.
+- This is a bias, not a gate: no new artifact, no blocking. Projects may override it.
+- **Recording policy**: rejected alternatives are not recorded by default — see `adr.md` (Negative decisions) and `issues.md` (`-drop` archives). This policy constrains durable records only; alignment / grilling may still explore alternatives.
+
 ## The five steps
 
 1. **规划 / Plan** — refine acceptance criteria, set the step checklist status, and write a 1–2 sentence approach. Minimal output; no new sections. Gap analysis happens here.

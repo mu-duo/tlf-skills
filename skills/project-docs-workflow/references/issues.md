@@ -16,6 +16,7 @@ docs/issues/
 - `human/` and `agent/` = current responsible party. Transfer responsibility with `git mv` to the other directory.
 - Keep near-term work only (~1-week window). Whoever finishes or abandons an entry archives it; humans sweep periodically.
 - `history/` holds archived entries: suffix the filename `-done.md` (completed) or `-drop.md` (abandoned).
+- `-drop.md` is a work-status archive, not a negative decision. The default "do not record rejected alternatives" rule (see `adr.md`) does not remove or rewrite dropped entries; an issue's Log may still record the abandonment reason.
 - `suggestion` is special: no `history/`, no status.
 
 ## Entry format

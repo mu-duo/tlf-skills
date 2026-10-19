@@ -1,0 +1,5 @@
+interface:
+  display_name: "文档优化"
+  short_description: "精炼专业的文档，配真实图表"
+policy:
+  allow_implicit_invocation: false

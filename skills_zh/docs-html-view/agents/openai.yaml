@@ -1,0 +1,5 @@
+interface:
+  display_name: "文档 HTML 渲染"
+  short_description: "经批准后将 PDR/Current/ADR 文档渲染为本地 HTML"
+policy:
+  allow_implicit_invocation: false

@@ -1,11 +1,11 @@
 ---
 name: lite-task
-description: "Lightweight development workflow for small, low-risk tasks, or when the user explicitly opts in — the same five steps as project-docs-workflow (功能同步 / 骨架 / 实现 / 异常 / 回顾) without its documentation system: no forced issue, PDR, Current, or ADR bookkeeping; generally code only."
+description: "Lightweight development workflow for small, low-risk tasks, or when the user explicitly opts in — the same five steps as project-docs-workflow (功能同步 / 骨架 / 实现 / 异常 / 回顾) without its documentation system: no forced issue, PRD, Current, or ADR bookkeeping; generally code only."
 ---
 
 # Lite Task
 
-A lightweight development workflow for **small, low-risk tasks**. It keeps the step discipline of `project-docs-workflow` but drops its documentation obligations: no forced issue entry, no PDR / Current / ADR bookkeeping. It generally produces code only.
+A lightweight development workflow for **small, low-risk tasks**. It keeps the step discipline of `project-docs-workflow` but drops its documentation obligations: no forced issue entry, no PRD / Current / ADR bookkeeping. It generally produces code only.
 
 ## When to use
 
@@ -29,7 +29,7 @@ Steps are agent-perceived: they are not required to materialize as files, direct
 ## Docs boundary
 
 - **No issue entry is required**, and there is no forced `## 步骤` tracking.
-- **No PDR / Current / ADR updates are required.**
+- **No PRD / Current / ADR updates are required.**
 - Generally the only artifacts are code and git commit messages.
 - If a durable decision or contract change appears, escalate to `project-docs-workflow` instead of writing docs inline.
 

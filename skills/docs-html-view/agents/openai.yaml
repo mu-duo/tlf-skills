@@ -1,5 +1,5 @@
 interface:
   display_name: "Docs HTML View"
-  short_description: "Render PDR/Current/ADR docs to local HTML after approval"
+  short_description: "Render PRD/Current/ADR docs to local HTML after approval"
 policy:
   allow_implicit_invocation: false

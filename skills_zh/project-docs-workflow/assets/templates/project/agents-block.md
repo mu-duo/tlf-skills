@@ -12,4 +12,4 @@
 
 ### Development workflow
 
-推荐五步流程：规划 / 骨架 / 细节 / 异常 / 回顾。开工前先读 PDR 目标（`docs/pdr/`）与 Current 现状（`docs/current/`），与用户对齐本次范围与粒度；步骤记录在 issue 的 `## 步骤`。约定见 `docs/agents/workflow.md`。
+推荐五步流程：规划 / 骨架 / 细节 / 异常 / 回顾。开工前先读 PRD 目标（`docs/prd/`）与 Current 现状（`docs/current/`），与用户对齐本次范围与粒度；步骤记录在 issue 的 `## 步骤`。约定见 `docs/agents/workflow.md`。

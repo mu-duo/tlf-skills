@@ -24,8 +24,8 @@ const COPIED_EXACT = new Set(["docs-html-view/requirements.txt"]);
 const LINK_SKIP_PREFIXES = [
   "../adr/",
   "../../adr/",
-  "../pdr/",
-  "../../pdr/",
+  "../prd/",
+  "../../prd/",
   "../current/",
   "../../current/",
 ];

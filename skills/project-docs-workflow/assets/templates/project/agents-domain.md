@@ -27,7 +27,7 @@
 │   ├── agents/
 │   ├── common/
 │   ├── issues/
-│   └── pdr/
+│   └── prd/
 └── <源码目录…>
 ```
 

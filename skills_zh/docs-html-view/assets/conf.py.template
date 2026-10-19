@@ -25,7 +25,7 @@ root_doc = "docsHtmlView/index"
 include_patterns = [
     "docsHtmlView/index.md",
     "docsHtmlView/nav/**",
-    "pdr/**",
+    "prd/**",
     "current/**",
     "adr/**",
 ]
@@ -41,4 +41,4 @@ myst_enable_extensions = ["colon_fence", "deflist", "fieldlist"]
 myst_heading_anchors = 3
 
 # Read by guard.py; must list the same roots as include_patterns above.
-docs_html_view_allowed_roots = ["pdr", "current", "adr"]
+docs_html_view_allowed_roots = ["prd", "current", "adr"]

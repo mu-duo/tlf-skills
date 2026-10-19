@@ -20,7 +20,8 @@ import re
 import sys
 
 MARK = "% docs-html-view: generated navigation; do not edit"
-DEFAULT_ROOTS = ["pdr", "current", "adr"]
+DEFAULT_ROOTS = ["prd", "current", "adr"]
+LEGACY_ROOTS = {"pdr": "prd"}
 SUFFIXES = (".md", ".rst")
 RESERVED = {"build", "docsHtmlView"}
 BIG = float("inf")
@@ -114,6 +115,21 @@ def resolve_roots(cfg: dict, docs: str):
         else:
             missing.append(name)
     return present, missing
+
+
+def warn_legacy_roots(cfg: dict, docs: str, roots) -> None:
+    allowed = cfg.get("allowed_dirs")
+    explicitly_allowed = allowed if isinstance(allowed, list) else []
+    for legacy, replacement in LEGACY_ROOTS.items():
+        path = os.path.join(docs, legacy)
+        if not os.path.isdir(path) or not has_docs(path):
+            continue
+        if legacy in roots or legacy in explicitly_allowed:
+            continue
+        warn(
+            "legacy docs/%s/ detected; not rendered. Migrate to docs/%s/ or add \"%s\" to allowed_dirs explicitly."
+            % (legacy, replacement, legacy)
+        )
 
 
 def assert_no_symlinks(base: str, label: str) -> None:
@@ -269,6 +285,7 @@ def main() -> None:
     roots, missing = resolve_roots(cfg, docs)
     if missing:
         warn("missing/empty trees: " + ", ".join(missing))
+    warn_legacy_roots(cfg, docs, roots)
     if not roots:
         print(
             "no documents in the approved trees; nothing to scaffold (run after adding docs)",

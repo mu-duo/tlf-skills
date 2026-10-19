@@ -9,7 +9,7 @@ docs/issues/
 ├── bug/{human,agent}/        # defect fixes
 ├── feature/{human,agent}/    # new features
 ├── chore/{human,agent}/      # maintenance / refactor / misc
-├── suggestion/{human,agent}/ # improvement ideas (no history, no status; terminus ADR / PDR)
+├── suggestion/{human,agent}/ # improvement ideas (no history, no status; terminus ADR / PRD)
 └── <bug|feature|chore>/history/   # archived: filename suffixed -done / -drop
 ```
 
@@ -40,7 +40,7 @@ docs/issues/
 
 - `## Log`——就地追加带日期的行；已有行是历史，绝不改写。只简要记录关键事件：范围变化、阻塞、交接、放弃。不需要逐步机械记录。纯修复跳过骨架的理由属于正当的关键记录。
 - `Status` 就地更新。
-- 改动 ADR 或 PDR 的工作必须同步这些文档。
+- 改动 ADR 或 PRD 的工作必须同步这些文档。
 - issue 可以引用 FR / 文档。收尾更新 Current 树时只改**事实**——绝不插入指向 issue 的自链接或任务历史（见 `current.md`）。
 - 若已安装该 skill，骨架位于 `~/.agents/skills/project-docs-workflow/assets/templates/entries/issue-entry.md`；否则按上述格式创建。
 
@@ -48,6 +48,6 @@ docs/issues/
 
 当 suggestion 得到处理时：
 
-- 采纳 → 将结论落到 ADR（或更新 PDR），然后删除该条目（`采纳 → 结论落 adr（或更新 pdr），随后删除本条目；`）。
+- 采纳 → 将结论落到 ADR（或更新 PRD），然后删除该条目（`采纳 → 结论落 adr（或更新 prd），随后删除本条目；`）。
 - 不采纳 → 删除它。仅在人类显式要求时才记录否决 ADR。
 - 实际上是 bug / feature / chore → 移到对应目录。

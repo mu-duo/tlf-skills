@@ -18,7 +18,7 @@ Verified on PyPI 2026-10-14; the set is mutually compatible. Sphinx 9.1.0 requir
 <project root>/
   .venv-docs/                     # default render venv (or the project's docs env)
   docs/                           # Sphinx source root
-    pdr|current|adr/              # approved trees, never modified
+    prd|current|adr/              # approved trees, never modified
     issues/ agents/ ...           # excluded
     docsHtmlView/                 # workspace
       conf.py                     # from assets/conf.py.template
@@ -112,7 +112,7 @@ python3 "$SKILL"/scripts/prepare_env.py --project-root . --venv .venv-docs \
 ### Guard (`assets/guard.py`)
 
 - `builder-inited`: registers a refusing directive for `include`, `literalinclude`, `raw` (case-insensitive; also hit via `eval-rst` and colon fences), and validates each allowed root is a simple relative name resolving inside `docs`.
-- `doctree-read` (priority 100, before Sphinx's asset collectors at 500): rejects any `raw` node that is not purely HTML comment(s)+whitespace (so PDR-template comments pass, active markup fails); for images and `download_reference` nodes, resolves the original reference via `app.env.relfn2path`, requires it inside an approved root using `realpath`/`commonpath` (symlinks rejected), or raises `SphinxError` before any copy; remote targets are replaced with an inline placeholder and a Sphinx warning, never fetched.
+- `doctree-read` (priority 100, before Sphinx's asset collectors at 500): rejects any `raw` node that is not purely HTML comment(s)+whitespace (so PRD-template comments pass, active markup fails); for images and `download_reference` nodes, resolves the original reference via `app.env.relfn2path`, requires it inside an approved root using `realpath`/`commonpath` (symlinks rejected), or raises `SphinxError` before any copy; remote targets are replaced with an inline placeholder and a Sphinx warning, never fetched.
 - This is the authoritative boundary and the reason no regex-only scan is used. It guards trusted docs; `conf.py` is trusted executable code and is not sandboxed.
 
 ## Optional project config
@@ -122,7 +122,7 @@ python3 "$SKILL"/scripts/prepare_env.py --project-root . --venv .venv-docs \
 | Key | Read by | Effect |
 | :--- | :--- | :--- |
 | `site_title` | `gen_nav.py` | site title (also settable via `gen_nav.py --title`) |
-| `allowed_dirs` | `gen_nav.py` | explicit trees; one directory name each (no separators, not hidden, not `build`/`docsHtmlView`); defaults to `pdr`, `current`, `adr` |
+| `allowed_dirs` | `gen_nav.py` | explicit trees; one directory name each (no separators, not hidden, not `build`/`docsHtmlView`); defaults to `prd`, `current`, `adr` |
 | `navigation_order` | `gen_nav.py` | list of path strings relative to `docs/` placed first, in order; then numeric prefix, then case-insensitive name |
 | `author`, `release` | human / agent only | template token values when applying `conf.py.template`; not read by the scripts |
 | `python` | human / agent only | preferred interpreter when choosing the venv path; not read by the scripts |
@@ -132,6 +132,7 @@ python3 "$SKILL"/scripts/prepare_env.py --project-root . --venv .venv-docs \
 - Marked generated files only (`% docs-html-view: generated navigation; do not edit`, a MyST comment); unmarked collisions and symlinks are refused.
 - **Preflight before any write:** approved dirs, source trees, and any existing `nav/` (including ancestors) are checked for symlinks; every output path and existing collision is validated before the first write or prune, so a refusal leaves the tree unchanged.
 - `gen_nav.py` exits `1` when no approved tree has documents, and prints warnings (missing/empty trees) to stderr.
+- A populated legacy `docs/pdr/` tree that is not among the resolved roots is reported with `warning: legacy docs/pdr/ detected; not rendered. Migrate to docs/prd/ or add "pdr" to allowed_dirs explicitly.` It is never moved or renamed, and it is not rendered by default. To render it as-is, add `pdr` explicitly to `allowed_dirs` (and, per the manual-sync rule above, to `include_patterns` and `docs_html_view_allowed_roots`); the warning does not fire when `pdr` is explicitly allowed or rendered.
 - Hierarchy mirrors the tree; each directory gets a `{toctree}` of its documents and child-index links; entry titles come from the source H1 (path-only toctree entries), so no source text can inject MyST.
 - Directory/site headings are sanitized (no `<`, `>`, backticks, braces, brackets, pipes, newlines).
 - The full ADR tree renders, including retired/deleted tombstones.

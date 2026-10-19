@@ -15,14 +15,14 @@ The default shape for developing a single issue: align, build a thin slice, fill
 - **Align before building**: implementation starts only after the alignment is done and the plan / steps are written (align → plan & steps → build).
 - Alignment is **conversational and soft**: no freeze, no ceremonial "aligned" record. Re-align proactively when needs change (feature-requirement drift).
 - On an ambiguous direction, invoke `grilling`（未安装则按 `references/deps/grilling.md` 执行）; `grill-me` is only an entry alias; `grill-with-docs` = `grilling` + `domain-modeling`（兜底 `references/deps/grilling.md` + `references/deps/domain-modeling.md`）.
-- **Gap analysis** happens here, at Plan: read the PDR target plus Current state, derive **candidate** tasks (module / FR, suggested type, slice, acceptance criteria), and let the user pick. Differences are candidates only — a difference may be drift, a quality gap, unverified behavior, or an outdated target, not necessarily a missing feature; do not invent gaps. No idle auto-creation of issues.
+- **Gap analysis** happens here, at Plan: read the PRD target plus Current state, derive **candidate** tasks (module / FR, suggested type, slice, acceptance criteria), and let the user pick. Differences are candidates only — a difference may be drift, a quality gap, unverified behavior, or an outdated target, not necessarily a missing feature; do not invent gaps. No idle auto-creation of issues.
 - **Autonomy within scope**: once aligned, the agent implements autonomously inside the agreed scope, respecting ADRs, contracts, and security; high-cost, destructive, or hard-to-reverse decisions are confirmed with the user first.
 
 ## Scope convergence
 
-- **Default bias: converge the function space.** "Function space" is the user-facing alias for the state / solution space constrained by PDRs; do not introduce a second concept.
-- **Trigger = a decision that changes the feature / scope target**, at PDR / ADR level (where the target is defined) or at issue-planning level.
-- A feature candidate not covered by an existing PDR is an **expansion**: state a one-sentence rationale before proposing it. A candidate that implements an existing PDR is convergence / implementation and needs no extra rationale.
+- **Default bias: converge the function space.** "Function space" is the user-facing alias for the state / solution space constrained by PRDs; do not introduce a second concept.
+- **Trigger = a decision that changes the feature / scope target**, at PRD / ADR level (where the target is defined) or at issue-planning level.
+- A feature candidate not covered by an existing PRD is an **expansion**: state a one-sentence rationale before proposing it. A candidate that implements an existing PRD is convergence / implementation and needs no extra rationale.
 - Bug fixes and chores that restore or maintain existing behavior are exempt. If a bug / chore actually changes the feature set, reclassify it as a feature.
 - This is a bias, not a gate: no new artifact, no blocking. Projects may override it.
 - **Recording policy**: rejected alternatives are not recorded by default — see `adr.md` (Negative decisions) and `issues.md` (`-drop` archives). This policy constrains durable records only; alignment / grilling may still explore alternatives.
@@ -33,7 +33,7 @@ The default shape for developing a single issue: align, build a thin slice, fill
 2. **骨架 / Skeleton** — a minimal runnable vertical slice (ignore output / formatting polish); leave one piece of run evidence and show it to the user — the first review point. Skippable for pure fixes (Log the reason); mandatory for features and structural work.
 3. **细节 / Details** — main-path implementation, detail completion, code quality. `tdd`（未安装则按 `references/deps/tdd.md` 执行）is an optional internal loop.
 4. **异常 / Exceptions** — failure paths, boundaries, and stability after the main path. Real development blockers are handled immediately and Logged, never queued for this step.
-5. **回顾 / Wrap-up review** (收尾回顾) — a lightweight docs-sync checklist at issue completion (pdr, current, adr, context, issues, agents); if nothing needs updating, one Log line. Doc sync only; session / agent retrospectives belong to `retro`（未安装则按 `references/deps/boundaries.md` 执行）.
+5. **回顾 / Wrap-up review** (收尾回顾) — a lightweight docs-sync checklist at issue completion (prd, current, adr, context, issues, agents); if nothing needs updating, one Log line. Doc sync only; session / agent retrospectives belong to `retro`（未安装则按 `references/deps/boundaries.md` 执行）.
 
 ## Progress & resume
 

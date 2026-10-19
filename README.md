@@ -1,6 +1,6 @@
 # @tanlinfeng/project-docs-workflow
 
-面向 AI agent 的项目文档工作流 skill：帮助项目建立并维护 issue tracker、ADR、PDR、领域术语和开发工作流。主 skill 自带依赖兜底材料，可独立使用。
+面向 AI agent 的项目文档工作流 skill：帮助项目建立并维护 issue tracker、ADR、PRD、领域术语和开发工作流。主 skill 自带依赖兜底材料，可独立使用。
 
 ## 快速开始
 
@@ -28,7 +28,7 @@ skill 会检查并创建缺少的内容，包括：
 - `docs/agents/issues.md`、`docs/agents/domain.md`、`docs/agents/workflow.md`
 - `docs/agents/deps/` 依赖兜底文件
 - `docs/issues/` issue 目录树
-- `docs/adr/README.md`、`docs/pdr/00-README.md`、`docs/current/00-README.md` 和 `CONTEXT.md`
+- `docs/adr/README.md`、`docs/prd/00-README.md`、`docs/current/00-README.md` 和 `CONTEXT.md`
 
 每个项目手动运行一次即可。以后模板更新时可以再次运行，以检查对齐情况并报告差异；运行是幂等的，不会改写已有内容。例外是：若 `AGENTS.md` 已存在但没有 `## Agent skills`，skill 会在文件末尾追加该区块；若区块已存在，则只比较、不重写。
 
@@ -81,7 +81,7 @@ skill 会检查并创建缺少的内容，包括：
 
 本包附带一个第一方 skill `docs-html-view`（与主 skill、`doc-opt`、`lite-task` 一样，不属于上游集合）。安装器会随包一起分发它，但**安装时不会运行它**，项目文档初始化时也不会启用它；它只在用户手动调用时工作。
 
-用途：把项目文档（PDR / Current / ADR）用标准的 Read the Docs（RTD）主题与 MyST Markdown 解析渲染成静态 HTML，输出到 `docs/docsHtmlView/build/html`。仅供本地浏览与分享，不替代源文档。
+用途：把项目文档（PRD / Current / ADR）用标准的 Read the Docs（RTD）主题与 MyST Markdown 解析渲染成静态 HTML，输出到 `docs/docsHtmlView/build/html`。仅供本地浏览与分享，不替代源文档。
 
 **边界（重要）：**
 
@@ -89,14 +89,14 @@ skill 会检查并创建缺少的内容，包括：
 - **环境**：优先复用项目明确约定的文档环境；没有合适环境时才创建独立的 `.venv-docs`，不修改系统或应用环境。
 - **标准构建**：首次使用 `sphinx-quickstart` 初始化，之后复用配置，通过 `make html`（或 `sphinx-build`）按需增量构建，不自建渲染封装器。
 - **全手动**：不注册自动钩子，不自动打开浏览器，不启动常驻服务，不部署。
-- **源文档只读**：渲染只读取源文档，不修改 `docs/` 下的 PDR / Current / ADR 源文件。
+- **源文档只读**：渲染只读取源文档，不修改 `docs/` 下的 PRD / Current / ADR 源文件。
 - **不参与 `check`**：`project-docs-workflow check` 只检查主 skill 的依赖解析状态，**不检查** `docs-html-view`，也不校验其渲染结果。
 
 具体的脚本、命令与参数以该 skill 的 `SKILL.md` 为准（安装后位于 `<skills 根目录>/docs-html-view/SKILL.md`），README 不再重复其接口。
 
 ## lite-task（可选：轻型任务开发流程）
 
-本包附带一个第一方 skill `lite-task`（与主 skill、`doc-opt`、`docs-html-view` 一样，不属于上游集合）。它是面向**小、低风险任务**（或用户显式选择时）的轻型开发流程：与 `project-docs-workflow` 相同的五步（功能同步 / 骨架 / 实现 / 异常 / 回顾），但不强制 issue、PDR、Current 或 ADR 记录——默认一般只产出代码。
+本包附带一个第一方 skill `lite-task`（与主 skill、`doc-opt`、`docs-html-view` 一样，不属于上游集合）。它是面向**小、低风险任务**（或用户显式选择时）的轻型开发流程：与 `project-docs-workflow` 相同的五步（功能同步 / 骨架 / 实现 / 异常 / 回顾），但不强制 issue、PRD、Current 或 ADR 记录——默认一般只产出代码。
 
 当任务变大（涉及契约变更、跨模块影响，或需要留存长期决策）时，应升级到 `project-docs-workflow`，不要在本流程里静默写文档。具体行为以该 skill 的 `SKILL.md` 为准（安装后位于 `<skills 根目录>/lite-task/SKILL.md`），README 不再重复其接口。
 
@@ -112,15 +112,15 @@ skill 会检查并创建缺少的内容，包括：
 
 ## English summary
 
-`@tanlinfeng/project-docs-workflow` is an agent skill for setting up and maintaining project documentation workflows: issues, ADRs, PDRs, domain terminology, and development practices. Install it with `npx @tanlinfeng/project-docs-workflow@latest install`, or pin an exact published version with an npm spec such as `@2.2.0` (Node.js >= 18; default destination `~/.agents/skills`). Without a spec, npx may prefer the version already installed in the current project; write `@latest` or `@<version>` to select the installer version (cache/network policy is separate), and the installer never fetches versions itself. Because `npx <pkg>@<version> install` runs that version's own installer code, the sync / `--force` semantics on this page apply only to package versions that contain this installation strategy; older published versions keep their historical behavior (e.g. `--force` may only overwrite the main skill), so pinning an older version is only an equivalent rollback within such compatible versions. Installation does not initialize a project: from the target project root, manually invoke the skill using your agent's own skill mechanism. It creates missing documentation, reports drift on reruns, and does not overwrite existing content, except that it appends a missing `## Agent skills` block to an existing `AGENTS.md`.
+`@tanlinfeng/project-docs-workflow` is an agent skill for setting up and maintaining project documentation workflows: issues, ADRs, PRDs, domain terminology, and development practices. Install it with `npx @tanlinfeng/project-docs-workflow@latest install`, or pin an exact published version with an npm spec such as `@2.2.0` (Node.js >= 18; default destination `~/.agents/skills`). Without a spec, npx may prefer the version already installed in the current project; write `@latest` or `@<version>` to select the installer version (cache/network policy is separate), and the installer never fetches versions itself. Because `npx <pkg>@<version> install` runs that version's own installer code, the sync / `--force` semantics on this page apply only to package versions that contain this installation strategy; older published versions keep their historical behavior (e.g. `--force` may only overwrite the main skill), so pinning an older version is only an equivalent rollback within such compatible versions. Installation does not initialize a project: from the target project root, manually invoke the skill using your agent's own skill mechanism. It creates missing documentation, reports drift on reruns, and does not overwrite existing content, except that it appends a missing `## Agent skills` block to an existing `AGENTS.md`.
 
 An ordinary install full-directory-syncs the first-party skills (`project-docs-workflow`, `doc-opt`, `docs-html-view`, `lite-task`) when a valid manifest confirms the package installed them, so it may overwrite local edits; a first-party path not confirmed as package-owned is preserved unless `--force` replaces that entry. External dependencies are preserved by default, and `--force` alone does not update them; explicit `--with-matt-skills` refreshes the eight supported upstream names (updating existing ones and installing missing) only on the default codex target, with other target/agent combinations rejected before any write. The package ships no standalone dependency skills: missing external names are covered by the skill's internal fallback references (`references/deps/*`), no independent lite skill is copied, and existing standalone installs (including older lite copies) are preserved and never auto-cleaned or migrated. A manifest file that is itself a symlink is always refused (even with `--force`), unlike a first-party skill path that is a symlink; per-skill replacement failures restore the old content or retain a backup and report the path, so this is not an all-skills transaction. The installer supports custom directories, dry runs, dependency checks, and manifest-based uninstall. Uninstall removes recorded package-owned paths by name, not by content hash, and records no local-edit fingerprints; review the manifest or use a dry run before deleting anything. See the advanced details below for optional upstream dependencies and manifest behavior.
 
 The package also ships `skills_zh/`, a manually reviewed Chinese mirror of the four first-party skills with identical directory and skill names. Installs default to the English tree (`skills/`); pass `--zh` to install the Chinese mirror. The two variants are mutually exclusive: running the other language switches the package-owned same-named first-party skills, and the manifest records the choice in the `lang` field of each package-owned first-party entry. `--zh` is install-only; `check` and `uninstall` are language-agnostic. The mirror is a snapshot of source commit `3e408c5` (2026-10-19) and is not auto-synced; use `node scripts/check-skills-zh.js` to check it. `--with-matt-skills` installs English upstream dependencies, so pass `--zh` too to keep the first-party skills Chinese; an English install without `--zh` switches them back.
 
-The package also ships a first-party `docs-html-view` skill (manual invocation only; distributed but not run at install). It renders PDR/Current/ADR docs to `docs/docsHtmlView/build/html` with Sphinx, MyST, and the stock RTD theme. After approval of packages, environment, and files, it uses `sphinx-quickstart` once and standard `make html` or `sphinx-build` thereafter. It never hooks, opens a browser, serves, deploys, or mutates source docs. `check` does not cover it.
+The package also ships a first-party `docs-html-view` skill (manual invocation only; distributed but not run at install). It renders PRD/Current/ADR docs to `docs/docsHtmlView/build/html` with Sphinx, MyST, and the stock RTD theme. After approval of packages, environment, and files, it uses `sphinx-quickstart` once and standard `make html` or `sphinx-build` thereafter. It never hooks, opens a browser, serves, deploys, or mutates source docs. `check` does not cover it.
 
-The package also ships a first-party `lite-task` skill: a lightweight development workflow for small, low-risk tasks (or when the user explicitly opts in). It keeps the same five steps as `project-docs-workflow` (功能同步 / 骨架 / 实现 / 异常 / 回顾) but drops its documentation obligations — no forced issue, PDR, Current, or ADR bookkeeping, generally code only. Escalate to `project-docs-workflow` when the task grows (contract change, cross-module impact, or a durable decision).
+The package also ships a first-party `lite-task` skill: a lightweight development workflow for small, low-risk tasks (or when the user explicitly opts in). It keeps the same five steps as `project-docs-workflow` (功能同步 / 骨架 / 实现 / 异常 / 回顾) but drops its documentation obligations — no forced issue, PRD, Current, or ADR bookkeeping, generally code only. Escalate to `project-docs-workflow` when the task grows (contract change, cross-module impact, or a durable decision).
 
 <details>
 <summary>高级细节</summary>

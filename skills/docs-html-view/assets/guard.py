@@ -23,7 +23,7 @@ logger = logging.getLogger(__name__)
 
 BLOCKED = ("include", "literalinclude", "raw")
 # A raw node is allowed only when it is entirely HTML comment(s) and whitespace.
-# This permits the harmless `<!-- ... -->` comments used in the PDR templates while
+# This permits the harmless `<!-- ... -->` comments used in the PRD templates while
 # still refusing any active markup (no comment+script smuggling).
 _COMMENT_ONLY = re.compile(r"\s*(?:<!--.*?-->\s*)*", re.DOTALL)
 

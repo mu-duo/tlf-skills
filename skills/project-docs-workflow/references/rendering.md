@@ -6,7 +6,7 @@ Rendering is an **optional, user-triggered** capability provided outside this pr
 
 ## Default render scope
 
-- **In scope**: `docs/pdr/`, `docs/current/`, and the **complete** `docs/adr/` — retired entries and tombstone stubs included, with their retirement markers (`> 已废弃…` / `> 已删除…`) kept visible, so retired decisions stay navigable.
+- **In scope**: `docs/prd/`, `docs/current/`, and the **complete** `docs/adr/` — retired entries and tombstone stubs included, with their retirement markers (`> 已废弃…` / `> 已删除…`) kept visible, so retired decisions stay navigable.
 - **Out of scope**: `docs/issues/`, `docs/agents/` — working material, not published docs.
 - A project may override the scope.
 
@@ -18,8 +18,8 @@ Rendering is an **optional, user-triggered** capability provided outside this pr
 
 ## Link authoring
 
-- **PDR ↔ Current**: semantic / navigation / contract links between the two trees are expected (`pdr.md`, `current.md`). Write ordinary relative Markdown links so both the source and the render navigate.
-- **PDR / Current → ADR**: a **descriptive phrase + a stable path link** to the ADR file, e.g. `支持 [离线使用](../../adr/0003-offline.md)`. The description is written independently and stands on its own; the ADR's rationale is **not** transcluded or summarized. No requirement must carry an ADR, and the profile never infers ADR links automatically.
+- **PRD ↔ Current**: semantic / navigation / contract links between the two trees are expected (`prd.md`, `current.md`). Write ordinary relative Markdown links so both the source and the render navigate.
+- **PRD / Current → ADR**: a **descriptive phrase + a stable path link** to the ADR file, e.g. `支持 [离线使用](../../adr/0003-offline.md)`. The description is written independently and stands on its own; the ADR's rationale is **not** transcluded or summarized. No requirement must carry an ADR, and the profile never infers ADR links automatically.
 - The native `ADR-XXXX` citation notation is unchanged; ADR deletion / semantic edit sweeps **both** notations (`adr.md`).
 
 ## Manual, opt-in

@@ -1,21 +1,21 @@
 ---
 name: docs-html-view
-description: 在只读检查与明确批准后，使用 Sphinx + MyST（原版 RTD 主题）将项目的 PDR / Current / ADR 文档渲染为本地 HTML。
+description: 在只读检查与明确批准后，使用 Sphinx + MyST（原版 RTD 主题）将项目的 PRD / Current / ADR 文档渲染为本地 HTML。
 disable-model-invocation: true
 argument-hint: "[项目根目录]"
 ---
 
 # 文档 HTML 渲染
 
-使用**标准 Sphinx** 配合 MyST（`myst_parser`）和**原版** `sphinx_rtd_theme`，将项目面向人阅读的文档树（`docs/pdr`、`docs/current`、`docs/adr`）渲染为本地 HTML 站点。这里没有自研渲染器：脚手架使用 `sphinx-quickstart`，导航由一个很小的生成 toctree 的辅助脚本完成，构建则使用 `make html`（或直接调用 `sphinx-build`）。产物是一个本地文件夹，由你自己打开；不提供服务，也不部署。
+使用**标准 Sphinx** 配合 MyST（`myst_parser`）和**原版** `sphinx_rtd_theme`，将项目面向人阅读的文档树（`docs/prd`、`docs/current`、`docs/adr`）渲染为本地 HTML 站点。这里没有自研渲染器：脚手架使用 `sphinx-quickstart`，导航由一个很小的生成 toctree 的辅助脚本完成，构建则使用 `make html`（或直接调用 `sphinx-build`）。产物是一个本地文件夹，由你自己打开；不提供服务，也不部署。
 
 本 skill 仅手动触发，绝不自动运行，且构建期间绝不抓取任何内容。它可以安装固定版本的渲染依赖，但只在你明确批准之后。先进行只读检查，**只询问一次**批准，之后首次初始化与重复手动渲染都不再询问——直到某项设置发生变化。
 
 ## 边界
 
 - **仅由用户触发。** 编辑文档期间，绝不安装、初始化脚手架或构建。
-- **写入范围受限。** 已批准的集合为：`docs/docsHtmlView/`（配置、生成的导航、构建产物）、经批准的渲染环境目录（例如 `.venv-docs/`），以及你批准的任何 `.gitignore` 新增项。渲染会读取 `docs/pdr`、`docs/current`、`docs/adr`，绝不重写它们，也绝不写入源文档树。
-- **仅限已批准的树。** 默认树为 `pdr`、`current`、`adr`；可以在配置文件中显式扩展某棵树，但绝不自动扩展。`docs/issues`、`docs/agents`、工具链与构建产物均被排除。缺失或为空的树只报告，不创建。已批准的树中没有任何文档 → **停止：不要创建 `docs/docsHtmlView/`，不要初始化脚手架，不要构建。**
+- **写入范围受限。** 已批准的集合为：`docs/docsHtmlView/`（配置、生成的导航、构建产物）、经批准的渲染环境目录（例如 `.venv-docs/`），以及你批准的任何 `.gitignore` 新增项。渲染会读取 `docs/prd`、`docs/current`、`docs/adr`，绝不重写它们，也绝不写入源文档树。
+- **仅限已批准的树。** 默认树为 `prd`、`current`、`adr`；可以在配置文件中显式扩展某棵树，但绝不自动扩展。`docs/issues`、`docs/agents`、工具链与构建产物均被排除。缺失或为空的树只报告，不创建。重命名前的 `docs/pdr/` 树会由 `gen_nav.py` 报告，绝不会被移动；除非将 `pdr` 显式加入 `allowed_dirs`，否则不会渲染。已批准的树中没有任何文档 → **停止：不要创建 `docs/docsHtmlView/`，不要初始化脚手架，不要构建。**
 - **原版主题。** 不做任何自定义 UI/设计工作。
 - **不虚构链接。** 导航由真实文档树生成；不添加跨树关联，也不改写任何文档正文。
 - **不启动浏览器/服务器，不部署。** 产出 HTML 即结束。仅限 README/本地产物。
@@ -31,7 +31,7 @@ DOCS_PY="$PWD/.venv-docs/bin/python"                 # or the project's existing
 DOCS_SPHINXBUILD="$PWD/.venv-docs/bin/sphinx-build"  # same env
 ```
 
-1. **检查（只读）。** 使用常规只读工具（`ls`、`read`、`grep`）了解项目：`docs/pdr`、`docs/current`、`docs/adr` 中哪些存在且包含文档，`docs/docsHtmlView/` 是否已存在，存在哪个 Python/venv，以及真实的项目/站点标题。**在批准之前，绝不执行项目的解释器或 `conf.py`。** 如果没有任何已批准的树包含文档，就此停止——没有可渲染的内容。报告计划：固定版本、环境路径、创建的文件、`.gitignore` 新增项、输出路径与标题。
+1. **检查（只读）。** 使用常规只读工具（`ls`、`read`、`grep`）了解项目：`docs/prd`、`docs/current`、`docs/adr` 中哪些存在且包含文档，`docs/docsHtmlView/` 是否已存在，存在哪个 Python/venv，以及真实的项目/站点标题。**在批准之前，绝不执行项目的解释器或 `conf.py`。** 如果没有任何已批准的树包含文档，就此停止——没有可渲染的内容。报告计划：固定版本、环境路径、创建的文件、`.gitignore` 新增项、输出路径与标题。
 
 2. **只询问一次。** 在**任何写入、安装或脚手架操作之前**取得明确批准。具体涵盖：包/固定版本（`requirements.txt`）、环境位置、pip 命令、创建的文件、你提议的 `.gitignore` 新增项（例如 `.venv-docs/`、`docs/docsHtmlView/build/`）、构建/输出路径（`docs/docsHtmlView/build/html`），以及确认的站点标题——`docsHtmlView` 是目录名，不是站点名。
    - 在已批准范围内，重复手动渲染**不会**再次询问。
@@ -93,7 +93,7 @@ DOCS_SPHINXBUILD="$PWD/.venv-docs/bin/sphinx-build"  # same env
 
 边界是一个很小的模板 Sphinx 扩展（`assets/guard.py`），而不是构建编排器。它是针对**可信**项目文档的尽力而为防护，不是通用沙箱；项目自身的 `conf.py` 仍是可执行的 Python。
 
-- **解析阶段阻止文件插入：** `include`、`literalinclude` 和 `raw` 指令会被替换为拒绝执行的指令（不区分大小写，因此 `INCLUDE` 也会被拦截；通过 `eval-rst` 和 MyST 冒号围栏同样可达）。活动/原始 HTML 会被拒绝；只允许纯 HTML 注释（加空白）的 raw 节点，因此 PDR 模板中的无害 `<!-- ... -->` 注释可以正常渲染——但不允许注释+标记的夹带。不依赖仅正则的扫描。
+- **解析阶段阻止文件插入：** `include`、`literalinclude` 和 `raw` 指令会被替换为拒绝执行的指令（不区分大小写，因此 `INCLUDE` 也会被拦截；通过 `eval-rst` 和 MyST 冒号围栏同样可达）。活动/原始 HTML 会被拒绝；只允许纯 HTML 注释（加空白）的 raw 节点，因此 PRD 模板中的无害 `<!-- ... -->` 注释可以正常渲染——但不允许注释+标记的夹带。不依赖仅正则的扫描。
 - **本地资源在复制前检查：** 在 `doctree-read` 阶段（优先级 100，早于 Sphinx 的资源收集器复制任何内容），每个已解析的图片与下载目标都会由环境的引用解析器解析，且必须解析到已批准根目录内部（含符号链接），否则构建失败。引用式图片、`:download:` 和大写指令都在覆盖范围内。
 - **远程资源绝不抓取：** 远程图片/下载会被替换为内联占位符并发出 Sphinx 警告，因此干净构建不会被报告为完全保真。
 - **导航是生成的，不是手写的：** `gen_nav.py` 只写入带标记的文件（`% docs-html-view: generated navigation; do not edit`，一个渲染后无内容的 MyST 注释），对生成的标题做净化（不含 `<`、`>`、反引号、花括号、方括号、竖线或换行），并执行完整预检——检查已批准目录、源文档树以及任何已有的 `nav/`（包括祖先目录）是否存在符号链接，并在首次写入前校验每个输出/冲突，因此拒绝时文档树保持不变。它只删除自己标记的过期导航文件，绝不写入源文档树。

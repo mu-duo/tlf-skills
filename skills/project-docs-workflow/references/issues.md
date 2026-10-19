@@ -9,7 +9,7 @@ docs/issues/
 ├── bug/{human,agent}/        # defect fixes
 ├── feature/{human,agent}/    # new features
 ├── chore/{human,agent}/      # maintenance / refactor / misc
-├── suggestion/{human,agent}/ # improvement ideas (no history, no status; terminus ADR / PDR)
+├── suggestion/{human,agent}/ # improvement ideas (no history, no status; terminus ADR / PRD)
 └── <bug|feature|chore>/history/   # archived: filename suffixed -done / -drop
 ```
 
@@ -40,7 +40,7 @@ docs/issues/
 
 - `## Log` — dated lines appended in place; existing lines are history and never rewritten. Record only key events, briefly: scope change, blocker, handoff, abandonment. Mechanical per-step entries are not required. A skipped-skeleton rationale on a pure fix is a legitimate key entry.
 - `Status` is updated in place.
-- Work that changes an ADR or PDR must sync those documents.
+- Work that changes an ADR or PRD must sync those documents.
 - An issue may reference FRs / docs. A wrap-up that updates the Current tree changes **facts only** — it never inserts a self-link to the issue or task history (see `current.md`).
 - If the skill is installed, the skeleton lives at `~/.agents/skills/project-docs-workflow/assets/templates/entries/issue-entry.md`; otherwise create from the format above.
 
@@ -48,6 +48,6 @@ docs/issues/
 
 When a suggestion is resolved:
 
-- Accepted → land the conclusion in an ADR (or update the PDR), then remove the entry (`采纳 → 结论落 adr（或更新 pdr），随后删除本条目；`).
+- Accepted → land the conclusion in an ADR (or update the PRD), then remove the entry (`采纳 → 结论落 adr（或更新 prd），随后删除本条目；`).
 - Rejected → delete it. Record a rejection ADR only if a human explicitly asks.
 - Actually a bug / feature / chore → move it to that directory.

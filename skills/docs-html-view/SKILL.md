@@ -1,21 +1,21 @@
 ---
 name: docs-html-view
-description: Render a project's PDR / Current / ADR docs to local HTML with Sphinx + MyST (stock RTD theme), after a read-only inspection and explicit approval.
+description: Render a project's PRD / Current / ADR docs to local HTML with Sphinx + MyST (stock RTD theme), after a read-only inspection and explicit approval.
 disable-model-invocation: true
 argument-hint: "[project root]"
 ---
 
 # Docs HTML View
 
-Render the human-readable documentation trees of a project (`docs/pdr`, `docs/current`, `docs/adr`) into a local HTML site using **standard Sphinx** with MyST (`myst_parser`) and the **stock** `sphinx_rtd_theme`. There is no custom renderer: scaffolding uses `sphinx-quickstart`, navigation is a small generated-toctree helper, and the build is `make html` (or a plain `sphinx-build`). The output is a local folder you open yourself; nothing is served or deployed.
+Render the human-readable documentation trees of a project (`docs/prd`, `docs/current`, `docs/adr`) into a local HTML site using **standard Sphinx** with MyST (`myst_parser`) and the **stock** `sphinx_rtd_theme`. There is no custom renderer: scaffolding uses `sphinx-quickstart`, navigation is a small generated-toctree helper, and the build is `make html` (or a plain `sphinx-build`). The output is a local folder you open yourself; nothing is served or deployed.
 
 This skill is manually triggered and never automatic, and it never fetches anything at build time. It may install the pinned render dependencies, but only after your explicit approval. Inspect read-only, ask for approval **once**, then first-time setup and repeat manual renders run without re-asking — until a setting changes.
 
 ## Boundaries
 
 - **User-triggered only.** Never install, scaffold, or build while editing docs.
-- **Bounded writes.** The approved set is: `docs/docsHtmlView/` (config, generated navigation, build output), the approved render environment directory (e.g. `.venv-docs/`), and any `.gitignore` additions you approved. Rendering reads `docs/pdr`, `docs/current`, `docs/adr` and never rewrites them, and it never writes into source trees.
-- **Approved trees only.** Default trees are `pdr`, `current`, `adr`; a tree may be extended explicitly in the config file, never auto-expanded. `docs/issues`, `docs/agents`, tooling, and build output are excluded. A missing or empty tree is reported, not created. No documents in the approved trees → **stop: do not create `docs/docsHtmlView/`, do not scaffold, do not build.**
+- **Bounded writes.** The approved set is: `docs/docsHtmlView/` (config, generated navigation, build output), the approved render environment directory (e.g. `.venv-docs/`), and any `.gitignore` additions you approved. Rendering reads `docs/prd`, `docs/current`, `docs/adr` and never rewrites them, and it never writes into source trees.
+- **Approved trees only.** Default trees are `prd`, `current`, `adr`; a tree may be extended explicitly in the config file, never auto-expanded. `docs/issues`, `docs/agents`, tooling, and build output are excluded. A missing or empty tree is reported, not created. A pre-rename `docs/pdr/` tree is reported by `gen_nav.py`, never moved, and is not rendered unless `pdr` is explicitly added to `allowed_dirs`. No documents in the approved trees → **stop: do not create `docs/docsHtmlView/`, do not scaffold, do not build.**
 - **Stock theme.** No custom UI/design work.
 - **No invented links.** Navigation is generated from the real tree; no cross-tree associations are added and no document bodies are rewritten.
 - **No browser/server/deploy.** Producing HTML is the end. README/local output only.
@@ -31,7 +31,7 @@ DOCS_PY="$PWD/.venv-docs/bin/python"                 # or the project's existing
 DOCS_SPHINXBUILD="$PWD/.venv-docs/bin/sphinx-build"  # same env
 ```
 
-1. **Inspect (read-only).** Use normal read-only tools (`ls`, `read`, `grep`) to learn the project: which of `docs/pdr`, `docs/current`, `docs/adr` exist and contain documents, whether `docs/docsHtmlView/` already exists, which Python/venv exists, and the real project/site title. **Never execute the project's interpreter or `conf.py` before approval.** If no approved tree contains documents, stop here — there is nothing to render. Report the plan: pins, environment path, files created, `.gitignore` additions, output path, and title.
+1. **Inspect (read-only).** Use normal read-only tools (`ls`, `read`, `grep`) to learn the project: which of `docs/prd`, `docs/current`, `docs/adr` exist and contain documents, whether `docs/docsHtmlView/` already exists, which Python/venv exists, and the real project/site title. **Never execute the project's interpreter or `conf.py` before approval.** If no approved tree contains documents, stop here — there is nothing to render. Report the plan: pins, environment path, files created, `.gitignore` additions, output path, and title.
 
 2. **Ask once.** Get explicit approval **before any write, install, or scaffold**. Cover concretely: packages/pins (`requirements.txt`), where the environment lives, the pip command, the files created, the `.gitignore` additions you propose (e.g. `.venv-docs/`, `docs/docsHtmlView/build/`), the build/output paths (`docs/docsHtmlView/build/html`), and the confirmed site title — `docsHtmlView` is a directory name, not the site name.
    - Within the approved scope, repeated manual rendering does **not** re-ask.
@@ -93,7 +93,7 @@ DOCS_SPHINXBUILD="$PWD/.venv-docs/bin/sphinx-build"  # same env
 
 The boundary is a small template Sphinx extension (`assets/guard.py`), not a build orchestrator. It is a best-effort guard for **trusted** project docs, not a universal sandbox; the project's own `conf.py` remains executable Python.
 
-- **File insertion blocked at parse time:** `include`, `literalinclude`, and `raw` directives are replaced by a refusing directive (case-insensitive, so `INCLUDE` too; also reached through `eval-rst` and MyST colon fences). Active/raw HTML is refused; only pure HTML-comment (plus whitespace) raw nodes are allowed, so the harmless `<!-- ... -->` comments in the PDR templates render — but no comment+markup smuggling. No regex-only scan is relied on.
+- **File insertion blocked at parse time:** `include`, `literalinclude`, and `raw` directives are replaced by a refusing directive (case-insensitive, so `INCLUDE` too; also reached through `eval-rst` and MyST colon fences). Active/raw HTML is refused; only pure HTML-comment (plus whitespace) raw nodes are allowed, so the harmless `<!-- ... -->` comments in the PRD templates render — but no comment+markup smuggling. No regex-only scan is relied on.
 - **Local assets checked before copy:** at `doctree-read` (priority 100, before Sphinx's asset collectors copy anything) every parsed image and download target is resolved with the environment's reference resolver and must resolve (symlinks included) inside an approved root, or the build fails. Reference-style images, `:download:`, and uppercase directives are covered.
 - **Remote assets are never fetched:** remote images/downloads are replaced with an inline placeholder and a Sphinx warning is emitted, so a clean build is not reported as full fidelity.
 - **Navigation is generated, not authored:** `gen_nav.py` writes only marked files (`% docs-html-view: generated navigation; do not edit`, a MyST comment that renders as no content), sanitizes generated titles (no `<`, `>`, backticks, braces, brackets, pipes, or newlines), and runs a full preflight — approved dirs, source trees, and any existing `nav/` (including ancestors) are checked for symlinks, and every output/collision is validated before the first write, so a refusal leaves the tree unchanged. It removes only its own marked stale nav files and never writes into source trees.

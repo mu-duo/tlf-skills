@@ -1,12 +1,12 @@
 ---
 name: project-docs-workflow
-description: 初始化或对齐项目的文档工作流——issue 跟踪、ADR、带独立 Current 现状树的 PDR 目标规格、推荐的五步开发流程，以及领域术语。每个项目手动运行一次（幂等）；创建缺失文件并报告对齐情况，不覆盖现有内容。
+description: 初始化或对齐项目的文档工作流——issue 跟踪、ADR、带独立 Current 现状树的 PRD 目标规格、推荐的五步开发流程，以及领域术语。每个项目手动运行一次（幂等）；创建缺失文件并报告对齐情况，不覆盖现有内容。
 disable-model-invocation: true
 ---
 
 # 项目文档工作流
 
-搭建并对齐项目的文档体系：issue 跟踪、ADR、PDR 产品规格、领域术语，以及推荐的五步开发流程。本 skill 是权威源；init 将规则物化到目标项目，使 agent 在运行时读取。
+搭建并对齐项目的文档体系：issue 跟踪、ADR、PRD 产品规格、领域术语，以及推荐的五步开发流程。本 skill 是权威源；init 将规则物化到目标项目，使 agent 在运行时读取。
 
 手动运行，每个项目一次——在接入时，或在 skill 模板演进后再次运行以检查对齐。重复运行是幂等的：只创建缺失内容并报告漂移，绝不改写现有内容。
 
@@ -38,7 +38,7 @@ disable-model-invocation: true
 在目标项目根目录（`cwd`）运行。
 
 1. **盘点**下方清单中的每个产物。将每项归类为*缺失*或*已存在*。每一行都有分类即完成。
-2. **创建缺失**文件（按模板），并创建 issue 目录树。缺失时创建 `docs/current/00-README.md` 概览——不强制创建模块文件。
+2. **创建缺失**文件（按模板），并创建 issue 目录树。缺失时创建 `docs/current/00-README.md` 概览——不强制创建模块文件。例外：当存在有内容的遗留 `docs/pdr/` 且 `docs/prd/` 缺失时，**不要**创建 `docs/prd/00-README.md`；改为将旧树作为遗留漂移报告。
 2b. **填充占位符**：只填充明显、可确定的*待填*占位符（例如由仓库/目录名得到项目名）；将剩余每个待填占位符列在报告的「下一步」下。`<标题>` 这类格式记号是文档说明，不是占位符——跳过。
 3. **比较现有**文件与模板：归类为*已对齐*，或*有差异*并列出具体差异。
 4. **报告**：使用下方格式。
@@ -54,7 +54,7 @@ disable-model-invocation: true
 | `docs/agents/deps/` | `references/deps/*`（整目录复制，不改内容） |
 | `docs/issues/` 目录树 | 无——创建目录（见下） |
 | `docs/adr/README.md` | `assets/templates/project/adr-readme.md` |
-| `docs/pdr/00-README.md` | `assets/templates/project/pdr-00-readme.md` |
+| `docs/prd/00-README.md` | `assets/templates/project/prd-00-readme.md` |
 | `docs/current/00-README.md` | `assets/templates/project/current-00-readme.md` |
 | `CONTEXT.md` | `assets/templates/project/context.md` |
 
@@ -62,7 +62,8 @@ disable-model-invocation: true
 - 来源行紧跟在 `## Agent skills` 标题下方，是有意为之——保留它（用于标识物化文件及其生成来源）。
 - Issue 目录树：`bug/{human,agent,history}`、`feature/{human,agent,history}`、`chore/{human,agent,history}`、`suggestion/{human,agent}`；为每个叶子目录（不含任何文件的目录）添加 `.gitkeep`。不要运行 `git init`。
 - 依赖兜底：init 将 `references/deps/*` 作为整目录副本（内容不变）复制到项目的 `docs/agents/deps/`，使目标项目即使未安装本 skill 也能自给自足。
-- Current 树：缺失时 init 创建 `docs/current/00-README.md` 概览；**不**强制创建模块文件——在需要描述模块时添加。Current 树与 PDR 平级，绝不内嵌于 PDR。
+- Current 树：缺失时 init 创建 `docs/current/00-README.md` 概览；**不**强制创建模块文件——在需要描述模块时添加。Current 树与 PRD 平级，绝不内嵌于 PRD。
+- PRD 树：缺失时 init 创建 `docs/prd/00-README.md`；例外是存在有内容的遗留 `docs/pdr/`——此时不创建任何内容，并将旧树作为遗留漂移报告（见下）。
 - 领域术语表（如 `docs/common/glossary.md`）**不由 init 搭建**；规则会覆盖它们，项目按需创建。
 - 渲染**不在 init 范围内**：init 不创建任何渲染器配置、产物或钩子。HTML 渲染是可选手动第一方 skill（`docs-html-view`）；见 `references/rendering.md`。
 
@@ -72,7 +73,7 @@ disable-model-invocation: true
 
 **差异（diff）** = 缺少必需规则/章节，或与默认规则相矛盾。差异仅供参考；init 绝不自动修复。每个文件一条：`- <file>: <缺失或相矛盾的规则>`。
 
-**遗留漂移**（现有项目）：在现有项目中发现的嵌入式 current/progress 材料——例如每模块的 `04-current.md`、PDR README 中的 `当前进展` 章节——作为信息性遗留漂移报告。init 绝不移动、改写或删除它们，也不提供安装迁移脚本；迁移到独立的 Current 树需要用户显式授权。
+**遗留漂移**（现有项目）：在现有项目中发现的嵌入式 current/progress 材料——例如每模块的 `04-current.md`、PRD README 中的 `当前进展` 章节——作为信息性遗留漂移报告。重命名前的 `docs/pdr/` 树同样属于遗留漂移；当它有内容且 `docs/prd/` 缺失时，init 报告它，而不是创建 `docs/prd/00-README.md`。init 绝不移动、改写或删除这两种形态，也不提供安装迁移脚本；迁移到独立的 Current 树或迁移到 `docs/prd/` 需要用户显式授权。
 
 每次比较都忽略：来源行；已填充的占位符；索引/表格行；模块/术语/条目名称；语言；额外内容。
 
@@ -81,10 +82,10 @@ disable-model-invocation: true
 - `AGENTS.md` 区块：`## Agent skills` 标题 + 三个子节（`### Issue tracker`、`### Domain docs`、`### Development workflow`）。
 - `docs/agents/issues.md`：目录契约；human/agent 责任；条目格式（`Status:` 行、`## 完成判据`、`## 步骤`、`## Log`；`## 结果` 章节本身可选）；归档后缀（`-done`/`-drop`）；`-drop` 是工作状态归档，不是否定决策（放弃的条目不会被删除或改写）；suggestion 路由。
 - `docs/agents/domain.md`：探索前先读 `CONTEXT.md` + `docs/adr`；缺失时静默继续；术语表用词规则；ADR 冲突标注。
-- `docs/agents/workflow.md`：推荐五步流程（规划 / 骨架 / 细节 / 异常 / 回顾，其中回顾 = 文档同步收尾）；先对齐后构建的顺序；对话式对齐（不冻结）；弹性粒度建议（≈0.5 人天启发式）；issue `## 步骤` 跟踪 + 续接锚点；由 PDR 目标 / Current 现状推导差距→issue 候选；范围收敛默认（feature / 范围决策倾向收窄；feature 候选需要一句话理由；bug / chore 豁免；是偏好而非门禁）；收尾就地更新 Current（只改事实，不插入自链接或任务历史）；边界（`deepwork` / `tdd` / `retro` / `grilling` 调用 + 兜底指针）。
+- `docs/agents/workflow.md`：推荐五步流程（规划 / 骨架 / 细节 / 异常 / 回顾，其中回顾 = 文档同步收尾）；先对齐后构建的顺序；对话式对齐（不冻结）；弹性粒度建议（≈0.5 人天启发式）；issue `## 步骤` 跟踪 + 续接锚点；由 PRD 目标 / Current 现状推导差距→issue 候选；范围收敛默认（feature / 范围决策倾向收窄；feature 候选需要一句话理由；bug / chore 豁免；是偏好而非门禁）；收尾就地更新 Current（只改事实，不插入自链接或任务历史）；边界（`deepwork` / `tdd` / `retro` / `grilling` 调用 + 兜底指针）。
 - `docs/adr/README.md`：生命周期规则（修改+Log、删除→墓碑桩、不重新编号）；存在目录表；引用核查覆盖 `ADR-XXXX` 与 `adr/<NNNN>-<slug>.md` 路径链接（任意相对前缀）；正文默认不含 `Considered Options`；默认不记录被拒备选方案（仅约束持久记录；讨论仍可探索备选）。
-- `docs/pdr/00-README.md`：目的；最终形态概览；模块索引；阅读顺序；链接到平级的 Current 树（无进展章节，不内嵌 current）；允许将非目标 / out-of-scope 作为范围边界，而非否定决策；可选的描述性 ADR 链接规则。
-- `docs/current/00-README.md`：目的；本树所描述的基线（revision/日期）；模块/主题索引；阅读顺序；链接到平级的 PDR 树；记录实际建成能力/限制，而非任务日志或计划中的工作；可选的描述性 ADR 链接规则。
+- `docs/prd/00-README.md`：目的；最终形态概览；模块索引；阅读顺序；链接到平级的 Current 树（无进展章节，不内嵌 current）；允许将非目标 / out-of-scope 作为范围边界，而非否定决策；可选的描述性 ADR 链接规则。
+- `docs/current/00-README.md`：目的；本树所描述的基线（revision/日期）；模块/主题索引；阅读顺序；链接到平级的 PRD 树；记录实际建成能力/限制，而非任务日志或计划中的工作；可选的描述性 ADR 链接规则。
 - `CONTEXT.md`：术语表结构（带 `_Avoid_` 的术语块）。
 - `docs/issues/` 树：叶子目录存在（可检查 `.gitkeep`）；额外内容仅供参考。
 - `docs/agents/deps/`：叶子文件存在（`grilling.md`、`domain-modeling.md`、`tdd.md`、`doc-opt.md`、`boundaries.md`）；额外内容仅供参考。
@@ -98,7 +99,7 @@ disable-model-invocation: true
 - Created: …
 - Aligned: …
 - Diff: one bullet per file: `- <file>: <missing or contradicted rule>`（仅供参考，不自动改；multi-file → multiple bullets）
-- Legacy drift: embedded current/progress paths found (e.g. `04-current.md`, `当前进展` section) — informational only, never moved or rewritten; migration needs explicit user authorization.
+- Legacy drift: embedded current/progress paths found (e.g. `04-current.md`, `当前进展` section) or a populated pre-rename `docs/pdr/` tree — informational only, never moved or rewritten; migration needs explicit user authorization.
 - Next: remaining placeholders plus a one-line "do this first".
 ```
 
@@ -108,9 +109,9 @@ disable-model-invocation: true
 
 - `references/issues.md` — issue 跟踪目录契约、条目格式、`suggestion` 路由。
 - `references/adr.md` — ADR 生命周期（修改 + Log、删除 → 墓碑桩、引用核查、目录索引）、正文形态。
-- `references/pdr.md` — PDR 目标规格结构（`00-README` / `01-spec` / `02-interfaces` / `03-nfr` + `design/`）、目标与差距→候选 issue 层、PDR↔ADR 与 PDR↔Current 边界。
-- `references/current.md` — Current 实际建成树（`00-README` + 模块/主题文档）、基线与验证信心、同步语义、与 PDR 的平级关系、遗留漂移的接入。
-- `references/rendering.md` — 可选的文档 HTML 渲染契约：渲染范围（`docs/pdr` + `docs/current` + 完整 `docs/adr`，不含 issues / agents）、链接撰写规则（PDR↔Current、可选的描述性 ADR 路径链接）、源文件永不改写、手动选择启用。
+- `references/prd.md` — PRD 目标规格结构（`00-README` / `01-spec` / `02-interfaces` / `03-nfr` + `design/`）、目标与差距→候选 issue 层、PRD↔ADR 与 PRD↔Current 边界。
+- `references/current.md` — Current 实际建成树（`00-README` + 模块/主题文档）、基线与验证信心、同步语义、与 PRD 的平级关系、遗留漂移的接入。
+- `references/rendering.md` — 可选的文档 HTML 渲染契约：渲染范围（`docs/prd` + `docs/current` + 完整 `docs/adr`，不含 issues / agents）、链接撰写规则（PRD↔Current、可选的描述性 ADR 路径链接）、源文件永不改写、手动选择启用。
 - `references/terminology.md` — `CONTEXT.md` 主术语表、领域术语表、使用规则。
 - `references/workflow.md` — 推荐的单 issue 开发流程（五步、对齐、粒度、跟踪、文档同步钩子、skill 边界）。
 - `references/coexistence.md` — 本方案如何与 `domain-modeling`、`grilling`、`deepwork`、`tdd`、`retro` 及第一方 `doc-opt` 并存；以及其 docs/issues 约定如何取代旧式 `.scratch` 风格跟踪器。

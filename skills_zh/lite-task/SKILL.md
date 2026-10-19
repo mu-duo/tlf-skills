@@ -1,11 +1,11 @@
 ---
 name: lite-task
-description: "面向小型、低风险任务，或用户明确选择启用时的轻量开发工作流——与 project-docs-workflow 相同的五个步骤（功能同步 / 骨架 / 实现 / 异常 / 回顾），但不含其文档体系：不强制 issue、PDR、Current 或 ADR 记录；通常只产出代码。"
+description: "面向小型、低风险任务，或用户明确选择启用时的轻量开发工作流——与 project-docs-workflow 相同的五个步骤（功能同步 / 骨架 / 实现 / 异常 / 回顾），但不含其文档体系：不强制 issue、PRD、Current 或 ADR 记录；通常只产出代码。"
 ---
 
 # 轻量任务
 
-面向**小型、低风险任务**的轻量开发工作流。它保留 `project-docs-workflow` 的步骤纪律，但去掉其文档义务：不强制创建 issue 条目，不做 PDR / Current / ADR 记录。通常只产出代码。
+面向**小型、低风险任务**的轻量开发工作流。它保留 `project-docs-workflow` 的步骤纪律，但去掉其文档义务：不强制创建 issue 条目，不做 PRD / Current / ADR 记录。通常只产出代码。
 
 ## 何时使用
 
@@ -29,7 +29,7 @@ description: "面向小型、低风险任务，或用户明确选择启用时的
 ## 文档边界
 
 - **不要求创建 issue 条目**，也没有强制的 `## 步骤` 跟踪。
-- **不要求更新 PDR / Current / ADR。**
+- **不要求更新 PRD / Current / ADR。**
 - 通常唯一的产物是代码和 git 提交信息。
 - 如果出现持久决策或契约变更，升级到 `project-docs-workflow`，而不是就地写文档。
 

@@ -18,7 +18,7 @@
 <project root>/
   .venv-docs/                     # default render venv (or the project's docs env)
   docs/                           # Sphinx source root
-    pdr|current|adr/              # approved trees, never modified
+    prd|current|adr/              # approved trees, never modified
     issues/ agents/ ...           # excluded
     docsHtmlView/                 # workspace
       conf.py                     # from assets/conf.py.template
@@ -112,7 +112,7 @@ python3 "$SKILL"/scripts/prepare_env.py --project-root . --venv .venv-docs \
 ### 防护（`assets/guard.py`）
 
 - `builder-inited`：为 `include`、`literalinclude`、`raw` 注册拒绝执行的指令（不区分大小写；通过 `eval-rst` 与冒号围栏同样会命中），并校验每个已批准根目录都是简单的相对名称且解析到 `docs` 内部。
-- `doctree-read`（优先级 100，早于 Sphinx 在 500 的资源收集器）：拒绝任何不是纯 HTML 注释+空白的 `raw` 节点（因此 PDR 模板注释可通过，活动标记失败）；对于图片与 `download_reference` 节点，通过 `app.env.relfn2path` 解析原始引用，要求它位于已批准根目录内（使用 `realpath`/`commonpath`，拒绝符号链接），否则在任何复制之前抛出 `SphinxError`；远程目标会被替换为内联占位符并发出 Sphinx 警告，绝不抓取。
+- `doctree-read`（优先级 100，早于 Sphinx 在 500 的资源收集器）：拒绝任何不是纯 HTML 注释+空白的 `raw` 节点（因此 PRD 模板注释可通过，活动标记失败）；对于图片与 `download_reference` 节点，通过 `app.env.relfn2path` 解析原始引用，要求它位于已批准根目录内（使用 `realpath`/`commonpath`，拒绝符号链接），否则在任何复制之前抛出 `SphinxError`；远程目标会被替换为内联占位符并发出 Sphinx 警告，绝不抓取。
 - 这是权威边界，也是不使用仅正则扫描的原因。它防护可信文档；`conf.py` 是可信的可执行代码，不受沙箱限制。
 
 ## 可选项目配置
@@ -122,7 +122,7 @@ python3 "$SKILL"/scripts/prepare_env.py --project-root . --venv .venv-docs \
 | 键 | 读取方 | 作用 |
 | :--- | :--- | :--- |
 | `site_title` | `gen_nav.py` | 站点标题（也可通过 `gen_nav.py --title` 设置） |
-| `allowed_dirs` | `gen_nav.py` | 显式指定的树；每项一个目录名（不含分隔符、非隐藏、不是 `build`/`docsHtmlView`）；默认为 `pdr`、`current`、`adr` |
+| `allowed_dirs` | `gen_nav.py` | 显式指定的树；每项一个目录名（不含分隔符、非隐藏、不是 `build`/`docsHtmlView`）；默认为 `prd`、`current`、`adr` |
 | `navigation_order` | `gen_nav.py` | 相对于 `docs/` 的路径字符串列表，按顺序排在最前；其后按数字前缀，再按不区分大小写的名称 |
 | `author`、`release` | 仅人工 / agent | 应用 `conf.py.template` 时的模板 token 值；脚本不读取 |
 | `python` | 仅人工 / agent | 选择 venv 路径时优先使用的解释器；脚本不读取 |
@@ -132,6 +132,7 @@ python3 "$SKILL"/scripts/prepare_env.py --project-root . --venv .venv-docs \
 - 仅限带标记的生成文件（`% docs-html-view: generated navigation; do not edit`，一个 MyST 注释）；未标记的冲突与符号链接会被拒绝。
 - **任何写入前预检：** 检查已批准目录、源文档树以及任何已有的 `nav/`（包括祖先目录）是否存在符号链接；在首次写入或清理前校验每个输出路径与已有冲突，因此拒绝时文档树保持不变。
 - 当没有任何已批准的树包含文档时，`gen_nav.py` 退出码为 `1`，并将警告（缺失/为空的树）打印到 stderr。
+- 若存在已填充内容的旧版 `docs/pdr/` 树且它不在解析出的根目录中，则会报告：`warning: legacy docs/pdr/ detected; not rendered. Migrate to docs/prd/ or add "pdr" to allowed_dirs explicitly.` 该树绝不会被移动或重命名，默认也不会渲染。若要按原样渲染，请将 `pdr` 显式加入 `allowed_dirs`（并按照上文的手动同步规则，同时加入 `include_patterns` 与 `docs_html_view_allowed_roots`）；当 `pdr` 被显式允许或渲染时，该警告不会触发。
 - 层级镜像目录树；每个目录都会获得其文档的 `{toctree}` 与子索引链接；条目标题来自源文档的 H1（toctree 条目仅使用路径），因此任何源文本都无法注入 MyST。
 - 目录/站点标题会被净化（不含 `<`、`>`、反引号、花括号、方括号、竖线、换行）。
 - 完整 ADR 树都会渲染，包括已退役/已删除的墓碑桩。

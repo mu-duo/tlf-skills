@@ -32,7 +32,7 @@
 ## 翻译约定
 
 - **正文**：Markdown 叙述性内容译为中文。
-- **领域术语**：保留英文，如 issue、ADR、PDR、Current、skill、frontmatter、policy。
+- **领域术语**：保留英文，如 issue、ADR、PRD、Current、skill、frontmatter、policy。
 - **通用技术词**：使用中文表达。
 - **代码与命令**：代码块、行内代码、命令、路径、文件名、标识符保持原样。
 - **frontmatter**：键名不变；`name` 不变；`description` 等接口值翻译为中文。

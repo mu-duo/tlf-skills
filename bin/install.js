@@ -8,6 +8,7 @@ const { spawnSync } = require("child_process");
 
 const PKG_ROOT = path.join(__dirname, "..");
 const SKILLS_DIR = path.join(PKG_ROOT, "skills");
+const SKILLS_ZH_DIR = path.join(PKG_ROOT, "skills_zh");
 const MAIN_SKILL = "project-docs-workflow";
 const DEFAULT_TARGET = path.join(os.homedir(), ".agents", "skills");
 // 安装清单：记录本包每次安装处理过的 skill 及其归属，供 uninstall 精确卸载。
@@ -98,6 +99,8 @@ function usage() {
       "缺失则安装；已由本包接管则用当前包内版本全量替换（会移除其中多余/过期文件）；",
       "未接管条目、符号链接（含悬空）默认保留。外部依赖不再随包分发：默认保留已存在的独立安装，",
       "缺失时使用主 skill 内部回退文档（references/deps），功能可用、无需独立目录。",
+      "默认安装英文源 skills/；--zh 改为安装中文镜像 skills_zh/。两种语言的 skill 同名、互斥，",
+      "同一目标一次只保留一种语言；再次运行另一种语言即可切换（仅 install 支持）。",
       "可选：--with-matt-skills 通过 npx 安装/更新独立完整版（默认不安装、不复制）。源项目文档不受影响。",
       "",
       "用法：",
@@ -107,6 +110,8 @@ function usage() {
       "",
       "选项：",
       "  --dir <path>   指定目标 skills 根目录（默认 ~/.agents/skills）",
+      "  --zh           从中文镜像 skills_zh/ 安装第一方 skill（默认英文源 skills/）",
+      "                 两种语言 skill 同名、互斥；再次运行另一种语言即可切换；仅 install 支持",
       "  --force        安装：覆盖并接管所有第一方 skill（含替换已存在的符号链接本身，不动其指向）；",
       "                 不影响外部依赖；uninstall：非交互确认（非 TTY 下必须显式传入）",
       "  --dry-run      仅打印将执行的操作（与真实运行相同决策），不写入、不读 stdin、不调用上游",
@@ -122,6 +127,7 @@ function usage() {
       "",
       "示例：",
       "  project-docs-workflow                          # 安装/同步到默认 ~/.agents/skills（仅第一方）",
+      "  project-docs-workflow --zh                     # 安装中文镜像（默认 en；两种语言同名互斥）",
       "  project-docs-workflow --dir <path> --dry-run   # 预演到指定目录（不写入）",
       "  project-docs-workflow --force                  # 接管/替换所有第一方 skill",
       "  project-docs-workflow --with-matt-skills       # 可选：安装缺失 + 更新已存在的完整版依赖",
@@ -140,12 +146,15 @@ function parseArgs(argv) {
     dryRun: false,
     withMattSkills: false,
     mattAgent: UPSTREAM_DEFAULT_AGENT,
+    lang: "en",
   };
   const positional = [];
   for (let i = 0; i < argv.length; i++) {
     const arg = argv[i];
     if (arg === "install" || arg === "check" || arg === "uninstall") {
       opts.command = arg;
+    } else if (arg === "--zh") {
+      opts.lang = "zh";
     } else if (arg === "--force") {
       opts.force = true;
     } else if (arg === "--dry-run") {
@@ -258,18 +267,23 @@ function isSameOrInside(child, parent) {
   return rel === "" || (rel !== ".." && !rel.startsWith(".." + path.sep) && !path.isAbsolute(rel));
 }
 
-// 源 / 目标重叠：目标不得与包内 skills 源目录相同、在其内、或包含它（含经符号链接解析后）。
+// 源 / 目标重叠：目标不得与包内任一语言源目录相同、在其内、或包含它（含经符号链接解析后）。
 function assertNoSourceTargetOverlap(target) {
   const targetReal = resolveRealOrFail(target);
-  const skillsReal = resolveRealOrFail(SKILLS_DIR);
-  if (isSameOrInside(targetReal, skillsReal) || isSameOrInside(skillsReal, targetReal)) {
-    fail(
-      "拒绝：目标目录与包内 skills 源目录重叠（" +
-        target +
-        " vs " +
-        SKILLS_DIR +
-        "）。请选择包外目录（例如 ~/.agents/skills），避免复制/替换包自身源码。"
-    );
+  for (const root of [SKILLS_DIR, SKILLS_ZH_DIR]) {
+    if (!lexists(root)) {
+      continue;
+    }
+    const rootReal = resolveRealOrFail(root);
+    if (isSameOrInside(targetReal, rootReal) || isSameOrInside(rootReal, targetReal)) {
+      fail(
+        "拒绝：目标目录与包内 skill 源目录重叠（" +
+          target +
+          " vs " +
+          root +
+          "）。请选择包外目录（例如 ~/.agents/skills），避免复制/替换包自身源码。"
+      );
+    }
   }
 }
 
@@ -314,8 +328,8 @@ function copyTree(src, dest) {
 // 全目录替换（单项，非整套事务）：先把源完整复制到同目录下的唯一临时路径，成功后才把旧
 // 条目移开并换上准备好的副本；失败时恢复旧条目，无法恢复则保留备份并报告其路径。
 // 绝不在复制成功之前删除现有条目。旧条目为符号链接时，rename/rm 只作用于链接本身。
-function replaceFirstPartyDir(name, dest) {
-  const src = path.join(SKILLS_DIR, name);
+function replaceFirstPartyDir(name, dest, sourceRoot) {
+  const src = path.join(sourceRoot, name);
   const parent = path.dirname(dest);
   const staged = uniqueToolPath(parent, name, "new");
   try {
@@ -356,7 +370,7 @@ function replaceFirstPartyDir(name, dest) {
 }
 
 // 单个第一方 skill 的安装/同步决策。dry-run 走完全相同的分支，但不复制、不建临时项。
-function installFirstParty(name, target, opts, prevEntries, record) {
+function installFirstParty(name, target, opts, prevEntries, record, sourceRoot) {
   const dest = path.join(target, name);
   const exists = lexists(dest);
   const symlink = exists && isSymlink(dest);
@@ -367,10 +381,10 @@ function installFirstParty(name, target, opts, prevEntries, record) {
     if (opts.dryRun) {
       console.log("  [dry-run] 将安装 " + name + " → " + dest);
     } else {
-      replaceFirstPartyDir(name, dest);
+      replaceFirstPartyDir(name, dest, sourceRoot);
       console.log("  ✓ 已安装 " + name + " → " + dest);
     }
-    record(name, { kind: kindFor(name), action: "installed" });
+    record(name, { kind: kindFor(name), lang: opts.lang, action: "installed" });
     return;
   }
 
@@ -412,12 +426,12 @@ function installFirstParty(name, target, opts, prevEntries, record) {
   }
   if (opts.dryRun) {
     console.log("  [dry-run] 将替换 " + name + " → " + dest + (symlink ? "（仅链接本身）" : ""));
-    record(name, { kind: kindFor(name), action });
+    record(name, { kind: kindFor(name), lang: opts.lang, action });
     return;
   }
-  replaceFirstPartyDir(name, dest);
+  replaceFirstPartyDir(name, dest, sourceRoot);
   console.log("  ✓ 已" + (owned && !opts.force ? "更新" : "接管") + " " + name + " → " + dest);
-  record(name, { kind: kindFor(name), action });
+  record(name, { kind: kindFor(name), lang: opts.lang, action });
 }
 
 // —— 上游（mattpocock/skills）相关辅助 ——
@@ -776,13 +790,13 @@ function promptUpstreamMissing(missingNames) {
   return answer === "y" || answer === "yes";
 }
 
-// 列出 skills/ 下的所有子目录名；缺失时返回空数组（由调用方给出提示）。
-function listSkillDirs() {
-  if (!isDir(SKILLS_DIR)) {
+// 列出指定语言源目录下的所有子目录名；缺失时返回 null（由调用方给出提示）。
+function listSkillDirs(root) {
+  if (!isDir(root)) {
     return null;
   }
   return fs
-    .readdirSync(SKILLS_DIR, { withFileTypes: true })
+    .readdirSync(root, { withFileTypes: true })
     .filter((entry) => entry.isDirectory())
     .map((entry) => entry.name)
     .sort();
@@ -851,6 +865,20 @@ function mergeEntries(prev, fresh) {
     out[name] = f;
   }
   return out;
+}
+
+// 从清单中读取上一次第一方安装语言：任一第一方条目带 lang 即采用（兼容无 lang 的旧清单）。
+function readPreviousLang(entries) {
+  for (const name of Object.keys(entries || {})) {
+    if (!FIRST_PARTY_SET.has(name)) {
+      continue;
+    }
+    const lang = entries[name] && entries[name].lang;
+    if (typeof lang === "string" && lang) {
+      return lang;
+    }
+  }
+  return null;
 }
 
 function writeManifest(target, entries) {
@@ -940,16 +968,17 @@ function removeUpstreamWithFallback(names, agent, target) {
 }
 
 function runInstall(opts) {
-  const dirs = listSkillDirs();
+  const sourceRoot = opts.lang === "zh" ? SKILLS_ZH_DIR : SKILLS_DIR;
+  const dirs = listSkillDirs(sourceRoot);
   if (dirs === null || dirs.length === 0) {
     fail(
-      "找不到 skills 目录（" +
-        SKILLS_DIR +
+      "找不到安装源目录（" +
+        sourceRoot +
         "）。请确认已在完整的 npm 包内运行（不要单独复制 bin/）。"
     );
   }
   if (dirs.indexOf(MAIN_SKILL) === -1) {
-    fail("缺少主 skill 目录：skills/" + MAIN_SKILL);
+    fail("缺少主 skill 目录：" + path.relative(PKG_ROOT, path.join(sourceRoot, MAIN_SKILL)));
   }
 
   const target = path.resolve(opts.target);
@@ -975,6 +1004,14 @@ function runInstall(opts) {
     );
   }
   const prevEntries = man.entries;
+
+  console.log("安装语言：" + (opts.lang === "zh" ? "zh（中文镜像）" : "en（默认）"));
+  const prevLang = readPreviousLang(prevEntries);
+  if (prevLang && prevLang !== opts.lang) {
+    console.log(
+      "切换语言：" + prevLang + " → " + opts.lang + "（同名第一方 skill 将替换为对应语言版本）"
+    );
+  }
 
   // 受支持外部依赖（8 个）现状：lstat（含符号链接/悬空）。
   const existingDeps = MATT_DEP_NAMES.filter((name) => lexists(path.join(target, name)));
@@ -1019,7 +1056,7 @@ function runInstall(opts) {
     console.log("  （本包未提供第一方 skill）");
   }
   for (const name of firstParty) {
-    installFirstParty(name, target, opts, prevEntries, record);
+    installFirstParty(name, target, opts, prevEntries, record, sourceRoot);
   }
 
   // 受支持外部依赖：先列出已存在/缺失集合，再决定是否/如何询问或调用上游。
@@ -1284,6 +1321,9 @@ function runCheck(opts) {
 
 function main() {
   const opts = parseArgs(process.argv.slice(2));
+  if (opts.lang === "zh" && opts.command !== "install") {
+    fail("--zh 仅用于 install（check 与 uninstall 与语言无关）：请去掉 --zh 后重试。");
+  }
   if (opts.command === "check") {
     runCheck(opts);
   } else if (opts.command === "uninstall") {

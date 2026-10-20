@@ -28,7 +28,7 @@ skill 会检查并创建缺少的内容，包括：
 - `docs/agents/issues.md`、`docs/agents/domain.md`、`docs/agents/workflow.md`
 - `docs/agents/deps/` 依赖兜底文件
 - `docs/issues/` issue 目录树
-- `docs/adr/README.md`、`docs/prd/00-README.md`、`docs/current/00-README.md` 和 `CONTEXT.md`
+- `docs/adr/README.md`、`docs/prd/00-README.md`（产品 L1）、`docs/prd/00-index.md`、`docs/current/00-README.md` 和 `CONTEXT.md`
 
 每个项目手动运行一次即可。以后模板更新时可以再次运行，以检查对齐情况并报告差异；运行是幂等的，不会改写已有内容。例外是：若 `AGENTS.md` 已存在但没有 `## Agent skills`，skill 会在文件末尾追加该区块；若区块已存在，则只比较、不重写。
 
@@ -77,18 +77,35 @@ skill 会检查并创建缺少的内容，包括：
 
 也可以不使用 npm 安装器，直接将 `skills/`（英文）或 `skills_zh/`（中文）中需要的目录复制到 skills 根目录；两者只能选其一，**不要同时复制**，因为目录名与 skill `name` 相同，会互相覆盖。只复制 `skills/project-docs-workflow` 或 `skills_zh/project-docs-workflow` 也可以独立工作，因为主 skill 内含依赖 ref 兜底。手动复制不创建安装清单，因此这些路径属于「无法被有效清单确认」的第一方路径，安装时默认**保留**，只有显式 `--force` 才替换。之后运行 `uninstall` 时无法识别手动复制的依赖；若没有安装清单，它只会处理主 skill。
 
+## PRD 三层结构（v4）
+
+PRD 按「目标态规范 + 人类叙述视图 + 现状快照」三层组织，职责不重叠：
+
+| 层 | 位置 | 作用 |
+| --- | --- | --- |
+| L1 人类叙述 | 产品 `docs/prd/00-README.md` + 模块 `docs/prd/<NN-模块>/00-README.md` | 面向人的产品叙事：一句话、问题与目标、核心场景、能力地图、非目标 |
+| L2 规范目标态 | 模块 `01-spec.md`、`02-interfaces.md`、`03-nfr.md`、`design/` | 唯一事实源：FR 编号与验收标准、接口、非功能要求 |
+| L3 现状快照 | `docs/current/` | 当前已实现的行为与限制，唯一的状态来源 |
+
+- **L1 是人类叙述视图，有损、不新增约束**：由 agent 维护，可把 `FR-<模块>-NN` 作为纯文本编号引用；只用同文件锚点或产品 / 模块 L1 之间的内链，不链 L2 / Current / ADR，也不含验收标准、接口签名、字段与状态机细节、性能数字或状态标记。L1 与 L2 冲突时以 L2 为准。
+- **`00-index.md` 是导航与追踪边车**：产品与模块各一份，承载阅读顺序、文档地图、模块依赖、接口归属、CAP↔FR 追踪，以及指向 Current / ADR 的链接；需要外链的内容都放在这里（agent 面向）。
+- **已有项目默认不动**：init 只报告 `L1 not aligned`（例如旧 `docs/prd/00-README.md` 实际是索引 / 约定文档），**从不改写**；迁移需显式授权——由旧导航生成 `00-index.md`，再按 L2 起草 L1，并由人评审 diff。
+
 ## docs-html-view（可选：手动渲染文档）
 
 本包附带一个第一方 skill `docs-html-view`（与主 skill、`doc-opt`、`lite-task` 一样，不属于上游集合）。安装器会随包一起分发它，但**安装时不会运行它**，项目文档初始化时也不会启用它；它只在用户手动调用时工作。
 
-用途：把项目文档（PRD / Current / ADR）用标准的 Read the Docs（RTD）主题与 MyST Markdown 解析渲染成静态 HTML，输出到 `docs/docsHtmlView/build/html`。仅供本地浏览与分享，不替代源文档。
+用途：把项目文档（PRD / Current / ADR）用标准的 Read the Docs（RTD）主题与 MyST Markdown 解析渲染成静态 HTML，输出到 `docs/docsHtmlView/build/html`。仅供本地浏览与分享，不替代源文档。它也支持 PRD 的 L1 层（产品 `docs/prd/00-README.md` + 模块 `00-README.md`）：全站可生成显著的 L1 入口，也可选用只含 L1 的构建用于分发。
 
 **边界（重要）：**
 
 - **先确认再动手**：初始化与构建前，agent 会先列出所需的 Python 包、环境以及将要创建 / 修改的文件，取得你的明确同意后才执行；不会静默装包或改环境。
 - **环境**：优先复用项目明确约定的文档环境；没有合适环境时才创建独立的 `.venv-docs`，不修改系统或应用环境。
 - **标准构建**：首次使用 `sphinx-quickstart` 初始化，之后复用配置，通过 `make html`（或 `sphinx-build`）按需增量构建，不自建渲染封装器。
-- **全手动**：不注册自动钩子，不自动打开浏览器，不启动常驻服务，不部署。
+- **L1 入口**：全站首页可选地把产品 L1 作为显著入口（配置 `landing_page`，例如 `prd/00-README.md`）；模块 `00-index.md` 仍作为次级模块导航。
+- **L1-only 构建**：`--profile l1` 只收录产品 L1 与模块 L1，不含 L2 / Current / ADR / `00-index.md`，输出到 `docs/docsHtmlView/build-l1/html`；把该**目录**打包成 zip 即可分发，接收方打开包内的 `docsHtmlView/l1/index.html`。产物是文件夹（或其 zip），**不提供单文件 HTML**。
+- **锚点校验**：L1 使用标准 Markdown 标题链接（h1–h3）；`scripts/check_l1.py` 校验 L1 的内链规则与构建后锚点，L1-only 构建锚点损坏即失败，不发布该构建。
+- **全手动**：不注册自动钩子，不自动打开浏览器，不启动常驻服务，不部署；全站与 L1-only 两种视图都只在用户明确要求时手动执行，不会自动构建。
 - **源文档只读**：渲染只读取源文档，不修改 `docs/` 下的 PRD / Current / ADR 源文件。
 - **不参与 `check`**：`project-docs-workflow check` 只检查主 skill 的依赖解析状态，**不检查** `docs-html-view`，也不校验其渲染结果。
 
@@ -105,7 +122,7 @@ skill 会检查并创建缺少的内容，包括：
 `skills_zh/` 是随包分发的中文镜像，用于让中文使用者以相同的 skill 名称工作。它完整覆盖四个第一方 skill：`project-docs-workflow`、`doc-opt`、`docs-html-view`、`lite-task`；目录名与 frontmatter `name` 均与英文源完全一致。
 
 - **同名互斥**：同一目标目录一次只应安装一种语言。默认安装英文源 `skills/`；`--zh` 安装中文镜像 `skills_zh/`，并会把本包接管的同名第一方 skill 替换为中文版本。再运行不带 `--zh` 的安装即切回英文。`--zh` 仅适用于 install；`check` 与 `uninstall` 与语言无关。
-- **手工快照，不自动同步**：中文镜像基于英文源提交 `3e408c5`（2026-10-19）翻译，不随英文源后续修改自动同步；英文源更新后需要重新翻译与审校。内容以英文源为准，发现不一致时应修正中文镜像。
+- **手工快照，不自动同步**：中文镜像基于英文源 `v4 working tree (uncommitted)`（2026-10-20）翻译，不随英文源后续修改自动同步；英文源更新后需要重新翻译与审校。内容以英文源为准，发现不一致时应修正中文镜像。
 - **审校策略**：4 个 `SKILL.md` 与 `skills_zh/README.md` 经人工审校，references / EXAMPLES / technical 抽样复核后合入；不以未审校的机器翻译作为最终版本，涉及命令、路径、边界条件与技术术语的段落需对照英文源复核。
 - **一致性检查**：可运行 `node scripts/check-skills-zh.js` 检查中文镜像的结构与名称等一致性。
 - **与 `--with-matt-skills` 的关系**：8 个外部依赖来自上游，只有英文；`--zh` 只影响本包第一方 skill 的来源。组合使用时请写成 `--zh --with-matt-skills`；若只运行默认（不带 `--zh`）的安装，会把第一方 skill 切回英文。
@@ -114,11 +131,13 @@ skill 会检查并创建缺少的内容，包括：
 
 `@tanlinfeng/project-docs-workflow` is an agent skill for setting up and maintaining project documentation workflows: issues, ADRs, PRDs, domain terminology, and development practices. Install it with `npx @tanlinfeng/project-docs-workflow@latest install`, or pin an exact published version with an npm spec such as `@2.2.0` (Node.js >= 18; default destination `~/.agents/skills`). Without a spec, npx may prefer the version already installed in the current project; write `@latest` or `@<version>` to select the installer version (cache/network policy is separate), and the installer never fetches versions itself. Because `npx <pkg>@<version> install` runs that version's own installer code, the sync / `--force` semantics on this page apply only to package versions that contain this installation strategy; older published versions keep their historical behavior (e.g. `--force` may only overwrite the main skill), so pinning an older version is only an equivalent rollback within such compatible versions. Installation does not initialize a project: from the target project root, manually invoke the skill using your agent's own skill mechanism. It creates missing documentation, reports drift on reruns, and does not overwrite existing content, except that it appends a missing `## Agent skills` block to an existing `AGENTS.md`.
 
+PRDs use three layers: L1 is a human narrative (product and module `docs/prd/00-README.md`), agent-maintained, with internal links only and no status; L2 is the normative target spec (`01-spec` / `02-interfaces` / `03-nfr` / `design`) and the single source of truth; L3 is the as-built snapshot in `docs/current/`. Agent-facing `00-index.md` sidecars (product and module) carry navigation, reading order, and traceability, and are where links to Current/ADR live. Existing projects are never rewritten: init only reports "L1 not aligned", and migration is opt-in.
+
 An ordinary install full-directory-syncs the first-party skills (`project-docs-workflow`, `doc-opt`, `docs-html-view`, `lite-task`) when a valid manifest confirms the package installed them, so it may overwrite local edits; a first-party path not confirmed as package-owned is preserved unless `--force` replaces that entry. External dependencies are preserved by default, and `--force` alone does not update them; explicit `--with-matt-skills` refreshes the eight supported upstream names (updating existing ones and installing missing) only on the default codex target, with other target/agent combinations rejected before any write. The package ships no standalone dependency skills: missing external names are covered by the skill's internal fallback references (`references/deps/*`), no independent lite skill is copied, and existing standalone installs (including older lite copies) are preserved and never auto-cleaned or migrated. A manifest file that is itself a symlink is always refused (even with `--force`), unlike a first-party skill path that is a symlink; per-skill replacement failures restore the old content or retain a backup and report the path, so this is not an all-skills transaction. The installer supports custom directories, dry runs, dependency checks, and manifest-based uninstall. Uninstall removes recorded package-owned paths by name, not by content hash, and records no local-edit fingerprints; review the manifest or use a dry run before deleting anything. See the advanced details below for optional upstream dependencies and manifest behavior.
 
-The package also ships `skills_zh/`, a manually reviewed Chinese mirror of the four first-party skills with identical directory and skill names. Installs default to the English tree (`skills/`); pass `--zh` to install the Chinese mirror. The two variants are mutually exclusive: running the other language switches the package-owned same-named first-party skills, and the manifest records the choice in the `lang` field of each package-owned first-party entry. `--zh` is install-only; `check` and `uninstall` are language-agnostic. The mirror is a snapshot of source commit `3e408c5` (2026-10-19) and is not auto-synced; use `node scripts/check-skills-zh.js` to check it. `--with-matt-skills` installs English upstream dependencies, so pass `--zh` too to keep the first-party skills Chinese; an English install without `--zh` switches them back.
+The package also ships `skills_zh/`, a manually reviewed Chinese mirror of the four first-party skills with identical directory and skill names. Installs default to the English tree (`skills/`); pass `--zh` to install the Chinese mirror. The two variants are mutually exclusive: running the other language switches the package-owned same-named first-party skills, and the manifest records the choice in the `lang` field of each package-owned first-party entry. `--zh` is install-only; `check` and `uninstall` are language-agnostic. The mirror is a snapshot of the `v4 working tree (uncommitted)` (2026-10-20) and is not auto-synced; use `node scripts/check-skills-zh.js` to check it. `--with-matt-skills` installs English upstream dependencies, so pass `--zh` too to keep the first-party skills Chinese; an English install without `--zh` switches them back.
 
-The package also ships a first-party `docs-html-view` skill (manual invocation only; distributed but not run at install). It renders PRD/Current/ADR docs to `docs/docsHtmlView/build/html` with Sphinx, MyST, and the stock RTD theme. After approval of packages, environment, and files, it uses `sphinx-quickstart` once and standard `make html` or `sphinx-build` thereafter. It never hooks, opens a browser, serves, deploys, or mutates source docs. `check` does not cover it.
+The package also ships a first-party `docs-html-view` skill (manual invocation only; distributed but not run at install). It renders PRD/Current/ADR docs to `docs/docsHtmlView/build/html` with Sphinx, MyST, and the stock RTD theme. After approval of packages, environment, and files, it uses `sphinx-quickstart` once and standard `make html` or `sphinx-build` thereafter. It also supports the PRD L1 layer: an optional prominent L1 entry on the full-site landing page, and an optional L1-only build (`docs/docsHtmlView/build-l1/html`, product and module L1 only) whose folder can be zipped for distribution. There is no single-file HTML output; rendering stays manual and opt-in. It never hooks, opens a browser, serves, deploys, or mutates source docs. `check` does not cover it.
 
 The package also ships a first-party `lite-task` skill: a lightweight development workflow for small, low-risk tasks (or when the user explicitly opts in). It keeps the same five steps as `project-docs-workflow` (功能同步 / 骨架 / 实现 / 异常 / 回顾) but drops its documentation obligations — no forced issue, PRD, Current, or ADR bookkeeping, generally code only. Escalate to `project-docs-workflow` when the task grows (contract change, cross-module impact, or a durable decision).
 

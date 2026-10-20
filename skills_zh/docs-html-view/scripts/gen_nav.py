@@ -1,14 +1,17 @@
 #!/usr/bin/env python3
 """Generate docs-html-view navigation under docs/docsHtmlView.
 
-Writes only marked files inside the workspace: ``docsHtmlView/index.md`` and
-``docsHtmlView/nav/**/index.md``. Never writes into source trees. Validates every
-symlink and collision in a preflight pass *before* the first write or prune, so a
-refusal leaves the tree unchanged. Removes only stale files carrying the marker.
-Runs before ``make html``; it never invokes Sphinx itself.
+Writes only marked files inside the workspace. The ``full`` profile writes
+``docsHtmlView/index.md`` and ``docsHtmlView/nav/**/index.md``; the ``l1`` profile
+writes ``docsHtmlView/l1/index.md`` for the L1 layer (product + module
+``00-README.md`` only). Never writes into source trees. Validates every symlink
+and collision in a preflight pass *before* the first write or prune, so a refusal
+leaves the tree unchanged. Removes only stale files carrying the marker. Runs
+before ``make html``; it never invokes Sphinx itself.
 
 Exit codes: 0 = generated (or nothing needed); 1 = refused, or no documents in
-the approved trees (so a later ``make`` cannot silently build a stale site).
+the approved trees / L1 roots (so a later ``make`` cannot silently build a stale
+site).
 """
 from __future__ import annotations
 
@@ -21,8 +24,10 @@ import sys
 
 MARK = "% docs-html-view: generated navigation; do not edit"
 DEFAULT_ROOTS = ["prd", "current", "adr"]
+DEFAULT_L1_ROOTS = ["prd"]
 LEGACY_ROOTS = {"pdr": "prd"}
 SUFFIXES = (".md", ".rst")
+L1_FILE = "00-README.md"
 RESERVED = {"build", "docsHtmlView"}
 BIG = float("inf")
 
@@ -114,7 +119,125 @@ def resolve_roots(cfg: dict, docs: str):
             present.append(name)
         else:
             missing.append(name)
-    return present, missing
+    return present, missing, candidates
+
+
+def validate_rel_path(value, label: str) -> str:
+    if not isinstance(value, str):
+        die(label + " must be a string")
+    raw = value.strip()
+    if not raw:
+        die(label + " must not be empty")
+    if "\\" in raw:
+        die(label + " must use forward slashes: %r" % (value,))
+    if raw.startswith("/") or re.match(r"^[A-Za-z]:", raw):
+        die(label + " must be relative to docs/: %r" % (value,))
+    norm = posixpath.normpath(raw)
+    if norm in (".", "..") or norm.startswith("../"):
+        die(label + " must stay inside docs/: %r" % (value,))
+    parts = norm.split("/")
+    if any(part in ("", ".", "..") for part in parts):
+        die(label + " must stay inside docs/: %r" % (value,))
+    return norm
+
+
+def resolve_landing_page(cfg: dict, docs: str, roots):
+    raw = cfg.get("landing_page")
+    if raw is None:
+        return None
+    rel = validate_rel_path(raw, "landing_page")
+    target = os.path.join(docs, *rel.split("/"))
+    if os.path.islink(target):
+        die("landing_page must not be a symlink: " + target)
+    if not os.path.isfile(target):
+        die("landing_page is not an existing regular file: " + target)
+    real = os.path.realpath(target)
+    for name in roots:
+        root_real = os.path.realpath(os.path.join(docs, name))
+        try:
+            if os.path.commonpath([real, root_real]) == root_real:
+                return rel, target
+        except ValueError:
+            continue
+    die("landing_page is outside the approved roots: " + target)
+
+
+def heading_title(path: str) -> str:
+    try:
+        with open(path, encoding="utf-8") as fh:
+            text = fh.read()
+    except OSError as exc:
+        die("cannot read landing_page %s: %s" % (path, exc))
+    lines = text.splitlines()
+    for line in lines:
+        match = re.match(r"^\s{0,3}#\s+(.*?)\s*#*\s*$", line)
+        if match:
+            return sanitize(match.group(1))
+    for index, line in enumerate(lines[:-1]):
+        underline = lines[index + 1].strip()
+        if line.strip() and underline and len(set(underline)) == 1 and underline[0] in "=-":
+            return sanitize(line.strip())
+    return ""
+
+
+def landing_label(cfg: dict, landing) -> str:
+    rel, path = landing
+    configured = cfg.get("landing_page_label")
+    if configured is not None:
+        if not isinstance(configured, str):
+            die("landing_page_label must be a string")
+        label = sanitize(configured)
+        if label:
+            return label
+    label = heading_title(path)
+    if label:
+        return label
+    return sanitize(posixpath.splitext(posixpath.basename(rel))[0]) or "L1"
+
+
+def resolve_l1_roots(cfg: dict, candidates) -> list:
+    raw = cfg.get("l1_roots")
+    if raw is None:
+        return [name for name in DEFAULT_L1_ROOTS if name in candidates]
+    if not isinstance(raw, list):
+        die("l1_roots must be a list of approved root names")
+    l1_roots = []
+    for name in raw:
+        if not isinstance(name, str):
+            die("l1_roots entries must be strings")
+        validate_dir_name(name)
+        if name not in candidates:
+            die("l1_roots entry is not an approved root: %r" % (name,))
+        if name not in l1_roots:
+            l1_roots.append(name)
+    return l1_roots
+
+
+def l1_documents(docs: str, roots) -> list:
+    found = []
+    for name in roots:
+        base = os.path.join(docs, name)
+        for dirpath, dirnames, filenames in os.walk(base, followlinks=False):
+            dirnames.sort()
+            for filename in sorted(filenames):
+                if filename != L1_FILE:
+                    continue
+                path = os.path.join(dirpath, filename)
+                if os.path.islink(path):
+                    warn("skipping symlinked L1 file: " + path)
+                    continue
+                if not os.path.isfile(path):
+                    continue
+                found.append(os.path.relpath(path, docs).replace(os.sep, "/"))
+    return found
+
+
+def l1_sort_key(rel: str, order_map: dict):
+    return (
+        order_map.get(rel, BIG),
+        tuple(num_key(part) for part in rel.split("/")),
+        rel.casefold(),
+    )
 
 
 def warn_legacy_roots(cfg: dict, docs: str, roots) -> None:
@@ -149,7 +272,7 @@ def toctree(entries, maxdepth=1) -> str:
     return "\n".join(lines) + "\n"
 
 
-def build_outputs(docs, workspace, roots, order_map, site_title):
+def build_outputs(docs, workspace, roots, order_map, site_title, landing_block=""):
     outputs = {}
 
     def order_key(base_rel):
@@ -193,29 +316,41 @@ def build_outputs(docs, workspace, roots, order_map, site_title):
         generate(source_root, [], os.path.join(docs, source_root))
 
     index_entries = [posixpath.join("nav", r, "index") for r in roots]
+    landing = landing_block + "\n" if landing_block else ""
     outputs[os.path.join(workspace, "index.md")] = (
-        MARK + "\n\n# " + site_title + "\n\n" + toctree(index_entries, maxdepth=2)
+        MARK + "\n\n# " + site_title + "\n\n" + landing + toctree(index_entries, maxdepth=2)
     )
     return outputs
 
 
-def collision_preflight(outputs, nav_root) -> None:
+def build_l1_output(docs, l1_files, site_title):
+    out_rel = posixpath.join("docsHtmlView", "l1", "index.md")
+    out_file = os.path.join(docs, *out_rel.split("/"))
+    entries = []
+    for rel in l1_files:
+        target = rel[:-3] if rel.endswith(".md") else rel
+        entries.append(posixpath.relpath(target, "docsHtmlView/l1"))
+    body = MARK + "\n\n# " + site_title + " · L1\n\n" + toctree(entries, maxdepth=1)
+    return {out_file: body}
+
+
+def collision_preflight(outputs, owned_root, label="nav/") -> None:
     out_abs = {os.path.abspath(p) for p in outputs}
     for path in sorted(out_abs):
         if os.path.islink(path):
             die("symlinked output: " + path)
         if os.path.lexists(path) and not file_owned(path):
             die("existing unmarked file: " + path)
-    if os.path.isdir(nav_root):
-        for dirpath, _dirnames, filenames in os.walk(nav_root, followlinks=False):
+    if os.path.isdir(owned_root):
+        for dirpath, _dirnames, filenames in os.walk(owned_root, followlinks=False):
             for name in filenames:
                 path = os.path.abspath(os.path.join(dirpath, name))
                 if path in out_abs:
                     continue
                 if os.path.islink(path):
-                    die("symlinked nav file: " + path)
+                    die("symlinked " + label + " file: " + path)
                 if not file_owned(path):
-                    die("unmarked file under nav/: " + path)
+                    die("unmarked file under " + label + ": " + path)
 
 
 def verify_inside(outputs, workspace) -> None:
@@ -255,6 +390,12 @@ def main() -> None:
     ap = argparse.ArgumentParser(description="Generate docs-html-view navigation (marked files only).")
     ap.add_argument("--project-root", default=os.getcwd())
     ap.add_argument("--title", default=None, help="site title override")
+    ap.add_argument(
+        "--profile",
+        choices=("full", "l1"),
+        default="full",
+        help="full = prd/current/adr site navigation (default); l1 = L1 00-README.md view",
+    )
     ap.add_argument("--json", action="store_true", help="print a machine-readable summary on stdout")
     args = ap.parse_args()
 
@@ -282,7 +423,13 @@ def main() -> None:
         die("navigation_order must be a list of strings")
     order_map = {rel.strip("/"): i for i, rel in enumerate(order)}
 
-    roots, missing = resolve_roots(cfg, docs)
+    for key in ("landing_page", "landing_page_label"):
+        value = cfg.get(key)
+        if value is not None and not isinstance(value, str):
+            die(key + " must be a string")
+
+    roots, missing, candidates = resolve_roots(cfg, docs)
+    l1_roots = resolve_l1_roots(cfg, candidates)
     if missing:
         warn("missing/empty trees: " + ", ".join(missing))
     warn_legacy_roots(cfg, docs, roots)
@@ -295,13 +442,79 @@ def main() -> None:
 
     for name in roots:
         assert_no_symlinks(os.path.join(docs, name), "source tree " + name)
+
+    if args.profile == "l1" and "prd" in l1_roots and "prd" in roots:
+        product_l1 = os.path.join(docs, "prd", L1_FILE)
+        if os.path.islink(product_l1) or not os.path.isfile(product_l1):
+            print(
+                "l1 profile requires the product L1 docs/prd/%s; module L1 files "
+                "alone are not enough" % L1_FILE,
+                file=sys.stderr,
+            )
+            sys.exit(1)
+
+    site_title = sanitize(str(site_title_cfg or args.title or "Documentation"))
+    landing = resolve_landing_page(cfg, docs, roots)
+
+    if args.profile == "l1":
+        if not l1_roots:
+            die("l1 profile requires a non-empty l1_roots; allow \"prd\" or set l1_roots in the config")
+        active = [name for name in l1_roots if name in roots]
+        if not active:
+            print(
+                "no L1 documents (%s) in l1_roots: %s; nothing to generate"
+                % (L1_FILE, ", ".join(l1_roots)),
+                file=sys.stderr,
+            )
+            sys.exit(1)
+        l1_files = l1_documents(docs, active)
+        if not l1_files:
+            print(
+                "no L1 documents (%s) under: %s; nothing to generate"
+                % (L1_FILE, ", ".join(active)),
+                file=sys.stderr,
+            )
+            sys.exit(1)
+        l1_files.sort(key=lambda rel: l1_sort_key(rel, order_map))
+
+        l1_root = os.path.join(workspace, "l1")
+        if os.path.islink(l1_root):
+            die("l1/ is a symlink")
+        assert_no_symlinks(l1_root, "l1/")
+
+        outputs = build_l1_output(docs, l1_files, site_title)
+        collision_preflight(outputs, l1_root, "l1/")
+        verify_inside(outputs, workspace)
+
+        write_outputs(outputs)
+        prune(l1_root, outputs)
+
+        if args.json:
+            print(
+                json.dumps(
+                    {
+                        "profile": "l1",
+                        "roots": active,
+                        "generated": sorted(os.path.relpath(p, root) for p in outputs),
+                    },
+                    indent=2,
+                )
+            )
+        else:
+            print("generated %d L1 nav file(s) for roots: %s" % (len(outputs), ", ".join(active)))
+        return
+
+    landing_block = ""
+    if landing is not None:
+        label = landing_label(cfg, landing)
+        landing_block = "## %s\n\n[%s](../%s)\n" % (label, label, landing[0])
+
     nav_root = os.path.join(workspace, "nav")
     if os.path.islink(nav_root):
         die("nav/ is a symlink")
     assert_no_symlinks(nav_root, "nav/")
 
-    site_title = sanitize(str(site_title_cfg or args.title or "Documentation"))
-    outputs = build_outputs(docs, workspace, roots, order_map, site_title)
+    outputs = build_outputs(docs, workspace, roots, order_map, site_title, landing_block)
     collision_preflight(outputs, nav_root)
     verify_inside(outputs, workspace)
 
@@ -311,7 +524,11 @@ def main() -> None:
     if args.json:
         print(
             json.dumps(
-                {"roots": roots, "generated": sorted(os.path.relpath(p, root) for p in outputs)},
+                {
+                    "profile": "full",
+                    "roots": roots,
+                    "generated": sorted(os.path.relpath(p, root) for p in outputs),
+                },
                 indent=2,
             )
         )

@@ -1,6 +1,8 @@
 # Current-state docs
 
-Current = what the product **is now, as built**: actual capabilities, key behavior, and limits, each stated against a project-specified baseline. A peer tree to the PRD (`prd.md`), not a section of it. Default profile; overridable in project copies. Current is in the default render scope, together with the PRD tree and the complete ADR set (`rendering.md`).
+Current = what the product **is now, as built**: actual capabilities, key behavior, and limits, each stated against a project-specified baseline. It is the L3 layer — the as-built snapshot — beside L1 (the human target narrative) and L2 (the normative target spec, the single source of truth). A peer tree to the PRD (`prd.md`), not a section of it. Default profile; overridable in project copies. Current is in the default render scope, together with the PRD tree and the complete ADR set (`rendering.md`).
+
+**L1 is the only status-free layer; Current is the only status source.** L1 narrates the target and carries no progress, status markers, or as-built claims. Anything about what actually works now is read here.
 
 ## Structure
 
@@ -28,10 +30,11 @@ Do not record: task logs, todos, planned / future capabilities, per-issue progre
 
 ## Relationship to PRD
 
-- PRD = target (`prd.md`); Current = as-built. Two independent, user-readable trees; neither embeds the other.
+- L2 = normative target (`prd.md`); L1 = human narrative view of L2; Current = as-built. L1 and Current are two independent, user-readable trees; neither embeds the other, and L1 is not a fact source.
 - **Semantic / navigation / contract links** between the trees are expected — write ordinary relative Markdown links; there is no file/paragraph mirroring.
+- Current may link to L1, L2, or an ADR. L1 must not link to Current (nor to L2 or ADR).
 - A Current doc may point at an ADR with a **descriptive phrase + a stable path link** (e.g. `支持[离线使用](../../adr/0003-offline.md)`); the description is written independently and the ADR's rationale is not transcluded. ADR links are optional, and the profile never infers them (see `rendering.md`).
-- Gap comparison reads both and yields **candidate** tasks for the user to choose — not every difference is a missing feature. A difference may be drift, a quality gap, unverified behavior, or an outdated target. An already-met coarse goal can still be refined; do not invent gaps.
+- Gap comparison reads L2 and Current and yields **candidate** tasks for the user to choose — not every difference is a missing feature. A difference may be drift, a quality gap, unverified behavior, or an outdated target. An already-met coarse goal can still be refined; do not invent gaps.
 
 ## Adoption (existing projects)
 

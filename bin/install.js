@@ -496,6 +496,22 @@ function npxCommand() {
   return process.platform === "win32" ? "npx.cmd" : "npx";
 }
 
+// Windows 上 Node 禁止不经 shell 直接 spawn .bat/.cmd（CVE-2024-27980，Node >= 18.20.2 起
+// 直接返回 EINVAL）。仅在 win32 下启用 shell；shell 会重新解释参数，因此动态参数必须先经
+// isSafeCliToken 校验，固定参数由代码常量保证安全。
+function spawnNpxSync(args, options) {
+  const opts = Object.assign({}, options);
+  if (process.platform === "win32") {
+    opts.shell = true;
+  }
+  return spawnSync(npxCommand(), args, opts);
+}
+
+// 允许作为 shell 参数传递的动态 token（agent/skill 名）：仅字母数字与 . _ -。
+function isSafeCliToken(value) {
+  return typeof value === "string" && /^[A-Za-z0-9._-]+$/.test(value);
+}
+
 // 组装上游命令参数（不含可执行文件名），以便打印或执行。--json 必需：非 JSON 输出可能在
 // 部分失败时仍以 0 退出。窄命令，不使用 -a '*'/-s '*'/--all；单目标始终 copy，无需 --copy。
 function buildUpstreamArgs(opts, names) {
@@ -695,7 +711,7 @@ function runUpstreamPhase(opts, target, existingNames, missingNames, record) {
   let parsed = null;
   let execFail = null;
   let status = 0;
-  const res = spawnSync(npxCommand(), buildUpstreamArgs(opts, requested), {
+  const res = spawnNpxSync(buildUpstreamArgs(opts, requested), {
     encoding: "utf8",
     stdio: ["ignore", "pipe", "pipe"],
     maxBuffer: 32 * 1024 * 1024,
@@ -723,7 +739,11 @@ function runUpstreamPhase(opts, target, existingNames, missingNames, record) {
       continue;
     }
     hardFail = true;
-    const why = validation.reasons.get(name) || contractErr || execFail || "未知原因";
+    // 子进程未能执行或输出无法解析时，validate 的逐项「结果不可解析」是次生噪声：
+    // 优先报真实执行错误，避免把 EINVAL 等根因掩盖成解析失败。
+    const execReason = parsed === null && execFail ? execFail : "";
+    const why =
+      execReason || validation.reasons.get(name) || contractErr || execFail || "未知原因";
     if (missingNames.indexOf(name) !== -1) {
       // 原本缺失：只清理本次尝试新建的路径（阶段开始时不存在），绝不触碰既有目录。
       if (!preExisting.has(name) && lexists(path.join(target, name))) {
@@ -953,8 +973,13 @@ function removeUpstreamWithFallback(names, agent, target) {
     directFallback("当前 Node " + process.versions.node + " < 22.20，无法运行上游卸载器。");
     return;
   }
+  // Windows 下经 shell 启动，动态参数必须是安全 token；不合法时退回直接删除，避免命令注入。
+  if (!isSafeCliToken(agent) || names.some((n) => !isSafeCliToken(n))) {
+    directFallback("清单中的上游条目名称或 agent 含非法字符，无法安全调用上游卸载器。");
+    return;
+  }
   console.log("  将执行：" + upstreamRemoveString(names, agent));
-  const res = spawnSync(npxCommand(), buildUpstreamRemoveArgs(names, agent), {
+  const res = spawnNpxSync(buildUpstreamRemoveArgs(names, agent), {
     stdio: "inherit",
     env: Object.assign({}, process.env, { DISABLE_TELEMETRY: "1", DO_NOT_TRACK: "1" }),
   });

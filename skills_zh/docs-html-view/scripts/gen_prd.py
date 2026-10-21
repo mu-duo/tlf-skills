@@ -6,7 +6,11 @@ The single source of truth is ``docs/toc.yml``. It is validated, its globs and
 published:
 
 - ``docsHtmlView/index.md``         cover + top-level section toctrees
-- ``docsHtmlView/nav/<id>/index.md`` section wrappers (nested for appendices)
+- ``docsHtmlView/nav/<id>/index.md`` conditional section landing pages: a
+  wrapper is generated only when a section has two or more resolved documents
+  or hosts child sections; a single-document leaf is linked directly, and a
+  section that resolves to no documents and no children is omitted with a
+  warning (a glob that matches nothing never fails the build)
 - ``docsHtmlView/glossary.md``      generated from the root ``CONTEXT.md``
 - ``docsHtmlView/_manifest.json``   exact include list (paths relative to docs/)
 - ``docsHtmlView/_meta.json``       title/version/date/abstract/author
@@ -48,6 +52,22 @@ DOC_SUFFIXES = (".md", ".rst")
 SECTION_KEYS = {"id", "title", "documents", "sections", "modules", "exclude"}
 TOP_KEYS = {"title", "version", "date", "abstract", "author", "sections"}
 ID_RE = re.compile(r"^[A-Za-z0-9][A-Za-z0-9._-]*$")
+
+_PROVENANCE = re.compile(
+    r"\A\ufeff?(?:[ \t]*\r?\n)*"
+    r"(?:[ \t]*>[ \t]*模板来源[^\n]*(?:\r?\n[ \t]*>[^\n]*)*"
+    r"|[ \t]*<!--[ \t]*模板来源.*?-->)[ \t]*(?:\r?\n)+",
+    re.DOTALL,
+)
+
+
+def strip_provenance(text: str) -> str:
+    """Remove leading template-origin markers; never touch body occurrences."""
+    while True:
+        stripped = _PROVENANCE.sub("", text, count=1)
+        if stripped == text:
+            return text
+        text = stripped
 
 
 class TocError(Exception):
@@ -255,7 +275,7 @@ def parse_section(project_root: str, section, label: str, seen_ids: set, seen_do
         for index, child in enumerate(children)
     ]
 
-    if not documents and not child_sections and modules is None:
+    if not ("documents" in section or children or modules is not None):
         raise TocError("%s needs documents, sections, or modules: auto" % label)
 
     unique = []
@@ -330,9 +350,12 @@ def build_plan(project_root: str) -> dict:
         raise TocError("docs/toc.yml lists no documents")
 
     manifest = sorted({manifest_entry(rel) for rel in documents})
-    wrappers = []
+    wrappers: list = []
+    nav = []
     for section in parsed:
-        add_wrappers(wrappers, section, "docsHtmlView/nav")
+        node = build_nav(section, "docsHtmlView/nav", wrappers)
+        if node is not None:
+            nav.append(node)
 
     return {
         "meta": meta,
@@ -340,8 +363,39 @@ def build_plan(project_root: str) -> dict:
         "documents": documents,
         "manifest": manifest,
         "glossary": CONTEXT in documents,
+        "nav": nav,
         "wrappers": wrappers,
     }
+
+
+def build_nav(section: dict, parent_dir: str, wrappers: list):
+    """Return a nav node for *section*, or None when it resolves to nothing."""
+    out_dir = posixpath.join(parent_dir, section["id"])
+    children = []
+    for child in section["children"]:
+        node = build_nav(child, out_dir, wrappers)
+        if node is not None:
+            children.append(node)
+
+    docs = [docname(rel) for rel in section["documents"]]
+    if not docs and not children:
+        warn(
+            "section %r resolves to no documents and no child sections; "
+            "omitting it from navigation" % section["id"]
+        )
+        return None
+    if len(docs) == 1 and not children:
+        return {"kind": "doc", "docname": docs[0]}
+
+    wrapper = {
+        "kind": "wrapper",
+        "docname": posixpath.join(out_dir, "index"),
+        "dir": out_dir,
+        "title": section["title"],
+        "entries": docs + [node["docname"] for node in children],
+    }
+    wrappers.append(wrapper)
+    return wrapper
 
 
 def flatten_documents(section: dict) -> list:
@@ -349,21 +403,6 @@ def flatten_documents(section: dict) -> list:
     for child in section["children"]:
         result.extend(flatten_documents(child))
     return result
-
-
-def add_wrappers(out: list, section: dict, parent_dir: str) -> None:
-    out_dir = posixpath.join(parent_dir, section["id"])
-    out.append(
-        {
-            "docname": posixpath.join(out_dir, "index"),
-            "dir": out_dir,
-            "title": section["title"],
-            "documents": section["documents"],
-            "children": section["children"],
-        }
-    )
-    for child in section["children"]:
-        add_wrappers(out, child, out_dir)
 
 
 def toctree_entry(from_dir: str, target: str) -> str:
@@ -381,7 +420,7 @@ def render_plan(plan: dict) -> dict:
     index_dir = "docsHtmlView"
     outputs = {}
 
-    index_entries = [toctree_entry(index_dir, wrapper["docname"]) for wrapper in top_wrappers(plan)]
+    index_entries = [toctree_entry(index_dir, node["docname"]) for node in plan["nav"]]
     index_body = "%s\n\n# %s\n\n版本 %s · %s\n\n%s\n\n%s" % (
         MARK,
         title,
@@ -394,12 +433,8 @@ def render_plan(plan: dict) -> dict:
 
     for wrapper in plan["wrappers"]:
         entries = [
-            toctree_entry(wrapper["dir"], docname(rel)) for rel in wrapper["documents"]
+            toctree_entry(wrapper["dir"], entry) for entry in wrapper["entries"]
         ]
-        entries.extend(
-            toctree_entry(wrapper["dir"], posixpath.join(wrapper["dir"], child["id"], "index"))
-            for child in wrapper["children"]
-        )
         out_rel = wrapper["docname"][len("docsHtmlView/") :] + ".md"
         outputs[out_rel] = "%s\n\n# %s\n\n%s" % (
             MARK,
@@ -414,7 +449,7 @@ def render_plan(plan: dict) -> dict:
                 body = fh.read()
         except OSError as exc:
             raise TocError("cannot read %s: %s" % (CONTEXT, exc))
-        body = body.rstrip("\n") + "\n"
+        body = strip_provenance(body).rstrip("\n") + "\n"
         outputs["glossary.md"] = "%s\n%% source: %s\n\n%s" % (
             GLOSSARY_MARK,
             CONTEXT,
@@ -439,14 +474,6 @@ def render_plan(plan: dict) -> dict:
         ensure_ascii=False,
     ) + "\n"
     return outputs
-
-
-def top_wrappers(plan: dict) -> list:
-    result = []
-    for section in plan["sections"]:
-        docname = posixpath.join("docsHtmlView/nav", section["id"], "index")
-        result.append({"docname": docname, "id": section["id"]})
-    return result
 
 
 def toctree(entries) -> str:

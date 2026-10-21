@@ -7,7 +7,7 @@ argument-hint: "[project root]"
 
 # Docs HTML View
 
-Build one publishable, multi-page **PRD** from `docs/toc.yml` using **standard Sphinx** with MyST (`myst_parser`) and the **stock** `sphinx_rtd_theme`. The publication is a cover page, three core PRD chapters, module PRDs, and four appendix groups (glossary, SPEC, Current, ADR). There is no custom renderer: scaffolding uses `sphinx-quickstart`, `scripts/gen_prd.py` generates the cover and section wrappers from the TOC, and the build is `make html` (or a plain `sphinx-build`). The output is a local folder you can zip and hand to a reader; nothing is served or deployed and nothing is published automatically.
+Build one publishable, multi-page **PRD** from `docs/toc.yml` using **standard Sphinx** with MyST (`myst_parser`) and the **stock** `sphinx_rtd_theme`. The publication is a cover page, three core PRD chapters, module PRDs, and four appendix groups (glossary, SPEC, Current, ADR). There is no custom renderer: scaffolding uses `sphinx-quickstart`, `scripts/gen_prd.py` generates the cover and conditional section landing pages from the TOC, and the build is `make html` (or a plain `sphinx-build`). Sections with exactly one document are linked directly from their parent (no extra wrapper level); multi-document and branch sections get a generated landing page. The output is a local HTML folder; nothing is served, deployed, or published automatically.
 
 This skill is manually triggered and never automatic, and it never fetches anything at build time. It may install the pinned render dependencies, but only after your explicit approval. Inspect read-only, ask for approval **once**, then first-time setup and repeat manual renders run without re-asking — until a setting or the TOC changes.
 
@@ -18,9 +18,9 @@ This skill is manually triggered and never automatic, and it never fetches anyth
 | Part | Source | Published as |
 | :--- | :--- | :--- |
 | Cover | `docs/toc.yml` metadata | `docsHtmlView/index.md` |
-| Core sections | `overview`, `requirements`, `architecture` | `docsHtmlView/nav/<id>/index.md` wrappers |
+| Core sections | `overview`, `requirements`, `architecture` | `docsHtmlView/nav/<id>/index.md` (only for multi-document/branch sections; single-document sections are linked directly) |
 | Module PRDs | `modules: auto` under `architecture` | `docs/product/<NN-module>/00-README.md` |
-| Appendices | `glossary`, `spec`, `current`, `adr` | `docsHtmlView/nav/appendix/<id>/index.md` |
+| Appendices | `glossary`, `spec`, `current`, `adr` | `docsHtmlView/nav/appendix/<id>/index.md` (only where a landing page is needed) |
 | Glossary | root `CONTEXT.md` | generated `docsHtmlView/glossary.md` |
 
 `gen_prd.py` also writes `_manifest.json` (the exact include list) and `_meta.json` (title/version/date/abstract/author). `conf.py` reads both: only manifest-listed documents are built, so a document missing from the TOC is never rendered. Module sidecars (`00-index.md`) and unlisted `design/` files stay unpublished.
@@ -28,12 +28,12 @@ This skill is manually triggered and never automatic, and it never fetches anyth
 ## Boundaries
 
 - **User-triggered only.** Never install, scaffold, generate, or build while editing docs. There is no auto-build and no watcher.
-- **Bounded writes.** The approved set is: `docs/docsHtmlView/` (config, generated cover/nav/glossary/manifests, build output), the approved render environment directory (e.g. `.venv-docs/`), and any `.gitignore` additions you approved. The publication reads `docs/product`, `docs/current`, `docs/adr`, root `CONTEXT.md`, and `docs/toc.yml`; it never rewrites source documents.
+- **Bounded writes.** The approved set is: `docs/docsHtmlView/` (config, generated cover, conditional nav landing pages, glossary, manifests, build output), the approved render environment directory (e.g. `.venv-docs/`), and any `.gitignore` additions you approved. The publication reads `docs/product`, `docs/current`, `docs/adr`, root `CONTEXT.md`, and `docs/toc.yml`; it never rewrites source documents.
 - **TOC-controlled range.** Only documents listed in `docs/toc.yml` are published. Paths must resolve under `docs/product`, `docs/current`, `docs/adr`, or be exactly `CONTEXT.md`; symlinks are refused. There is one publication: no alternate views, no separate landing-page configuration.
 - **No TOC or no documents → stop.** Do not create `docs/docsHtmlView/`, scaffold, or build. Report the missing/invalid TOC instead.
 - **Stock theme.** No custom UI/design work.
-- **No invented links or content.** Navigation is generated from the TOC; document bodies are never rewritten. `CONTEXT.md` is copied verbatim into the generated glossary.
-- **No browser/server/deploy.** Producing HTML and a zip is the end.
+- **No invented links or content.** Navigation is generated from the TOC; document bodies are never rewritten. `CONTEXT.md` is copied into the generated glossary with its leading provenance marker stripped.
+- **No browser/server/deploy.** Producing the local HTML folder is the end. Packaging, hosting, and delivery are outside this skill and remain the user's decision.
 
 ## Flow
 
@@ -82,7 +82,7 @@ DOCS_SPHINXBUILD="$PWD/.venv-docs/bin/sphinx-build"  # same env
    "$DOCS_PY" "$SKILL"/scripts/gen_prd.py --project-root .
    ```
 
-   It writes the cover, `nav/**` wrappers, `glossary.md`, `_manifest.json`, and `_meta.json`, and prunes its own stale marked files. It never edits `docs/toc.yml` or the source documents; to change the publication, edit the TOC and re-run it. `--json` prints a machine-readable summary.
+   It writes the cover, conditional `nav/**` section landing pages, `glossary.md`, `_manifest.json`, and `_meta.json`, and prunes its own stale marked files. It never edits `docs/toc.yml` or the source documents; to change the publication, edit the TOC and re-run it. `--json` prints a machine-readable summary.
 
 6. **Build (repeatable without re-approval).**
 
@@ -98,16 +98,15 @@ DOCS_SPHINXBUILD="$PWD/.venv-docs/bin/sphinx-build"  # same env
    ( cd docs/docsHtmlView && "$DOCS_SPHINXBUILD" -b html -c . -d build/doctrees -w build/warnings.log .. build/html )
    ```
 
-   Output lands under `docs/docsHtmlView/build/html`; because `root_doc = docsHtmlView/index`, the **cover is `docs/docsHtmlView/build/html/docsHtmlView/index.html`** (open that file). The `build/html/` directory layout itself is unchanged — no redirect or extra index page is generated. Warnings go to `docs/docsHtmlView/build/warnings.log`. The `build/` dir is created only after approval. Source-doc edits and TOC edits are legitimate rebuilds (re-run `gen_prd.py` first after a TOC change). A change to an approved setting (environment, workspace, output root) requires a fresh ask.
+   Output lands under `docs/docsHtmlView/build/html`; because `root_doc = docsHtmlView/index`, the **cover is `docs/docsHtmlView/build/html/docsHtmlView/index.html`**. The build also writes a root entry page, **`docs/docsHtmlView/build/html/index.html`**, which meta-refreshes to that cover (with a plain link as fallback); open the root entry for convenience. Warnings go to `docs/docsHtmlView/build/warnings.log`. The `build/` dir is created only after approval. Source-doc edits and TOC edits are legitimate rebuilds (re-run `gen_prd.py` first after a TOC change). A change to an approved setting (environment, workspace, output root) requires a fresh ask.
 
-7. **Check, then zip (opt-in deliverable).**
+7. **Check.**
 
    ```bash
    "$DOCS_PY" "$SKILL"/scripts/check_prd.py --project-root .
-   python3 -c "import shutil; shutil.make_archive('docs/docsHtmlView/build/prd-docs', 'zip', 'docs/docsHtmlView/build/html')"
    ```
 
-   `check_prd.py` validates the TOC, the manifest, PRD source link rules, glossary freshness, built HTML anchors, and that no unlisted `product/`/`current/`/`adr/` page was built. `--skip-html` limits it to the source-side checks. The zip is written to `docs/docsHtmlView/build/prd-docs.zip` inside the approved workspace and contains the whole folder, so the recipient opens `docsHtmlView/index.html` inside the archive and needs no server. Rezip only after a successful build and check.
+   `check_prd.py` validates the TOC, the manifest, PRD source link rules, glossary freshness, built HTML anchors, the generated root entry, the absence of template-provenance text, and that no unlisted `product/`/`current/`/`adr/` page was built. `--skip-html` limits it to the source-side checks.
 
 8. **Report.** Summarise the normal Sphinx result and the check result — see Statuses below.
 
@@ -118,8 +117,9 @@ The boundary is a small template Sphinx extension (`assets/guard.py`), not a bui
 - **File insertion blocked at parse time:** `include`, `literalinclude`, and `raw` directives are replaced by a refusing directive (case-insensitive, so `INCLUDE` too; also reached through `eval-rst` and MyST colon fences). Active/raw HTML is refused; only pure HTML-comment (plus whitespace) raw nodes are allowed, so the harmless `<!-- ... -->` comments in PRD templates render — but no comment+markup smuggling. No regex-only scan is relied on.
 - **Local assets checked before copy:** at `doctree-read` (priority 100, before Sphinx's asset collectors copy anything) every parsed image and download target is resolved with the environment's reference resolver and must resolve (symlinks included) inside an approved root, or the build fails. Reference-style images, `:download:`, and uppercase directives are covered.
 - **Remote assets are never fetched:** remote images/downloads are replaced with an inline placeholder and a Sphinx warning is emitted, so a clean build is not reported as full fidelity.
+- **Provenance markers stripped at render time:** leading `模板来源` (template-origin) markers — either a blockquote or an `<!-- ... -->` comment, before the first heading — are removed from the in-memory source at `source-read`, so the published copy omits them. Sphinx's copied `_sources/**/*.txt` files are sanitized at `build-finished` too. Only leading markers are affected; body occurrences are left alone and the source files on disk are never modified.
 - **Navigation is generated, not authored:** `gen_prd.py` writes only marked files (`% docs-html-view: generated navigation; do not edit`, a MyST comment that renders as no content) and JSON files carrying `"generated_by": "docs-html-view gen_prd.py"`. It sanitizes generated titles (no `<`, `>`, backticks, braces, brackets, pipes, or newlines) and runs a full preflight — output directories, any existing `nav/`, and every output/collision are checked for symlinks and unmarked files before the first write, so a refusal leaves the tree unchanged. It prunes only its own marked stale files and never writes into source trees.
-- **Exact include manifest:** `conf.py` builds `include_patterns` from `_manifest.json` plus the generated cover/wrappers/glossary. Unlisted documents are excluded even if they exist under the roots.
+- **Exact include manifest:** `conf.py` builds `include_patterns` from `_manifest.json` plus the generated cover, any section landing pages, and the glossary. Unlisted documents are excluded even if they exist under the roots.
 
 Approved scope that links out to unlisted docs produces ordinary Sphinx "missing reference" warnings; those are reported, never auto-added. `check_prd.py` catches PRD-layer link violations in the sources.
 
@@ -130,7 +130,7 @@ Read the normal Sphinx exit code, the warning log (`build/warnings.log`), and th
 - **clean success** — `gen_prd.py` generated, build exited 0, the warning log is empty, and `check_prd.py` exits 0.
 - **preview with warnings** — build exited 0 but the warning log has entries; report the first warnings and the log path. Warnings do not by themselves fail `check_prd.py`.
 - **generation refusal** — `gen_prd.py` exits 1 (missing/invalid `docs/toc.yml`, path outside the allowed roots, duplicate document, symlink, or an unmarked output collision). Report the message, fix the TOC/collision, and do not build stale output.
-- **check failure** — `check_prd.py` exits 1 on a TOC/manifest mismatch, a PRD external/SPEC/Current/ADR link, a status marker, a stale glossary, a broken built anchor, or an unlisted built page. Summarise the `file:line` / `file: #id` lines; do not distribute a failing build.
+- **check failure** — `check_prd.py` exits 1 on a TOC/manifest mismatch, a PRD external/SPEC/Current/ADR link, a status marker, a stale glossary, a broken built anchor, a provenance leak, or an unlisted built page. Summarise the `file:line` / `file: #id` lines; do not present a failing build as valid.
 - **failure** — `guard.py` rejected the build or Sphinx exited non-zero. A failed `make` may leave stale or partial output under `build/`; state that clearly and do not present it as a fresh build. There is no publisher step: whatever `make` left is what exists.
 
 ## Limitations

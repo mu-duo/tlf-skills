@@ -36,11 +36,12 @@ Verified on PyPI (2026-10); the set is mutually compatible. Sphinx 9.1.0 require
       conf.py                     # from assets/conf.py.template
       guard.py                    # copied from assets/guard.py
       index.md                    # generated cover (marked)
-      nav/<id>/index.md           # generated section wrappers (marked)
+      nav/<id>/index.md           # generated section landing pages, only where needed (marked)
       glossary.md                 # generated from CONTEXT.md (marked)
       _manifest.json              # generated exact include list
       _meta.json                  # generated title/version/date/abstract/author
       build/html/docsHtmlView/index.html   # publication cover
+      build/html/index.html       # generated root entry (meta-refresh to the cover)
 ```
 
 `docsHtmlView` is the workspace directory name, not the publication title. The title comes from `docs/toc.yml`.
@@ -48,7 +49,7 @@ Verified on PyPI (2026-10); the set is mutually compatible. Sphinx 9.1.0 require
 ## Files shipped by this skill
 
 - `scripts/prepare_env.py` — create/reuse a recognized venv; optional pinned install / freeze. Stdlib only.
-- `scripts/gen_prd.py` — validate `docs/toc.yml`, expand globs/`modules: auto`, generate cover/wrappers/glossary/manifests; marked files only.
+- `scripts/gen_prd.py` — validate `docs/toc.yml`, expand globs/`modules: auto`, generate the cover, conditional section landing pages, glossary, and manifests; marked files only.
 - `scripts/check_prd.py` — validate TOC, manifest, PRD source links, glossary freshness, built anchors, and unlisted pages. Stdlib + PyYAML.
 - `assets/conf.py.template` — the managed `conf.py` for a new publication.
 - `assets/guard.py` — the parse/render guard extension.
@@ -99,14 +100,7 @@ mkdir -p docs/docsHtmlView/build
 ( cd docs/docsHtmlView && "$DOCS_SPHINXBUILD" -b html -c . -d build/doctrees -w build/warnings.log .. build/html )
 ```
 
-Zip the built folder for a reader:
-
-```bash
-python3 -c "import shutil; shutil.make_archive('docs/docsHtmlView/build/prd-docs', 'zip', 'docs/docsHtmlView/build/html')"
-# or: (cd docs/docsHtmlView/build && zip -r prd-docs.zip html)
-```
-
-The recipient opens `docsHtmlView/index.html` inside `docs/docsHtmlView/build/prd-docs.zip`. Zip the folder, not a single HTML file; re-zip only after a successful build and check. `check_prd.py --skip-html` runs only the source-side checks.
+`check_prd.py --skip-html` runs only the source-side checks. The skill stops at the local `docs/docsHtmlView/build/html` folder; packaging, hosting, and delivery are outside its scope and remain the user's decision.
 
 `gen_prd.py` exits `1` on an invalid or unsafe TOC (missing metadata/ids/paths, duplicate explicit document, symlink, path outside the allowed roots), a missing workspace, or an unmarked output collision. It exits `0` after writing the publication and prints generated/manifest counts; `--json` prints the resolved documents, manifest, generated files, and pruned files on stdout. Warnings (empty glob, no modules, legacy `docs/prd/`) go to stderr.
 
@@ -181,13 +175,19 @@ To change the publication, edit `docs/toc.yml` — never the generated files —
 
 All generated Markdown files start with a MyST comment marker (`% docs-html-view: ...`) that renders as nothing; JSON files carry `"generated_by": "docs-html-view gen_prd.py"`. Only marked/owned files are overwritten or pruned.
 
+### Provenance stripping (published copies only)
+
+`guard.py` strips leading `模板来源` (template-origin) markers at `source-read`, before rendering. Two forms are recognized: a blockquote line beginning with `模板来源` (plus its immediately following contiguous blockquote lines), or an `<!-- 模板来源 ... -->` HTML comment. Each may be preceded by a BOM and blank lines, must sit before the first heading, and stacked leading markers are stripped one after another. Occurrences later in the body are never touched. Only the in-memory source (`source[0]`) changes; the source files on disk are never modified. Sphinx then copies the original source files into `build/html/_sources/`, so `build-finished` applies the same strip to every copied `*.md.txt` / `*.rst.txt`; the "View page source" link therefore shows clean content too.
+
 ### `docsHtmlView/index.md` (cover)
 
-`# title`, a `版本 <version> · <date>` line, the abstract, and a `{toctree}` of the top-level section wrappers (`nav/overview/index`, ...). Titles pass through a sanitizer that strips `<`, `>`, backticks, braces, brackets, and pipes.
+`# title`, a `版本 <version> · <date>` line, the abstract, and a `{toctree}` of the top-level sections. A section flattened to a single document is listed directly by that document's path-only entry (no landing page in between); multi-document and branch sections are listed through their generated landing page (`nav/overview/index`, `nav/appendix/index`, ...). Titles pass through a sanitizer that strips `<`, `>`, backticks, braces, brackets, and pipes.
 
-### `docsHtmlView/nav/<id>/index.md` (wrappers)
+### `docsHtmlView/nav/<id>/index.md` (conditional section landing pages)
 
-`# section title` plus a `{toctree}` of path-only entries relative to the wrapper: documents (`../../../product/00-README`) and, for `appendix`, child wrappers (`glossary/index`). Nested appendix wrappers live at `nav/appendix/<sub-id>/index.md`.
+Generated only when needed: after TOC expansion the section resolves to more than one document (including `modules: auto` results), or it has child `sections`. A section that resolves to exactly one document and has no child sections is linked directly from its parent and gets no `nav/<id>/` page.
+
+Each generated page is `# section title` plus a `{toctree}` of path-only entries relative to the page: documents (`../../../product/00-README`) and, for `appendix`, child landing pages (`glossary/index`) or a direct child document when that child was flattened. Nested appendix landing pages live at `nav/appendix/<sub-id>/index.md`.
 
 ### `docsHtmlView/glossary.md`
 
@@ -217,7 +217,7 @@ Paths are relative to `docs/` (i.e. Sphinx source-root-relative). It contains ex
 
 ## Sphinx configuration
 
-`SOURCEDIR=..`, config dir `docs/docsHtmlView` (`-c .`), `BUILDDIR=build` → output `build/html`; `SPHINXOPTS = -c . -w build/warnings.log` (create `build/` first) so warnings are captured for reporting. `root_doc = docsHtmlView/index`, so the cover is `build/html/docsHtmlView/index.html` (the `build/html/` layout is otherwise unchanged; no redirect or extra page).
+`SOURCEDIR=..`, config dir `docs/docsHtmlView` (`-c .`), `BUILDDIR=build` → output `build/html`; `SPHINXOPTS = -c . -w build/warnings.log` (create `build/` first) so warnings are captured for reporting. `root_doc = docsHtmlView/index`, so the cover is `build/html/docsHtmlView/index.html`. At `build-finished` (the `html` builder only, and only when the build did not raise) `guard.py` also writes `build/html/index.html`, a root entry page that meta-refreshes to the relative `docsHtmlView/index.html` with a plain-link fallback. Its title is `project`, HTML-escaped, falling back to `Documentation` when empty.
 
 `assets/conf.py.template` reads `_meta.json` and `_manifest.json` from its own directory and **fails clearly** when either is missing (the build must run `gen_prd.py` first). It then sets:
 
@@ -232,7 +232,9 @@ There is no environment switch: one TOC, one publication, one output directory.
 ### Guard (`assets/guard.py`)
 
 - `builder-inited`: registers a refusing directive for `include`, `literalinclude`, `raw` (case-insensitive; also hit via `eval-rst` and colon fences), and validates each allowed root is a simple relative name resolving inside `docs`.
+- `source-read`: strips leading `模板来源` provenance markers from the in-memory source only (both blockquote and HTML-comment forms, before the first heading; body occurrences and on-disk files untouched).
 - `doctree-read` (priority 100, before Sphinx's asset collectors at 500): rejects any `raw` node that is not purely HTML comment(s)+whitespace (so PRD-template comments pass, active markup fails); for images and `download_reference` nodes, resolves the original reference via `app.env.relfn2path`, requires it inside an approved root using `realpath`/`commonpath` (symlinks rejected), or raises `SphinxError` before any copy; remote targets are replaced with an inline placeholder and a Sphinx warning, never fetched.
+- `build-finished`: sanitizes Sphinx's copied `_sources/**/*.md.txt` / `*.rst.txt` with the same provenance strip, then (for `html`-builder builds that completed without an exception) overwrites `build/html/index.html` with the root entry (meta refresh to `docsHtmlView/index.html` plus an `<a>` fallback). The build directory is generated output, so the overwrite is deterministic.
 - This is the authoritative boundary and the reason no regex-only scan is used. It guards trusted docs; `conf.py` is trusted executable code and is not sandboxed.
 
 ## Validation (`check_prd.py`)
@@ -241,10 +243,11 @@ There is no environment switch: one TOC, one publication, one output directory.
 2. **Manifest.** `_manifest.json` exists and its document set is exactly the TOC-expanded documents plus `docsHtmlView/glossary.md`. Missing/extra entries fail; every non-glossary source must still exist.
 3. **PRD source links.** Scans `docs/product/00-README.md`, `01-requirements.md`, `02-architecture.md`, and `docs/product/*/00-README.md`. HTML comments, fenced code, and inline code are masked. Allowed targets: same-page anchors and relative links to PRD-layer documents (`00-README.md`, `01-requirements.md`, `02-architecture.md`) inside `docs/product`. Flags external URLs, absolute paths, links outside the PRD layer (SPEC/Current/ADR/design/missing), and status markers `✅`/`🚧`/`❌`.
 4. **Glossary freshness.** `docsHtmlView/glossary.md` body equals `CONTEXT.md` after the generated marker/header; missing or stale fails.
-5. **Built HTML anchors.** Every manifest document plus the generated cover, wrappers, and glossary must have a built page under `--html-dir`; every same-page `href="#..."` must match an `id`/`<a name>` in that page. Broken/missing fails.
-6. **No unlisted docs.** Every `build/html/product/**/*.html`, `current/**`, `adr/**` page must map back to a manifest document; extras fail.
+5. **Built HTML anchors.** Every manifest document plus the generated cover, required section landing pages, glossary, and the root entry `build/html/index.html` must have a built page under `--html-dir`; every same-page `href="#..."` must match an `id`/`<a name>` in that page. Broken/missing fails.
+6. **No unlisted docs.** Every `build/html/product/**/*.html`, `current/**`, `adr/**` page must map back to a manifest document; extras fail. A `nav/**` page with no generated counterpart (for example a stale landing page for a section that is now single-document) is also rejected.
+7. **Provenance.** No published page and no copied `_sources/**/*.txt` may contain `模板来源`; a leak fails the check.
 
-The summary reports toc documents, manifest entries, PRD files/links checked, glossary state, anchors checked, unlisted docs, and violation count; exit 0 only when the violation count is zero. `--skip-html` omits phases 5–6 (use it before a build).
+The summary reports toc documents, manifest entries, PRD files/links checked, glossary state, anchors checked, unlisted docs, and violation count; exit 0 only when the violation count is zero. `--skip-html` omits phases 5–7 (use it before a build).
 
 ## Anchor and link rules
 
@@ -254,7 +257,7 @@ The summary reports toc documents, manifest entries, PRD files/links checked, gl
 
 ## Approval and consent
 
-The Skill asks once, before any write/install/scaffold, covering packages, environment, files, `.gitignore` additions, output path, and the TOC title/version. There is no stored consent state or fingerprint. Repeated renders inside the approved scope do not re-ask; dependency upgrades, overwriting existing files, or changing the approved output root require a fresh ask. Missing TOC/source docs or a malformed workspace → report and stop, never guess. The template tokens are unquoted, so substitute each with `repr(value)` (a valid, escaped Python literal), never raw interpolation into executable config. Zip generation is inside the approved workspace but remains manual: it runs only when requested.
+The Skill asks once, before any write/install/scaffold, covering packages, environment, files, `.gitignore` additions, output path, and the TOC title/version. There is no stored consent state or fingerprint. Repeated renders inside the approved scope do not re-ask; dependency upgrades, overwriting existing files, or changing the approved output root require a fresh ask. Missing TOC/source docs or a malformed workspace → report and stop, never guess. The template tokens are unquoted, so substitute each with `repr(value)` (a valid, escaped Python literal), never raw interpolation into executable config.
 
 ## Limitations
 

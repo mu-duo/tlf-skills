@@ -36,11 +36,12 @@
       conf.py                     # 来自 assets/conf.py.template
       guard.py                    # 从 assets/guard.py 复制
       index.md                    # 生成的封面（带标记）
-      nav/<id>/index.md           # 生成的章节导航页（带标记）
+      nav/<id>/index.md           # 按需生成的章节落地页（带标记）
       glossary.md                 # 由 CONTEXT.md 生成（带标记）
       _manifest.json              # 生成的准确包含清单
       _meta.json                  # 生成的标题/版本/日期/摘要/作者
       build/html/docsHtmlView/index.html   # 发布封面
+      build/html/index.html       # 生成的根入口（跳转到封面）
 ```
 
 `docsHtmlView` 是工作区目录名，不是发布标题。标题来自 `docs/toc.yml`。
@@ -48,7 +49,7 @@
 ## 本 skill 提供的文件
 
 - `scripts/prepare_env.py` — 创建/复用可识别的 venv；可选安装固定依赖 / freeze。仅标准库。
-- `scripts/gen_prd.py` — 校验 `docs/toc.yml`，展开 glob/`modules: auto`，生成封面/导航页/术语表/清单；仅写带标记的文件。
+- `scripts/gen_prd.py` — 校验 `docs/toc.yml`，展开 glob/`modules: auto`，生成封面、按需的章节落地页、术语表与清单；仅写带标记的文件。
 - `scripts/check_prd.py` — 校验 TOC、清单、PRD 源链接、术语表新鲜度、构建后锚点与未列出页面。标准库 + PyYAML。
 - `assets/conf.py.template` — 新发布使用的受管 `conf.py`。
 - `assets/guard.py` — 解析/渲染防护扩展。
@@ -99,14 +100,7 @@ mkdir -p docs/docsHtmlView/build
 ( cd docs/docsHtmlView && "$DOCS_SPHINXBUILD" -b html -c . -d build/doctrees -w build/warnings.log .. build/html )
 ```
 
-为读者压缩构建文件夹：
-
-```bash
-python3 -c "import shutil; shutil.make_archive('docs/docsHtmlView/build/prd-docs', 'zip', 'docs/docsHtmlView/build/html')"
-# 或： (cd docs/docsHtmlView/build && zip -r prd-docs.zip html)
-```
-
-接收方打开 `docs/docsHtmlView/build/prd-docs.zip` 内的 `docsHtmlView/index.html`。压缩文件夹，而不是单个 HTML 文件；仅在构建与检查都成功后才重新压缩。`check_prd.py --skip-html` 只运行源码侧检查。
+`check_prd.py --skip-html` 只运行源码侧检查。本 skill 到本地 `docs/docsHtmlView/build/html` 文件夹为止；打包、托管与交付不在其范围内，由用户自行决定。
 
 `gen_prd.py` 在 TOC 无效或不安全（缺少元数据/id/路径、显式重复文档、符号链接、路径超出允许根目录）、工作区缺失，或未标记输出冲突时以 `1` 退出。成功写入发布内容后以 `0` 退出，并打印生成文件/清单数量；`--json` 在 stdout 打印解析后的文档、清单、生成文件与清理文件。警告（空 glob、无模块、遗留 `docs/prd/`）写入 stderr。
 
@@ -181,17 +175,23 @@ sections:
 
 所有生成的 Markdown 文件以 MyST 注释标记开头（`% docs-html-view: ...`），渲染后无内容；JSON 文件带有 `"generated_by": "docs-html-view gen_prd.py"`。只有带标记/归属的文件会被覆盖或清理。
 
+### 模板来源剥离（仅发布副本）
+
+`guard.py` 在 `source-read` 阶段、渲染之前剥离开头的 `模板来源` 标记。识别两种形态：以 `模板来源` 开头的引用块行（连同紧随其后的连续引用块行），或 `<!-- 模板来源 ... -->` HTML 注释。二者前面都允许有 BOM 与空行，必须位于首个标题之前；连续多个开头标记会逐个剥离。正文中间的出现绝不处理。只修改内存中的源码（`source[0]`），磁盘上的源文件绝不修改。Sphinx 随后会把原始源文件复制到 `build/html/_sources/`，因此 `build-finished` 会对每个复制出的 `*.md.txt` / `*.rst.txt` 应用同样的剥离；“查看页面源代码”链接因此也是干净的。
+
 ### `docsHtmlView/index.md`（封面）
 
-`# title`、`版本 <version> · <date>` 行、摘要，以及顶层章节导航页的 `{toctree}`（`nav/overview/index` 等）。标题会经过净化，去除 `<`、`>`、反引号、花括号、方括号与竖线。
+`# title`、`版本 <version> · <date>` 行、摘要，以及顶层章节的 `{toctree}`。单文档扁平化的章节直接以该文档的纯路径条目列出（中间没有落地页）；多文档与含子章节的章节通过生成的落地页列出（`nav/overview/index`、`nav/appendix/index` 等）。标题会经过净化，去除 `<`、`>`、反引号、花括号、方括号与竖线。
 
-### `docsHtmlView/nav/<id>/index.md`（导航页）
+### `docsHtmlView/nav/<id>/index.md`（按需生成的章节落地页）
 
-`# 章节标题` 加一个相对导航页的纯路径 `{toctree}`：文档（`../../../product/00-README`）以及 `appendix` 的子导航页（`glossary/index`）。嵌套附录导航页位于 `nav/appendix/<sub-id>/index.md`。
+仅在需要时生成：TOC 展开后该章节解析出多于一份文档（包括 `modules: auto` 的结果），或它包含子 `sections`。解析结果恰好一份文档且没有子章节的章节会由父级直接链接，不生成 `nav/<id>/` 页面。
+
+每个生成的页面是 `# 章节标题` 加一个相对页面的纯路径 `{toctree}`：文档（`../../../product/00-README`），以及 `appendix` 的子落地页（`glossary/index`）或被扁平化的直接子文档。嵌套附录落地页位于 `nav/appendix/<sub-id>/index.md`。
 
 ### `docsHtmlView/glossary.md`
 
-两行标记（`generated glossary`、`% source: CONTEXT.md`）后紧跟根 `CONTEXT.md` 的**原样**正文。`check_prd.py` 在标记/头部之后比较正文；陈旧副本会失败。
+两行标记（`generated glossary`、`% source: CONTEXT.md`）后紧跟根 `CONTEXT.md` 的正文，开头模板来源标记已在生成时剥离。`check_prd.py` 在标记/头部之后比较剥离后的正文；陈旧副本会失败。
 
 ### `docsHtmlView/_manifest.json`
 
@@ -217,7 +217,7 @@ sections:
 
 ## Sphinx 配置
 
-`SOURCEDIR=..`、配置目录 `docs/docsHtmlView`（`-c .`）、`BUILDDIR=build` → 输出 `build/html`；`SPHINXOPTS = -c . -w build/warnings.log`（先创建 `build/`），以便捕获警告用于报告。`root_doc = docsHtmlView/index`，因此封面为 `build/html/docsHtmlView/index.html`（`build/html/` 布局本身不变；无重定向或额外页面）。
+`SOURCEDIR=..`、配置目录 `docs/docsHtmlView`（`-c .`）、`BUILDDIR=build` → 输出 `build/html`；`SPHINXOPTS = -c . -w build/warnings.log`（先创建 `build/`），以便捕获警告用于报告。`root_doc = docsHtmlView/index`，因此封面为 `build/html/docsHtmlView/index.html`。在 `build-finished` 阶段（仅 `html` builder，且构建未抛异常时），`guard.py` 还会写入 `build/html/index.html`：一个跳转到相对路径 `docsHtmlView/index.html` 的根入口页，并提供普通链接兜底。其标题为 `project`（HTML 转义），为空时回退到 `Documentation`。
 
 `assets/conf.py.template` 从自身目录读取 `_meta.json` 与 `_manifest.json`，任一缺失都会**明确失败**（构建前必须先运行 `gen_prd.py`）。随后设置：
 
@@ -232,7 +232,9 @@ sections:
 ### 防护（`assets/guard.py`）
 
 - `builder-inited`：为 `include`、`literalinclude`、`raw` 注册拒绝执行的指令（不区分大小写；通过 `eval-rst` 与冒号围栏同样可达），并校验每个允许根目录都是解析到 `docs` 内部的简单相对名称。
+- `source-read`：仅从内存源码中剥离开头的 `模板来源` 标记（引用块与 HTML 注释两种形态，位于首个标题之前；正文中间的出现与磁盘文件不受影响）。
 - `doctree-read`（优先级 100，早于 Sphinx 在 500 的资源收集器）：拒绝任何不是纯 HTML 注释+空白的 `raw` 节点（因此 PRD 模板注释通过，活动标记失败）；对图片与 `download_reference` 节点，通过 `app.env.relfn2path` 解析原始引用，要求其位于已批准根目录内（使用 `realpath`/`commonpath`，拒绝符号链接），否则在复制前抛出 `SphinxError`；远程目标会被替换为内联占位符并发出 Sphinx 警告，绝不抓取。
+- `build-finished`：用同样的剥离逻辑清洗 Sphinx 复制出的 `_sources/**/*.md.txt` / `*.rst.txt`；随后（仅 `html` builder 且构建未抛异常时）用根入口页覆盖 `build/html/index.html`（meta refresh 到 `docsHtmlView/index.html`，加 `<a>` 兜底）。构建目录是生成产物，因此覆盖是确定性的。
 - 这是权威边界，也是不依赖仅正则扫描的原因。它防护可信文档；`conf.py` 是可信可执行代码，不受沙箱限制。
 
 ## 校验（`check_prd.py`）
@@ -240,11 +242,12 @@ sections:
 1. **TOC。** 使用 generator 自身的解析器解析 `docs/toc.yml`：元数据、必需 id、文档路径/glob、`modules: auto`、允许根目录、存在性、常规文件、无符号链接、无重复。
 2. **清单。** `_manifest.json` 存在，且其文档集合恰好等于 TOC 展开的文档加上 `docsHtmlView/glossary.md`。缺失/多余条目失败；每个非术语表源文件必须仍然存在。
 3. **PRD 源链接。** 扫描 `docs/product/00-README.md`、`01-requirements.md`、`02-architecture.md` 与 `docs/product/*/00-README.md`。HTML 注释、围栏代码与内联代码会被掩码。允许目标：同页锚点，以及指向 `docs/product` 内 PRD 层文档（`00-README.md`、`01-requirements.md`、`02-architecture.md`）的相对链接。标记外部 URL、绝对路径、PRD 层之外的链接（SPEC/Current/ADR/design/缺失）以及状态标记 `✅`/`🚧`/`❌`。
-4. **术语表新鲜度。** `docsHtmlView/glossary.md` 正文在生成标记/头部之后等于 `CONTEXT.md`；缺失或陈旧则失败。
-5. **构建后 HTML 锚点。** 每个清单文档加上生成的封面、导航页与术语表都必须在 `--html-dir` 下有构建页面；每个同页 `href="#..."` 都必须匹配该页中的 `id`/`<a name>`。断链/缺失失败。
-6. **无未列文档。** 每个 `build/html/product/**/*.html`、`current/**`、`adr/**` 页面都必须映射回清单文档；多余页面失败。
+4. **术语表新鲜度。** `docsHtmlView/glossary.md` 正文在生成标记/头部之后等于剥离模板来源标记后的 `CONTEXT.md`；缺失或陈旧则失败。
+5. **构建后 HTML 锚点。** 每个清单文档加上生成的封面、按需的章节落地页、术语表与根入口 `build/html/index.html` 都必须在 `--html-dir` 下有构建页面；每个同页 `href="#..."` 都必须匹配该页中的 `id`/`<a name>`。断链/缺失失败。
+6. **无未列文档。** 每个 `build/html/product/**/*.html`、`current/**`、`adr/**` 页面都必须映射回清单文档；多余页面失败。没有对应生成页面的 `nav/**` 页面（例如某个章节已变为单文档后遗留的旧落地页）也会被拒绝。
+7. **模板来源。** 任何发布页面与复制出的 `_sources/**/*.txt` 都不得包含 `模板来源`；泄漏即失败。
 
-摘要报告 TOC 文档数、清单条目数、PRD 文件/链接检查数、术语表状态、锚点检查数、未列文档数与违规数；仅当违规数为零时退出 0。`--skip-html` 省略第 5–6 阶段（构建前使用）。
+摘要报告 TOC 文档数、清单条目数、PRD 文件/链接检查数、术语表状态、锚点检查数、未列文档数与违规数；仅当违规数为零时退出 0。`--skip-html` 省略第 5–7 阶段（构建前使用）。
 
 ## 锚点与链接规则
 
@@ -254,7 +257,7 @@ sections:
 
 ## 批准与同意
 
-Skill 在**任何写入/安装/脚手架操作之前**只询问一次，涵盖包、环境、文件、`.gitignore` 新增项、输出路径与 TOC 标题/版本。没有存储的同意状态或指纹。在已批准范围内重复渲染不会再次询问；依赖升级、覆盖已有文件或更改已批准输出根目录需要重新询问。TOC/源文档缺失或工作区畸形 → 报告并停止，绝不猜测。模板 token 不带引号，因此用 `repr(value)`（合法、转义的 Python 字面量）逐个替换，绝不将原始文本插入可执行配置。zip 生成位于已批准工作区内，但仍为手动：仅在请求时运行。
+Skill 在**任何写入/安装/脚手架操作之前**只询问一次，涵盖包、环境、文件、`.gitignore` 新增项、输出路径与 TOC 标题/版本。没有存储的同意状态或指纹。在已批准范围内重复渲染不会再次询问；依赖升级、覆盖已有文件或更改已批准输出根目录需要重新询问。TOC/源文档缺失或工作区畸形 → 报告并停止，绝不猜测。模板 token 不带引号，因此用 `repr(value)`（合法、转义的 Python 字面量）逐个替换，绝不将原始文本插入可执行配置。
 
 ## 限制
 

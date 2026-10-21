@@ -43,7 +43,7 @@ html_theme_options = {}
 
 source_suffix = {".md": "markdown", ".rst": "restructuredtext"}
 
-# Cover + section wrappers + generated glossary, plus the exact TOC documents.
+# Cover + conditional section landing pages + generated glossary, plus the exact TOC documents.
 # Deliberately not a docsHtmlView/** wildcard: unlisted sources are excluded.
 root_doc = "docsHtmlView/index"
 include_patterns = [

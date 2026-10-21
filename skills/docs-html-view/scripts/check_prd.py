@@ -16,7 +16,13 @@ Checks, in order:
    (the generated marker/header is ignored).
 5. Built HTML anchors: every same-page ``href="#..."`` on a published page has a
    matching ``id``.
-6. No unlisted docs: every built ``product/`` ``current/`` ``adr/`` page maps to
+6. Cover page: root ``index.html`` exists and redirects or links to
+   ``docsHtmlView/index.html``.
+7. Provenance: no ``模板来源`` template-origin text leaked into any built page
+   or Sphinx's copied ``_sources`` files.
+8. No stale nav wrappers: every built ``docsHtmlView/nav/**/index.html`` is in
+   the current plan (catches wrappers left by an older TOC).
+9. No unlisted docs: every built ``product/`` ``current/`` ``adr/`` page maps to
    a source document in the manifest.
 
 Exit codes: 0 = clean, 1 = violations (or missing inputs).
@@ -45,6 +51,10 @@ REF_DEF = re.compile(r"^\s*\[[^\]]+\]:\s*(\S+)")
 SCHEME = re.compile(r"^[A-Za-z][A-Za-z0-9+.-]*:")
 HTML_COMMENT = re.compile(r"<!--.*?(?:-->|$)", re.DOTALL)
 BARE_URL = re.compile(r"(?:https?|ftp)://[^\s)>\]]+")
+COVER_TARGET = re.compile(
+    r"""(?:href|content)\s*=\s*["'][^"']*docsHtmlView/index\.html""",
+    re.IGNORECASE,
+)
 
 
 def mask_code(text: str) -> str:
@@ -270,7 +280,9 @@ def check_glossary(project_root: str, plan: dict, failures: list) -> bool:
     except OSError as exc:
         failures.append("glossary: cannot read: %s" % exc)
         return False
-    if glossary_body(generated_text) != source_text.replace("\r\n", "\n").strip():
+    if glossary_body(generated_text) != gen_prd.strip_provenance(
+        source_text.replace("\r\n", "\n")
+    ).strip():
         failures.append("glossary: docs/docsHtmlView/glossary.md is stale; re-run gen_prd.py")
         return False
     return True
@@ -303,10 +315,15 @@ def expected_pages(plan: dict) -> list:
     pages = set()
     for entry in plan["manifest"]:
         pages.add(posixpath.splitext(entry)[0] + ".html")
+    pages.add("index.html")
     pages.add("docsHtmlView/index.html")
     for wrapper in plan["wrappers"]:
         pages.add(wrapper["docname"] + ".html")
     return sorted(pages)
+
+
+def redirects_to_cover(text: str) -> bool:
+    return bool(COVER_TARGET.search(text))
 
 
 def check_html(project_root: str, html_dir: str, plan: dict, failures: list) -> tuple:
@@ -322,10 +339,19 @@ def check_html(project_root: str, html_dir: str, plan: dict, failures: list) -> 
         if os.path.islink(path) or not os.path.isfile(path):
             failures.append("html: missing built page: %s (run the build first)" % rel)
             continue
-        parser = AnchorParser()
         try:
             with open(path, encoding="utf-8") as fh:
-                parser.feed(fh.read())
+                text = fh.read()
+        except (OSError, UnicodeDecodeError) as exc:
+            failures.append("html: %s: cannot read: %s" % (rel, exc))
+            continue
+        if "模板来源" in text:
+            failures.append("provenance: %s: template-origin text leaked into output" % rel)
+        if rel == "index.html" and not redirects_to_cover(text):
+            failures.append("html: index.html does not redirect to docsHtmlView/index.html")
+        parser = AnchorParser()
+        try:
+            parser.feed(text)
             parser.close()
         except (OSError, UnicodeDecodeError) as exc:
             failures.append("html: %s: cannot parse: %s" % (rel, exc))
@@ -338,6 +364,37 @@ def check_html(project_root: str, html_dir: str, plan: dict, failures: list) -> 
             if key not in seen:
                 seen.add(key)
                 failures.append("anchor: %s: #%s" % (rel, target))
+
+    expected_nav = {wrapper["docname"] + ".html" for wrapper in plan["wrappers"]}
+    nav_root = os.path.join(html_dir, "docsHtmlView", "nav")
+    if os.path.isdir(nav_root):
+        for dirpath, dirnames, filenames in os.walk(nav_root, followlinks=False):
+            dirnames.sort()
+            for name in sorted(filenames):
+                if not name.endswith(".html"):
+                    continue
+                rel = display(os.path.join(dirpath, name), html_dir)
+                if rel not in expected_nav:
+                    failures.append("nav: built page not in the current plan: %s" % rel)
+
+    sources_root = os.path.join(html_dir, "_sources")
+    if os.path.isdir(sources_root):
+        for dirpath, dirnames, filenames in os.walk(sources_root, followlinks=False):
+            dirnames.sort()
+            for name in sorted(filenames):
+                if not (name.endswith(".md.txt") or name.endswith(".rst.txt")):
+                    continue
+                path = os.path.join(dirpath, name)
+                try:
+                    with open(path, encoding="utf-8") as fh:
+                        text = fh.read()
+                except (OSError, UnicodeDecodeError):
+                    continue
+                if "模板来源" in text:
+                    failures.append(
+                        "provenance: %s: template-origin text leaked into copied source"
+                        % display(path, html_dir)
+                    )
 
     allowed = {posixpath.splitext(entry)[0] for entry in plan["manifest"]}
     unlisted = 0

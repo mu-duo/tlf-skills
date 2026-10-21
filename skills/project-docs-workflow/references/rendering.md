@@ -1,39 +1,52 @@
-# Docs HTML rendering (docs-html-view)
+# PRD publication (docs-html-view)
 
 Default profile; projects may override in their materialized copies.
 
-Rendering is an **optional, user-triggered** capability provided outside this profile by the first-party `docs-html-view` skill. This profile only fixes the **doc contract** rendering relies on: what is rendered, how links are written, and that sources are never rewritten. It never installs, builds, renders, or activates anything, and init creates no renderer artifact.
+Publication is an **optional, user-triggered** capability provided outside this profile by the first-party `docs-html-view` skill. This profile only fixes the **document contract** publication relies on: what is published, how links are written, and that sources are never rewritten. It never installs, builds, renders, or activates anything, and init creates no publication artifact.
 
-## Default render scope (full site)
+## Publishable multi-page PRD
 
-- **In scope**: `docs/prd/`, `docs/current/`, and the **complete** `docs/adr/` — retired entries and tombstone stubs included, with their retirement markers (`> 已废弃…` / `> 已删除…`) kept visible, so retired decisions stay navigable.
-- **Out of scope**: `docs/issues/`, `docs/agents/` — working material, not published docs.
-- **Product L1 is a prominent entry** in the full site: the product `docs/prd/00-README.md` is the designated "product overview" entry (configured via the renderer's `landing_page`), linked prominently above the toctree so readers start from the narrative.
-- **`00-index.md` is secondary** — it renders as module navigation and traceability, not as the first read.
-- A project may override the scope.
+The renderer builds a **publishable multi-page PRD** from `docs/toc.yml`:
 
-## L1-only render profile
+- **Core**: the three PRD chapters (`docs/product/00-README.md`, `01-requirements.md`, `02-architecture.md`) plus every module PRD (`docs/product/*/00-README.md`, expanded by `modules: auto`).
+- **Appendices**: glossary (`CONTEXT.md`), SPEC (`01-spec` / `02-interfaces` / `03-nfr`, plus optional `design/`), Current (`docs/current/`), and ADR (`docs/adr/README.md` and selected ADRs).
+- **Out of scope**: `docs/issues/`, `docs/agents/`, module `00-index.md` sidecars, and anything not listed in the TOC.
 
-- **In scope**: the product L1 (`docs/prd/00-README.md`) plus each module L1 (`docs/prd/<NN-module>/00-README.md`) — nothing else.
-- **Out of scope**: L2 (`01-spec` / `02-interfaces` / `03-nfr` / `design/`), Current, ADR, and `00-index.md`.
-- The output is a self-contained folder that can be zipped and distributed to readers who only need the product narrative.
-- Because L1 must not link out, the L1-only build has no external targets to resolve; only internal anchors matter.
+There is no full-site mode and no profile switch: every build is a PRD publication driven by the TOC. The TOC is the single publication source; only TOC-listed documents are built.
+
+## TOC-driven
+
+- `docs/toc.yml` declares `title`, `version`, `date`, `abstract`, and the section tree.
+- Required section ids: `overview`, `requirements`, `architecture`, `appendix`.
+- Appendix ids: `glossary`, `spec`, `current`, `adr`.
+- The `architecture` section uses `modules: auto`; `exclude` removes specific modules. `design/` is excluded by default.
+- Every path / glob must resolve inside `docs/product`, `docs/current`, `docs/adr`, or to `CONTEXT.md`. Only TOC-listed documents are published; an exact include manifest is generated so unlisted docs are never built.
+
+## Glossary
+
+- Root `CONTEXT.md` is copied to `docs/docsHtmlView/glossary.md` at build time and marked as generated.
+- The glossary page appears under the appendix; it is not edited by hand in the publication workspace.
 
 ## Link authoring
 
-- **L1 links**: internal only — same-file anchors, product L1 ↔ module L1, and module L1 ↔ module L1. Anchor targets are standard Markdown headings, h1–h3. No external links (`http` / `https` / `mailto`), no links to L2, Current, or ADR; those live in `00-index.md`.
-- **PRD ↔ Current**: semantic / navigation / contract links between the two trees are expected (`prd.md`, `current.md`). Write ordinary relative Markdown links so both the source and the render navigate.
-- **PRD / Current → ADR**: a **descriptive phrase + a stable path link** to the ADR file, e.g. `支持 [离线使用](../../adr/0003-offline.md)`. The description is written independently and stands on its own; the ADR's rationale is **not** transcluded or summarized. No requirement must carry an ADR, and the profile never infers ADR links automatically. This rule applies to L2 and Current, **not** to L1.
+- **PRD core links**: PRD-layer only — same-file anchors, product chapter ↔ module PRD, and module PRD ↔ module PRD. No external links (`http` / `https` / `mailto`), no links to SPEC, Current, or ADR, and no status markers.
+- **SPEC / Current → ADR**: a **descriptive phrase + a stable path link** to the ADR file, e.g. `支持 [离线使用](../../adr/0003-offline.md)`. The description is written independently and stands on its own; the ADR's rationale is **not** transcluded or summarized. No requirement must carry an ADR, and the profile never infers ADR links automatically.
 - The native `ADR-XXXX` citation notation is unchanged; ADR deletion / semantic edit sweeps **both** notations (`adr.md`).
+- Because the PRD core must not link out, its section pages have no external targets to resolve; only internal anchors matter. Cross-layer navigation is provided by the TOC and the appendices.
 
 ## Sources are never rewritten
 
 - The Markdown sources stay the single source of truth and remain human-readable on their own; the renderer is **read-only** toward them — no normalization, no move, no rewrite.
 - Out-of-scope or dangling references are **reported**, never fixed in the source.
-- "Nothing to render" is a **failure**, not a silent success; the renderer never bootstraps the docs workflow on its own.
+- "Nothing to publish" is a **failure**, not a silent success; the renderer never bootstraps the docs workflow on its own.
+
+## Output
+
+- The build writes under `docs/docsHtmlView/`; HTML output lands in `docs/docsHtmlView/build/html`. The recipient opens `docsHtmlView/index.html`; the folder can be zipped for distribution.
+- Generated files: `index.md`, `nav/**`, `glossary.md`, `_manifest.json`, `_meta.json`. Only marked generated files are written or pruned; source documents are never touched.
 
 ## Manual, opt-in
 
-- Rendering is **user-triggered and manual**: no hook, no auto-build on doc edits, no change to the main init artifacts to create a renderer.
-- Install / init / first build only after explicit user consent obtained through the skill interaction; there is no custom orchestrator, manifest, or approval state machine.
+- Publication is **user-triggered and manual**: no hook, no auto-build on doc edits, no change to the main init artifacts.
+- Install / init / first build only after explicit user consent obtained through the skill interaction; there is no custom orchestrator, manifest approval state machine, or background build.
 - To integrate, point the project at the `docs-html-view` skill explicitly; do not wire it into initialization.

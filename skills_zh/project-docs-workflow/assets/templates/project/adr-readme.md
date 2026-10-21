@@ -1,4 +1,4 @@
-> 模板来源：project-docs-workflow v4（模板演进后可重跑幂等 init 对齐；本文件可按项目实际修改）
+> 模板来源：project-docs-workflow v5（模板演进后可重跑幂等 init 对齐；本文件可按项目实际修改）
 
 # ADR 规则与目录
 

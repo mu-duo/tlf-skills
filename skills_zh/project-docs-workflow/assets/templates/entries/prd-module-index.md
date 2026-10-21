@@ -1,18 +1,18 @@
-<!-- 模板来源：project-docs-workflow v4（模板演进后可重跑幂等 init 对齐；本文件可按项目实际修改） -->
+<!-- 模板来源：project-docs-workflow v5（模板演进后可重跑幂等 init 对齐；本文件可按项目实际修改） -->
 
-# <模块> 导航（00-index）
+# <模块> 文档索引（00-index）
 
-本文件是模块的**导航与追溯**侧车，面向 agent：文档地图、依赖、接口提供方归属与能力 ↔ FR 追溯。模块叙事见 [模块 L1](./00-README.md)，上层导航见 [产品 PRD 导航](../00-index.md)。
+本文件是模块的**导航与追溯**侧车，面向 agent：文档地图、依赖、接口提供方归属与能力 ↔ FR 追溯。**不参与发布。** 模块叙事见 [模块 PRD](./00-README.md)，上层架构见 [02-architecture.md](../02-architecture.md)。
 
 ## 文档地图
 
 | 文件 | 内容 |
 | :--- | :--- |
-| [00-README.md](00-README.md) | 模块 L1（目标态叙事） |
-| [01-spec.md](01-spec.md) | 功能规格（`FR-<模块>-NN` + 验收判据） |
-| [02-interfaces.md](02-interfaces.md) | 对外接口与契约 |
-| [03-nfr.md](03-nfr.md) | 非功能约束 |
-| [design/](design/) | 机制级设计（可选，不参与编号；无则删行） |
+| [00-README.md](00-README.md) | 模块 PRD（目标与方案叙事） |
+| [01-spec.md](01-spec.md) | SPEC：功能需求（`FR-<模块>-NN` + 验收判据） |
+| [02-interfaces.md](02-interfaces.md) | SPEC：对外接口与契约 |
+| [03-nfr.md](03-nfr.md) | SPEC：非功能约束 |
+| [design/](design/) | SPEC：机制级设计（可选，不参与编号；无则删行） |
 
 （表中只保留实际存在的文件。）
 
@@ -42,6 +42,6 @@
 
 ## 相关文档
 
-- 模块 L1（目标态叙事）：[00-README.md](./00-README.md)
-- 产品 PRD 导航：[../00-index.md](../00-index.md)
-- 产品 L1：[../00-README.md](../00-README.md)
+- 模块 PRD：[00-README.md](./00-README.md)
+- 架构设计与模块划分：[../02-architecture.md](../02-architecture.md)
+- 发布目录源：[../../toc.yml](../../toc.yml)

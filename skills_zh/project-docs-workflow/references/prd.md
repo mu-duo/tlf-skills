@@ -1,91 +1,139 @@
-# PRD 产品需求文档
+# PRD、SPEC、Current 与 ADR
 
-PRD = 产品需求文档（Product Requirements Document）：产品当前生效的最终目标——其模块、对外契约与机制设计。只记录已确认的约束（粗或细）；已实现的细节不会自动提升进 PRD。默认方案；可在项目副本中覆盖。
+PRD = 产品需求文档：**宏观产品叙事**——产品为谁而做、解决什么问题、典型应用场景、高层产品需求，以及架构 / 模块总览。它是**范围与意图**的权威。
 
-## 分层
+SPEC = 技术规格：**规范化的实现细节与事实标准**——带验收判据的功能需求、接口、非功能需求，以及可选的机制设计。它是**实现细节**的权威。
 
-- **L2 = 规范目标规格（唯一事实源）。** 模块的 `01-spec.md`（带 `FR-<MODULE>-NN` ID 与验收判据的功能需求）、`02-interfaces.md`、`03-nfr.md`，以及可选的 `design/`。
-- **L1 = L2 的人类叙事视图。** 产品 `00-README.md` 与各模块的 `00-README.md`。由 L2 派生、有损、面向人类撰写；不得新增约束。**任何冲突以 L2 为准。**
-- **L3 = Current 实际建成快照。** `docs/current/`，平级树（`current.md`）。L1 是目标叙事；Current 是唯一的状态来源。
+Current = 选定基线下的**实际建成快照**，是唯一的状态来源。ADR = 带理由的决策记录，是这些文档的**平级**文档，不是一层。Issue = 工作单元。
 
-## 结构
+## 文档模型
 
-- 模块目录按阅读顺序编号（例如 `01-architecture/`、`02-ui/`）。
-- 产品根：
-  - `00-README.md`——产品 L1（叙事）。
-  - `00-index.md`——导航 / 追溯侧车（面向 agent）。
-- 每个模块：
-  - `00-README.md`——模块 L1（叙事）。
-  - `00-index.md`——模块导航：文档地图、依赖、接口归属、追溯。
-  - `01-spec.md`——功能需求，每条带 `FR-<MODULE>-NN` ID 与验收判据。FR ID 稳定且永不复用；每个模块内编号连续。
-  - `02-interfaces.md`——接口契约。提供方模块拥有其对外接口；消费方引用它们。
-  - `03-nfr.md`——非功能需求。
-  - `design/`——可选的机制级设计，**不参与编号**。
-- L1 层就是产品根加上各模块根——不是独立的目录树。
-- 跨模块架构与调研材料可放在模块外目录。
-- PRD 树不包含现状或进展材料：没有 `04-current.md`，没有当前进展章节。现状是**平级树**（`current.md`）。
+| 文档 | 读者 | 角色 | 权威范围 |
+| :--- | :--- | :--- | :--- |
+| **PRD** | 用户 / 编排者 / 评审者 | 宏观产品叙事 | 范围、意图、用户旅程 |
+| **SPEC** | 编码 agent / 编排者 | 实现事实标准 | 实现细节 |
+| **Current** | 所有人 | 选定基线下的实际建成快照 | 实际状态 |
+| **ADR** | 所有人 | 决策 + 理由（平级） | 为何做出某决策 |
+| **Issue** | 编排者 / coder | 工作单元 | — |
 
-## L1 契约
+PRD 是 SPEC 的宏观叙事；SPEC 服务于 PRD 的目标。Current 是唯一的状态来源；ADR 是唯一的「为什么」来源。
 
-- **默认章节**（产品 L1）：一句话；问题与目标；核心场景；能力地图；非目标；关键产品约束（无内容则删本节）。
-- **模块 L1 章节**：这个模块让谁做什么；关键行为；边界（负责 / 不负责）；可选的非目标。
-- **横幅**：每个 L1 文件以 `本文描述目标态，不代表当前已实现；现状由 agent 查阅 Current。` 开头。
-- **FR ID 用纯文本**，不做链接。一项能力可以附少量支撑 FR ID（`FR-AGENT-12`）；绝不复制验收判据。
-- **Links**：只允许同文件锚点、产品 L1 ↔ 模块 L1、模块 L1 ↔ 模块 L1。不得链接到 L2、Current、ADR 或 `http(s)` 目标。所有外部链接放在 `00-index.md`。
-- **机械检查**：L1 中引用的每个 FR ID 都必须在 L2 中存在。缺失的 ID 属于 L1 漂移——修正 L1 引用；仅当它是目标变更时，才把它加入 L2。L1 也不得包含外部链接或状态标记。
-- **细节上限**——允许：用户可见行为、能力名称、用户结果、通俗语言表述的约束。禁止：验收判据原文、接口签名、字段 / schema、错误码、状态机细节、实现内部命名、实现步骤、性能数字。
-- **不出现状态标记**（✅ / 🚧 / ❌）、路线图、进展或任务历史。
-- **篇幅**：产品 L1 ≤ 约 2 页；模块 L1 约 0.5–1 页。产品 L1 超过约 3 页时，按可独立发布 / 独立负责的产品区域拆分：根 L1 保留整产品视图与 L1 层链接，各区域使用 `docs/prd/<area>/00-README.md`。
-- **维护**：默认由 agent 维护；人类掌舵、评审，并可直接修改文风（事实性修正走 agent）。叙事受影响时增量打补丁；基线前移、模块增删、累计 ≥10 次补丁或人类要求时整体重生成。始终展示 diff。保留不可见标记 `<!-- narrative-source: <L2 revision>; generated: <date> -->`。人类只评审 L1 diff 的可读性与事实合理性，无需阅读 L2。
+## 目录结构
 
-## `00-index.md` 契约
+```
+docs/
+  toc.yml
+  product/
+    00-README.md              # PRD：封面 + 项目说明 + 典型应用场景
+    01-requirements.md        # PRD：高层产品需求
+    02-architecture.md        # PRD：架构总览 + 模块划分
+    <NN-module>/
+      00-README.md            # 模块 PRD
+      00-index.md             # agent 侧车（不发布）
+      01-spec.md              # SPEC
+      02-interfaces.md        # SPEC
+      03-nfr.md               # SPEC
+      design/                 # SPEC（可选；默认不参与发布）
+  current/
+  adr/
+  docsHtmlView/               # 发布工作区（docs-html-view）
+    conf.py
+    guard.py
+    index.md                  # 生成的封面 + 目录
+    nav/**                    # 生成的章节页
+    glossary.md               # 由根 CONTEXT.md 生成
+    _manifest.json            # 生成的精确包含清单
+    _meta.json                # 生成的标题/版本/日期/摘要
+    build/html                # 输出
+CONTEXT.md                    # 项目根术语表源
+```
 
-`00-index.md` 是面向 agent 的侧车，也是唯一放置外部链接的地方。
+- 只有**单一 `docs/product/` 树**。产品 `00-index.md` 已退役；仅保留模块 `00-index.md`，作为不发布的 agent 侧车。
+- `docs/prd/` 是 v4 / 旧版布局。init 会检测并提供迁移（`migration.md`）；init 期间绝不改写。
 
-- **产品 `00-index.md`**：目的；链接到产品 L1（`00-README.md`）；模块索引表（`区/模块 | 定位 | L1 入口 | L2 规格入口`）；阅读顺序；组织约定（L1 / L2 / L3、链接规则）；CAP↔FR / 模块追溯；链接到 `../current/00-README.md` 与 `../adr/README.md`。不写进展。
-- **模块 `00-index.md`**：链接到模块 L1；文档地图；依赖；接口提供方归属；CAP↔FR 追溯；链接到 L2 文件与产品 `00-index.md`。
+## PRD 契约
 
-## L2 契约
+PRD 是宏观叙事。它说明产品是什么、应变成什么，而不是如何实现。
 
-- FR ID 稳定且永不复用；每个模块内编号连续。
-- 每条 FR 带验收判据。
-- 接口由提供方模块拥有；消费方引用。
-- 非功能需求位于 `03-nfr.md`；机制级设计可选，位于 `design/`。
-- 已实现的细节不会自动提升进 L2。
+### 产品 PRD（三章）
 
-## 目标与差距→issue
+- `00-README.md`——封面与项目说明：一句话、项目说明、目标用户与问题，以及 3–5 个典型应用场景。
+- `01-requirements.md`——高层产品需求：能力地图、关键行为、非目标与关键产品约束。FR ID 可以**纯文本**引用；绝不复制验收判据。
+- `02-architecture.md`——架构总览与模块划分；关键约束；链接到各模块 PRD。
 
-- **L2 就是目标。** `NN/01-spec.md` 持有目标态；每条记录的需求——无论粗或细——都是已确认约束，而不是未知/未确认的分类。没有单独的目标文件。
-- **规划阶段读取 L2 + Current。** L1 只是人类理解入口——有助于建立框架，绝不是事实源。L1 与 L2 冲突时，以 L2 为准。
-- **差距 → issue。** 在规划步骤，agent 读取 L2 目标与 Current 现状（`current.md`），推导**候选**任务（模块 / FR、建议类型、切片、验收判据），由用户挑选。差异只是候选——可能是漂移、质量差距、未验证行为或目标过时，不一定是缺失功能。不要臆造差距。被采纳的候选落到 `docs/issues/`，其关联记录模块 / FR。不因空闲而自动创建 issue。
-- **非目标是范围边界。** PRD 可以将非目标 / out-of-scope 项表述为正向的范围边界；在 ADR 否定决策策略下，它们不是被拒备选方案，也不需要逐条理由。
+### 模块 PRD
 
-## 变更分流
+每个 `docs/product/<NN-module>/00-README.md` 说明该模块提供什么、关键行为、边界与非目标。篇幅 0.5–1 页。它不承载文档地图、依赖、接口归属或追溯——那些在模块 `00-index.md` 中。
 
-- **目标变更**（目标用户、核心场景、范围、非目标或 FR 语义变化）：规划 → 先改 L2 → 在同一可 review 单元内更新 L1 → 人类在生产实现前 review L1 diff 与目标范围（软检查点；沉默不等于同意）→ 实现 → 收尾 Current。
-- **范围内实现**：L2 / L1 不动 → 直接实现 → 收尾 Current。
-- **内部改动 / bug 修复**：L2 / L1 不动；行为变化则更新 Current；若 bug 暴露出目标错误，升级为目标变更。
-- 原型 / spike 在方向确认前豁免。
-- 需要理由与权衡的决策归入 ADR（见 `adr.md`）。已实现的细节不会自动提升进 L2 或 L1。
+### 仅限 PRD 层链接
 
-## PRD ↔ ADR 边界
+- 允许：同文件锚点、产品章节 ↔ 产品章节、产品章节 ↔ 模块 PRD、模块 PRD ↔ 模块 PRD。
+- 禁止：指向 SPEC 文件、Current、ADR、`http(s)` / `mailto` 或任何外部目标的链接。
+- 导航与追溯（包括指向 SPEC / Current / ADR 的链接）只在模块 `00-index.md` 或 SPEC 层，绝不在 PRD 中。
 
-- PRD = 产品应该是什么（目标态）。
-- ADR = 带理由与权衡的决策。在 L1 中只用通俗语言描述能力，不链接 ADR；ADR 链接放在 `00-index.md` 或 L2，采用**描述性短语 + 稳定路径链接**（例如 `支持[离线使用](../../adr/0003-offline.md)`）。描述独立撰写，**不**转述或概括 ADR 的理由。不要求每条需求都挂 ADR，本方案绝不自动推断 ADR 链接（见 `rendering.md`）。
-- suggestion 的采纳会归入 ADR 或 PRD（见 `issues.md`）。
+### 细节上限
 
-## PRD ↔ Current 边界
+PRD 中禁止：验收判据文本、接口签名、字段 / schema、错误码、状态机细节、实现内部名称或步骤、性能数字。允许：用户可见行为、能力名称、用户结果、平实语言约束。
 
-- 两棵独立、用户可读的文档树：`docs/prd/`（目标）与 `docs/current/`（实际建成形态）。互不内嵌。
-- 模块可以按名称对齐，但不做文件/段落镜像；显式地以多对多方式链接模块 / FR 引用。两树之间的**语义 / 导航 / 契约链接**是预期之中的——使用普通相对 Markdown 链接。见 `current.md`。
-- L1 是目标叙事，Current 是实际建成形态。Current 可以链接到 L1 / L2；L1 不得向外链接。PRD 与 Current 都处于默认渲染范围内，与完整 ADR 集一起；见 `rendering.md`。
+### 状态
+
+无状态标记（✅ / 🚧 / ❌），无路线图，无进展，无任务历史。
+
+### 横幅
+
+每个 PRD 文件（产品章节与模块 PRD）开头均为：
+
+`本文档描述产品目标与方案，不代表当前实现状态；实现细节见 SPEC，现状见 Current。`
+
+### 篇幅
+
+每个产品章节 ≤ ~2 页；模块 PRD 0.5–1 页。若产品叙事超出，按独立负责的产品区拆分：产品章节保留整体视图，并链接到各区模块 PRD。
+
+### 维护
+
+编排者与用户共同维护 PRD；人类评审 PRD diff 的可读性与意图。始终展示 diff。与 SPEC 在实现细节上冲突时，以 SPEC 为准。
+
+## SPEC 契约
+
+- FR ID 稳定、永不复用，每个模块内连续；在 PRD 中为纯文本。
+- 每条 FR 都带验收判据。
+- 接口由提供方模块拥有；消费方引用它们。
+- NFR 放在 `03-nfr.md`；机制级设计可选放在 `design/`。
+- SPEC 由用户 + 编排者编写。编码 agent 读取它，并可通过 issue **提议**变更；不直接编辑 SPEC。
+- 已实现的细节不会自动提升进 SPEC。
+- 实现细节冲突以 SPEC 为准；范围 / 意图冲突以 PRD 为准。
+
+## TOC 契约
+
+- `docs/toc.yml` 是**发布来源**，由第一方 `docs-html-view` skill 消费。只发布 TOC 中列出的文档。
+- 元数据：`title`、`version`、`date`、`abstract`。
+- 必需章节 id：`overview`、`requirements`、`architecture`、`appendix`。
+- 附录 id：`glossary`、`spec`、`current`、`adr`。
+- 架构章节使用 `modules: auto` 按数字顺序展开 `docs/product/*/00-README.md`，可选 `exclude` 列表。
+- 每个列出的路径 / glob 必须落在 `docs/product`、`docs/current`、`docs/adr` 内，或指向 `CONTEXT.md`。
+- 编排者拥有 TOC，并在模块或附录变化时更新。
+
+## 权威与冲突
+
+- 实现细节：**SPEC 为准**。
+- 范围 / 意图：**PRD 为准**。
+- 冲突：升级给编排者 / 用户；更新错误的那份文档；绝不默默选择。
+- 需要理由与取舍的决策落到 ADR（`adr.md`）。
+- Current 是唯一的状态来源；其他文档不得声称当前实现了什么。
+
+## Current 与 ADR 边界
+
+- Current（`current.md`）记录选定基线下的实际建成事实。它可以链接 PRD、SPEC 或 ADR。
+- PRD 核心不得链接到 Current。Current 与 PRD 是两棵独立、可读的树；互不内嵌。
+- ADR = 带理由与取舍的决策，是平级文档，也是附录。PRD 中用平实语言描述能力，不链接 ADR。
+- PRD 核心之外，ADR 链接是**描述性短语 + 稳定路径链接**（例：`支持[离线使用](../../adr/0003-offline.md)`）。描述独立成立；不转述 ADR 理由。不要求每条需求都挂 ADR，也不自动推断链接。
 
 ## 遗留与迁移
 
-- 重命名前的 `docs/pdr/` 树属于**遗留漂移**，不是当前的 PRD 树。init 将其作为信息性漂移报告。
-- 现有的 `00-README.md` 如果其实是模块索引 / 约定文档，则属于 **L1 not aligned**——是差异，不是遗留漂移。init 只报告，绝不改写。
-- init 绝不移动、改写或删除这两种形态。迁移需要用户显式授权：从旧 README 的导航 / 约定创建 `00-index.md`；由 L2 生成 L1 草稿；把模块文档地图 / 依赖移到模块 `00-index.md`；人类 review diff。
+- v4 布局（`docs/prd/`）、改名前的 `docs/pdr/` 树、v3/v4 provenance 行，以及旧 PFD / 分层结构都是**遗留**。init 会检测并提供迁移（`migration.md`）。
+- 遗留材料绝不自动改写、移动或删除。用户选择：立即迁移、只看计划、推迟为一个 chore issue，或跳过。
+- 完全没有产品文档的现有项目可使用需用户同意的 bootstrap（`bootstrap.md`）；它只产出草稿，绝不直接成为事实。
 
 ## 示例（DA_AGENT）——不属于通用规则
 
-DA_AGENT 是此模式的一个具体实例：模块 ui / agent / cpp-core / FPGA，另有 architect 与 research 作为模块外区域。产品 `docs/prd/00-README.md` 是产品 L1，各模块 `00-README.md` 是模块 L1；L2 是每模块的 `01-spec / 02-interfaces / 03-nfr` 层，加不参与编号的 `design/` 子区；`00-index.md` 承载导航与追溯；FR 前缀为 `FR-AGENT-NN`、`FR-UI-NN` 等；产品场景位于单独的 `07-scenarios.md`。来源：DA_AGENT ADR-0026。
+DA_AGENT 是具体实例：模块为 ui / agent / cpp-core / FPGA，另有 architect 与 research 作为模块外区域。其 `docs/product/00-README.md` 是 PRD 封面与项目说明（典型应用场景放在这里）；`01-requirements.md` 承载能力地图、关键行为、非目标与约束；`02-architecture.md` 承载架构总览与模块划分；每个模块的 `00-README.md` 是模块 PRD，`00-index.md` 是 agent 侧车；各模块的 `01-spec / 02-interfaces / 03-nfr` 加不编号的 `design/` 构成 SPEC。`docs/toc.yml` 是发布来源，FR 前缀为 `FR-AGENT-NN`、`FR-UI-NN`……，Current 位于 `docs/current/`，决策位于 `docs/adr/`。来源：DA_AGENT ADR-0026。

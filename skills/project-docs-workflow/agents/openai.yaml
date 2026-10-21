@@ -1,5 +1,5 @@
 interface:
   display_name: "Project Docs Workflow"
-  short_description: "Initialize or align a project's docs workflow (PRD L1/L2 + Current)"
+  short_description: "Initialize or align a project's docs workflow (PRD + SPEC + Current)"
 policy:
   allow_implicit_invocation: false

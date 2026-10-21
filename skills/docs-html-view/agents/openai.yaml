@@ -1,5 +1,5 @@
 interface:
   display_name: "Docs HTML View"
-  short_description: "Render PRD/Current/ADR docs, plus an L1-only view, to local HTML after approval"
+  short_description: "Publish the PRD + SPEC/Current/ADR appendices from docs/toc.yml as local HTML after approval"
 policy:
   allow_implicit_invocation: false

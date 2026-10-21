@@ -1,17 +1,23 @@
 # Current-state docs
 
-Current = what the product **is now, as built**: actual capabilities, key behavior, and limits, each stated against a project-specified baseline. It is the L3 layer — the as-built snapshot — beside L1 (the human target narrative) and L2 (the normative target spec, the single source of truth). A peer tree to the PRD (`prd.md`), not a section of it. Default profile; overridable in project copies. Current is in the default render scope, together with the PRD tree and the complete ADR set (`rendering.md`).
+Current = what the product **is now, as built**: actual capabilities, key behavior, and limits, each stated against a project-specified baseline. It is the as-built snapshot beside the PRD (macro product narrative) and the SPEC (implementation fact standard). A peer tree to the PRD (`prd.md`), not a section of it. Default profile; overridable in project copies. Current is in the publication scope, together with the PRD and SPEC appendices (`rendering.md`).
 
-**L1 is the only status-free layer; Current is the only status source.** L1 narrates the target and carries no progress, status markers, or as-built claims. Anything about what actually works now is read here.
+**The PRD is status-free; Current is the only status source.** The PRD narrates the target and carries no progress, status markers, or as-built claims. Anything about what actually works now is read here.
 
 ## Structure
 
-- `docs/current/00-README.md` — overview + navigation: it declares the **selected baseline** and, centrally, the verification-confidence convention, then indexes module / topic docs. No per-module status roll-up is required; link out.
+- `docs/current/00-README.md` — overview + navigation: it declares the **selected baseline** and, centrally, the verification-confidence convention, then indexes module / topic docs. No per-module status roll-up is required; link out. It links to the PRD cover at `../product/00-README.md`.
 - Module docs — one per module as needed; each records actual capabilities, key behavior, and limits. Claims inherit the overview's baseline and confidence; a module doc overrides the baseline only when it genuinely differs.
 - Optional topic docs — cross-cutting areas (e.g. operations, data) added only when needed.
 - Layering is overview → module → optional topics. Add only what the project actually has; there is no fixed schema.
 
-The Current tree is **not numbered against PRD**: modules may align by name, but there is no file/paragraph mirroring. Link PRD modules / FRs explicitly and many-to-many.
+The Current tree is **not numbered against the PRD**: modules may align by name, but there is no file/paragraph mirroring. Link PRD modules / FRs explicitly and many-to-many.
+
+## Who writes it
+
+- The **coder agent** updates Current facts at issue wrap-up, against the selected baseline.
+- The **orchestrator** reviews the Current diff.
+- Nobody writes task history, todos, or planned work here.
 
 ## What a Current doc records
 
@@ -28,15 +34,15 @@ Do not record: task logs, todos, planned / future capabilities, per-issue progre
 - Issue wrap-up **checks** whether the completed change is included in the selected baseline: yes → update the affected Current docs; no → leave them and record a pending sync item in the issue.
 - There is no automation or hook that writes Current. Sync is a review step, not a generated artifact.
 
-## Relationship to PRD
+## Relationship to PRD / SPEC
 
-- L2 = normative target (`prd.md`); L1 = human narrative view of L2; Current = as-built. L1 and Current are two independent, user-readable trees; neither embeds the other, and L1 is not a fact source.
+- PRD = macro target narrative; SPEC = implementation fact standard; Current = as-built. The PRD and Current are two independent, user-readable trees; neither embeds the other, and the PRD is not a fact source.
 - **Semantic / navigation / contract links** between the trees are expected — write ordinary relative Markdown links; there is no file/paragraph mirroring.
-- Current may link to L1, L2, or an ADR. L1 must not link to Current (nor to L2 or ADR).
+- Current may link to the PRD, SPEC, or an ADR. The PRD must not link to Current (nor to the SPEC or ADR).
 - A Current doc may point at an ADR with a **descriptive phrase + a stable path link** (e.g. `支持[离线使用](../../adr/0003-offline.md)`); the description is written independently and the ADR's rationale is not transcluded. ADR links are optional, and the profile never infers them (see `rendering.md`).
-- Gap comparison reads L2 and Current and yields **candidate** tasks for the user to choose — not every difference is a missing feature. A difference may be drift, a quality gap, unverified behavior, or an outdated target. An already-met coarse goal can still be refined; do not invent gaps.
+- Gap comparison reads the SPEC and Current and yields **candidate** tasks for the user to choose — not every difference is a missing feature. A difference may be drift, a quality gap, unverified behavior, or an outdated target. An already-met coarse goal can still be refined; do not invent gaps.
 
 ## Adoption (existing projects)
 
-- Existing docs are never overwritten or moved. If a project previously embedded current/progress material inside the PRD (e.g. per-module `04-current.md`, a 当前进展 section), init reports those paths as informational **legacy drift**. A pre-rename `docs/pdr/` tree is likewise informational legacy drift — never moved, rewritten, or deleted by init.
-- Migrating to a separate Current tree, or from a legacy `docs/pdr/` to `docs/prd/`, is an explicit user decision; there is no installation migration script and no automatic move.
+- Existing docs are never overwritten or moved. A v4 `docs/prd/` tree, an embedded current/progress section in the PRD (e.g. per-module `04-current.md`, a 当前进展 section), or a pre-rename `docs/pdr/` tree is informational legacy drift — detected by init, never moved, rewritten, or deleted (`migration.md`).
+- Migrating to a separate Current tree, or from v4 to v5, is an explicit user decision; there is no automatic move.

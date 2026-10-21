@@ -1,4 +1,4 @@
-> 模板来源：project-docs-workflow v4（模板演进后可重跑幂等 init 对齐；本文件可按项目实际修改）
+> 模板来源：project-docs-workflow v5（模板演进后可重跑幂等 init 对齐；本文件可按项目实际修改）
 
 # Domain Docs
 
@@ -23,11 +23,13 @@
 /
 ├── CONTEXT.md
 ├── docs/
+│   ├── toc.yml
 │   ├── adr/
 │   ├── agents/
 │   ├── common/
+│   ├── current/
 │   ├── issues/
-│   └── prd/
+│   └── product/
 └── <源码目录…>
 ```
 

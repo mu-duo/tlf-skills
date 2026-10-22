@@ -7,7 +7,7 @@ argument-hint: "[项目根目录]"
 
 # 文档 HTML 渲染
 
-使用**标准 Sphinx** 配合 MyST（`myst_parser`）和**原版** `sphinx_rtd_theme`，依据 `docs/toc.yml` 构建一份可发布的**多页 PRD**。产物包括封面、三个核心 PRD 章节、模块 PRD，以及四组附录（术语表、SPEC、Current、ADR）。这里没有自研渲染器：脚手架使用 `sphinx-quickstart`，`scripts/gen_prd.py` 依据 TOC 生成封面与按需的章节落地页，构建则使用 `make html`（或直接调用 `sphinx-build`）。单文档章节从父级直接链接（不再多一层导航页）；多文档或含子章节的章节才生成落地页。产物是一个本地 HTML 文件夹；不提供服务，不部署，也不自动发布。
+使用**标准 Sphinx** 配合 MyST（`myst_parser`）和**原版** `sphinx_rtd_theme`，依据 `docs/toc.yml` 构建一份可发布的**多页 PRD**。产物包括封面、三个核心 PRD 章节、模块 PRD，以及四组附录（术语表、SPEC、Current、ADR）。这里没有自研渲染器：脚手架使用 `sphinx-quickstart`，`scripts/gen_prd.py` 依据 TOC 生成封面与按需的章节落地页，构建则使用由 `gen_prd.py` 预置的 `docs/docsHtmlView/build.sh` / `build.bat` 辅助脚本——它只是同一 `sphinx-build` 的薄封装（`make html` 与直接 `sphinx-build` 仍作为回退方式）。单文档章节从父级直接链接（不再多一层导航页）；多文档或含子章节的章节才生成落地页。产物是一个本地 HTML 文件夹；不提供服务，不部署，也不自动发布。
 
 本 skill 仅手动触发，绝不自动运行，且构建期间绝不抓取任何内容。它可以安装固定版本的渲染依赖，但只在你明确批准之后。先进行只读检查，**只询问一次**批准，之后首次初始化与重复手动渲染都不再询问——直到某项设置或 TOC 发生变化。
 
@@ -28,7 +28,8 @@ argument-hint: "[项目根目录]"
 ## 边界
 
 - **仅由用户触发。** 编辑文档期间，绝不安装、初始化脚手架、生成或构建。没有自动构建，也没有监听器。
-- **写入范围受限。** 已批准的集合为：`docs/docsHtmlView/`（配置、生成的封面/按需导航落地页/术语表/清单、构建产物）、经批准的渲染环境目录（例如 `.venv-docs/`），以及你批准的任何 `.gitignore` 新增项。发布会读取 `docs/product`、`docs/current`、`docs/adr`、根 `CONTEXT.md` 与 `docs/toc.yml`；绝不重写源文档。
+- **写入范围受限。** 已批准的集合为：`docs/docsHtmlView/`（配置、生成的封面/按需导航落地页/术语表/清单、预置的构建辅助脚本、构建产物）、经批准的渲染环境目录（例如 `.venv-docs/`），以及你批准的任何 `.gitignore` 新增项。发布会读取 `docs/product`、`docs/current`、`docs/adr`、根 `CONTEXT.md` 与 `docs/toc.yml`；绝不重写源文档。
+- **构建辅助脚本归用户所有。** `gen_prd.py` **仅在缺失时**预置 `docs/docsHtmlView/build.sh` 与 `build.bat`，绝不覆盖已有文件；预置之后可由你自由编辑。它们只负责构建：不生成或校验内容，不安装或抓取任何东西，不调用 `gen_prd.py` / `check_prd.py`，不查找 skill 目录，不启动浏览器/服务器，也不部署。
 - **发布范围由 TOC 决定。** 只有 `docs/toc.yml` 中列出的文档会被发布。路径必须落在 `docs/product`、`docs/current`、`docs/adr` 之内，或恰好为 `CONTEXT.md`；符号链接会被拒绝。只有一种发布形态：没有其他视图，也没有单独的落地页配置。
 - **没有 TOC 或没有文档 → 停止。** 不要创建 `docs/docsHtmlView/`，不要初始化脚手架，也不要构建。改为报告缺失/无效的 TOC。
 - **原版主题。** 不做任何自定义 UI/设计工作。
@@ -46,9 +47,9 @@ DOCS_PY="$PWD/.venv-docs/bin/python"                 # or the project's existing
 DOCS_SPHINXBUILD="$PWD/.venv-docs/bin/sphinx-build"  # same env
 ```
 
-1. **检查（只读）。** 使用常规只读工具（`ls`、`read`、`grep`）了解项目：`docs/toc.yml` 是否存在并列出必需章节，`docs/product`、`docs/current`、`docs/adr` 与 `CONTEXT.md` 中哪些存在，`docs/docsHtmlView/` 是否已存在，存在哪个 Python/venv，以及 TOC 的标题/版本。**在批准之前，绝不执行项目的解释器或 `conf.py`。** 如果没有可用的 TOC，就此停止——没有可发布的内容。报告计划：固定版本、环境路径、创建的文件、`.gitignore` 新增项、输出路径与标题。
+1. **检查（只读）。** 使用常规只读工具（`ls`、`read`、`grep`）了解项目：`docs/toc.yml` 是否存在并列出必需章节，`docs/product`、`docs/current`、`docs/adr` 与 `CONTEXT.md` 中哪些存在，`docs/docsHtmlView/` 是否已存在，存在哪个 Python/venv，以及 TOC 的标题/版本。**在批准之前，绝不执行项目的解释器或 `conf.py`。** 如果没有可用的 TOC，就此停止——没有可发布的内容。报告计划：固定版本、环境路径、创建的文件（包含两个构建辅助脚本，仅在缺失时预置）、`.gitignore` 新增项、输出路径与标题。
 
-2. **只询问一次。** 在**任何写入、安装或脚手架操作之前**取得明确批准。具体涵盖：包/固定版本（`requirements.txt`，包含用于解析 TOC 的 PyYAML）、环境位置、pip 命令、创建的文件、你提议的 `.gitignore` 新增项（例如 `.venv-docs/`、`docs/docsHtmlView/build/`）、构建/输出路径（`docs/docsHtmlView/build/html`），以及将出现在封面上的 TOC 标题/版本。
+2. **只询问一次。** 在**任何写入、安装或脚手架操作之前**取得明确批准。具体涵盖：包/固定版本（`requirements.txt`，包含用于解析 TOC 的 PyYAML）、环境位置、pip 命令、创建的文件（缺失时包含 `build.sh` / `build.bat`）、你提议的 `.gitignore` 新增项（例如 `.venv-docs/`、`docs/docsHtmlView/build/`）、构建/输出路径（`docs/docsHtmlView/build/html`），以及将出现在封面上的 TOC 标题/版本。
    - 在已批准范围内，重复手动渲染**不会**再次询问。
    - 依赖升级、覆盖已有文件，或更改 TOC 范围（新根目录、新文档）**确实**需要重新询问。
 
@@ -76,15 +77,32 @@ DOCS_SPHINXBUILD="$PWD/.venv-docs/bin/sphinx-build"  # same env
 
    如果 `docs/docsHtmlView/` 已存在，**不要覆盖**：给出明确的手动合并计划，由用户自行应用。重新运行初始化绝不会重新生成脚手架。
 
-5. **生成发布内容（每次构建前）。** 该辅助脚本校验 `docs/toc.yml`、展开 glob 与 `modules: auto`，并只写入工作区内带标记的文件。它在 TOC 无效/不安全或输出冲突时以非零码退出，且绝不运行 Sphinx：
+5. **生成发布内容（每次构建前）。** 该生成器校验 `docs/toc.yml`、展开 glob 与 `modules: auto`，并写入工作区内带标记的发布文件。它在 TOC 无效/不安全或输出冲突时以非零码退出，且绝不运行 Sphinx：
 
    ```bash
    "$DOCS_PY" "$SKILL"/scripts/gen_prd.py --project-root .
    ```
 
-   它会写入封面、按需的 `nav/**` 章节落地页、`glossary.md`、`_manifest.json` 与 `_meta.json`，并清理自己标记的过期文件。它绝不编辑 `docs/toc.yml` 或源文档；要改变发布内容，请编辑 TOC 并重新运行。`--json` 会打印机器可读的摘要。
+   它会写入封面、按需的 `nav/**` 章节落地页、`glossary.md`、`_manifest.json` 与 `_meta.json`，并清理自己标记的过期文件。它还会**仅在缺失时**预置 `docs/docsHtmlView/build.sh`（POSIX sh，带可执行位）与 `docs/docsHtmlView/build.bat`（Windows 批处理），且绝不覆盖它们；预置后辅助脚本归用户所有。它绝不编辑 `docs/toc.yml` 或源文档；要改变发布内容，请编辑 TOC 并重新运行。`--json` 会打印机器可读的摘要，其中包含 `build_helpers` 映射，给出每个辅助脚本的状态。
 
-6. **构建（可重复执行，无需重新批准）。**
+6. **构建（可重复执行，无需重新批准）。** 使用预置的辅助脚本，它封装的是同一次 Sphinx 构建：
+
+   ```bash
+   ( cd docs/docsHtmlView && ./build.sh )          # POSIX
+   ```
+   ```bat
+   docs\docsHtmlView\build.bat                     :: Windows（从项目根目录运行）
+   ```
+
+   `build.sh` 是 POSIX sh，预置时即带可执行位；`build.bat` 是 Windows 批处理。二者都会 `cd` 到自身所在目录。它们优先使用 `DOCS_PY`，否则使用 `../../.venv-docs/bin/python`（Windows 为 `..\..\.venv-docs\Scripts\python.exe`）。`--clean` 会先删除 `build/`；它是唯一的参数（未知或多余参数会打印 `usage: ... [--clean]` 并以 2 退出）。在 `docs/docsHtmlView` 下，它们精确执行：
+
+   ```bash
+   "$PY" -m sphinx -b html -c . -d build/doctrees -w build/warnings.log .. build/html
+   ```
+
+   然后打印警告数以及 `build/html/index.html`（根入口）与 `build/html/docsHtmlView/index.html`（封面）两个路径。构建前，它们要求 `conf.py`、`guard.py`、`_manifest.json`、`_meta.json`、`index.md` 存在，且渲染环境可用；任一缺失都会打印错误，提示先运行 docs-html-view skill，并且不构建任何内容。它们**不会**重新生成：如果 `docs/toc.yml`、`CONTEXT.md` 或模块集合发生变化，请先执行第 5 步。辅助脚本用于源内容编辑后的重复构建。
+
+   相同路径也可作为回退方式。有 `make` 时：
 
    ```bash
    mkdir -p docs/docsHtmlView/build
@@ -98,7 +116,7 @@ DOCS_SPHINXBUILD="$PWD/.venv-docs/bin/sphinx-build"  # same env
    ( cd docs/docsHtmlView && "$DOCS_SPHINXBUILD" -b html -c . -d build/doctrees -w build/warnings.log .. build/html )
    ```
 
-   输出位于 `docs/docsHtmlView/build/html` 下；由于 `root_doc = docsHtmlView/index`，**封面为 `docs/docsHtmlView/build/html/docsHtmlView/index.html`**。构建还会写入根入口页 **`docs/docsHtmlView/build/html/index.html`**，它通过 meta refresh 跳转到封面（并提供普通链接作为兜底）；为方便可直接打开根入口。警告写入 `docs/docsHtmlView/build/warnings.log`。`build/` 目录仅在批准后创建。源文档的编辑与 TOC 的编辑都属于合法的重建（TOC 变更后需先重新运行 `gen_prd.py`）。更改已批准的设置（环境、工作区、输出根目录）需要重新询问。
+   输出位于 `docs/docsHtmlView/build/html` 下；由于 `root_doc = docsHtmlView/index`，**封面为 `docs/docsHtmlView/build/html/docsHtmlView/index.html`**。构建还会写入根入口页 **`docs/docsHtmlView/build/html/index.html`**，它通过 meta refresh 跳转到封面（并提供普通链接作为兜底）；为方便可直接打开根入口。警告写入 `docs/docsHtmlView/build/warnings.log`。`build/` 目录仅在批准后创建。源文档的编辑属于合法的重建；TOC、`CONTEXT.md` 或模块集合变更后需先重新运行 `gen_prd.py`。更改已批准的设置（环境、工作区、输出根目录）需要重新询问。辅助脚本位于 `docs/docsHtmlView/`，**不在** `build/html/` 中。
 
 7. **检查。**
 
@@ -106,7 +124,7 @@ DOCS_SPHINXBUILD="$PWD/.venv-docs/bin/sphinx-build"  # same env
    "$DOCS_PY" "$SKILL"/scripts/check_prd.py --project-root .
    ```
 
-   `check_prd.py` 会校验 TOC、清单、PRD 源链接规则、术语表新鲜度、构建后 HTML 锚点、生成的根入口、模板来源文本是否已清除，以及没有未列出的 `product/`/`current/`/`adr/` 页面被构建。`--skip-html` 只运行源码侧检查。
+   `check_prd.py` 会校验 TOC、清单、PRD 源链接规则、术语表新鲜度、构建后 HTML 锚点、生成的根入口、模板来源文本是否已清除，以及没有未列出的 `product/`/`current/`/`adr/` 页面被构建。`--skip-html` 只运行源码侧检查。它保持不变，也不校验归用户所有的构建辅助脚本；构建后仍应运行它。
 
 8. **报告。** 概述标准 Sphinx 的结果与检查结果——见下文的状态。
 
@@ -118,7 +136,8 @@ DOCS_SPHINXBUILD="$PWD/.venv-docs/bin/sphinx-build"  # same env
 - **本地资源在复制前检查：** 在 `doctree-read` 阶段（优先级 100，早于 Sphinx 的资源收集器复制任何内容），每个已解析的图片与下载目标都会由环境的引用解析器解析，且必须解析到已批准根目录内部（含符号链接），否则构建失败。引用式图片、`:download:` 和大写指令都在覆盖范围内。
 - **远程资源绝不抓取：** 远程图片/下载会被替换为内联占位符并发出 Sphinx 警告，因此干净构建不会被报告为完全保真。
 - **模板来源标记在渲染时剥离：** 首个标题之前的开头 `模板来源` 标记（引用块或 `<!-- ... -->` 注释）会在 `source-read` 阶段从内存源码中移除，因此发布副本不再包含它；Sphinx 复制到 `_sources/**/*.txt` 的源文件也会在 `build-finished` 阶段做同样处理。只影响开头标记，正文中间的出现保持不变，磁盘上的源文件绝不修改。
-- **导航是生成的，不是手写的：** `gen_prd.py` 只写入带标记的文件（`% docs-html-view: generated navigation; do not edit`，一个渲染后无内容的 MyST 注释）以及带 `"generated_by": "docs-html-view gen_prd.py"` 的 JSON 文件。它对生成的标题做净化（不含 `<`、`>`、反引号、花括号、方括号、竖线或换行），并执行完整预检——在首次写入前检查输出目录、任何已有的 `nav/` 以及每个输出/冲突的符号链接与未标记文件，因此拒绝时文档树保持不变。它只清理自己标记的过期文件，绝不写入源文档树。
+- **导航是生成的，不是手写的：** 就发布内容而言，`gen_prd.py` 只写入带标记的文件（`% docs-html-view: generated navigation; do not edit`，一个渲染后无内容的 MyST 注释）以及带 `"generated_by": "docs-html-view gen_prd.py"` 的 JSON 文件；它还会在缺失时预置两个构建辅助脚本。它对生成的标题做净化（不含 `<`、`>`、反引号、花括号、方括号、竖线或换行），并执行完整预检——在首次写入前检查输出目录、任何已有的 `nav/` 以及每个输出/冲突的符号链接与未标记文件，因此拒绝时文档树保持不变。它只清理自己标记的过期文件，绝不写入源文档树。
+- **构建辅助脚本是透明封装：** `build.sh` / `build.bat` 仅在缺失时预置一次，归用户所有；其中不含任何解析、渲染、生成或校验逻辑。它们只负责 `cd`、运行同一条 `sphinx-build` 命令，并打印结果路径与警告数。`guard.py` 仍是边界，项目自身的 `conf.py` 仍是可执行代码。
 - **准确的包含清单：** `conf.py` 由 `_manifest.json` 加上生成的封面、按需的章节落地页与术语表构造 `include_patterns`。即使在根目录下存在，未列出的文档也会被排除。
 
 已批准范围内链接到未列出文档的情况会产生普通的 Sphinx「缺少引用」警告；这些会被报告，绝不自动添加。`check_prd.py` 会捕获源文档中的 PRD 层链接违规。
@@ -131,7 +150,8 @@ DOCS_SPHINXBUILD="$PWD/.venv-docs/bin/sphinx-build"  # same env
 - **带警告的预览** — 构建退出码为 0 但警告日志有内容；报告首批警告与日志路径。警告本身不会让 `check_prd.py` 失败。
 - **生成被拒绝** — `gen_prd.py` 以 1 退出（`docs/toc.yml` 缺失/无效、路径超出允许根目录、重复文档、符号链接，或未标记的输出冲突）。报告消息，修复 TOC/冲突，不要构建陈旧产物。
 - **检查失败** — `check_prd.py` 在 TOC/清单不一致、PRD 外部/SPEC/Current/ADR 链接、状态标记、术语表陈旧、构建后锚点断链、模板来源泄漏，或未列出的构建页面时以 1 退出。概述 `file:line` / `file: #id` 行；不要把失败的构建当作有效产物。
-- **失败** — `guard.py` 拒绝了构建，或 Sphinx 以非零码退出。失败的 `make` 可能留下 `build/` 下的陈旧或部分产物；应明确说明，不要将其当作新构建展示。没有发布环节：`make` 留下什么就是什么。
+- **前置条件失败** — 构建辅助脚本找不到渲染环境或必需的生成文件（`conf.py`、`guard.py`、`_manifest.json`、`_meta.json`、`index.md`）。它会以非零码退出，并提示先运行 docs-html-view skill；不会构建任何内容。修复前置条件（第 3 或第 5 步）后再重试。
+- **失败** — `guard.py` 拒绝了构建，或 Sphinx 以非零码退出（无论通过辅助脚本、`make` 还是 `sphinx-build`）。失败的构建可能留下 `build/` 下的陈旧或部分产物；应明确说明，不要将其当作新构建展示。没有发布环节：构建留下什么就是什么。
 
 ## 限制
 
@@ -143,6 +163,8 @@ DOCS_SPHINXBUILD="$PWD/.venv-docs/bin/sphinx-build"  # same env
 - 远程图片/下载会变为内联占位符并附加 Sphinx 警告；活动 HTML 会被拒绝，因此对于任意标记并不声称「无浏览器网络」。
 - 该防护是可信文档的护栏，不是针对不可信输入的沙箱。
 - 依赖辅助脚本只安装固定版本的依赖，只在带 `--install` 时，且只在同意之后；它绝不安装 Python 或 uv。
+- 构建辅助脚本只负责构建：它们不会重新生成。`docs/toc.yml`、`CONTEXT.md` 或模块集合变化后，需要先重新运行本 skill（它会运行 `gen_prd.py`），再构建。
+- 辅助脚本需要渲染环境与生成的工作区文件（`conf.py`、`guard.py`、`_manifest.json`、`_meta.json`、`index.md`）；它们不安装任何东西，也不校验结果。
 - 不做自定义主题、浏览器、服务器或部署。
 
 有关确切的命令、TOC schema、生成产物、配置键与校验规则，见 `references/technical.md`。

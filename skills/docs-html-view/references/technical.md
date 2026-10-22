@@ -40,6 +40,8 @@ Verified on PyPI (2026-10); the set is mutually compatible. Sphinx 9.1.0 require
       glossary.md                 # generated from CONTEXT.md (marked)
       _manifest.json              # generated exact include list
       _meta.json                  # generated title/version/date/abstract/author
+      build.sh                    # seeded build helper (POSIX sh; seeded only if missing)
+      build.bat                   # seeded build helper (Windows batch; seeded only if missing)
       build/html/docsHtmlView/index.html   # publication cover
       build/html/index.html       # generated root entry (meta-refresh to the cover)
 ```
@@ -49,10 +51,12 @@ Verified on PyPI (2026-10); the set is mutually compatible. Sphinx 9.1.0 require
 ## Files shipped by this skill
 
 - `scripts/prepare_env.py` — create/reuse a recognized venv; optional pinned install / freeze. Stdlib only.
-- `scripts/gen_prd.py` — validate `docs/toc.yml`, expand globs/`modules: auto`, generate the cover, conditional section landing pages, glossary, and manifests; marked files only.
+- `scripts/gen_prd.py` — validate `docs/toc.yml`, expand globs/`modules: auto`, generate the cover, conditional section landing pages, glossary, and manifests; seed the two build helpers when missing. Publication content is marked files only; the helpers are unmarked and user-owned.
 - `scripts/check_prd.py` — validate TOC, manifest, PRD source links, glossary freshness, built anchors, and unlisted pages. Stdlib + PyYAML.
 - `assets/conf.py.template` — the managed `conf.py` for a new publication.
 - `assets/guard.py` — the parse/render guard extension.
+- `assets/build.sh` — POSIX sh build helper, seeded into the workspace only when missing.
+- `assets/build.bat` — Windows batch build helper, seeded into the workspace only when missing.
 - `requirements.txt` — the pins.
 
 ## Commands
@@ -79,10 +83,31 @@ mkdir -p docs/docsHtmlView
 # remove the generated docs/docsHtmlView/index.rst
 # Makefile: SOURCEDIR = ..   BUILDDIR = build   SPHINXOPTS = -c . -w build/warnings.log
 "$DOCS_PY" "$SKILL"/scripts/gen_prd.py --project-root .
+# gen_prd.py also seeds docs/docsHtmlView/build.sh and build.bat when missing
 mkdir -p docs/docsHtmlView/build
 ( cd docs/docsHtmlView && make html SPHINXBUILD="$DOCS_SPHINXBUILD" SPHINXOPTS='-c . -w build/warnings.log' )
 "$DOCS_PY" "$SKILL"/scripts/check_prd.py --project-root .
 ```
+
+One-click rebuild (helpers seeded by `gen_prd.py` only when missing; never overwritten):
+
+```bash
+( cd docs/docsHtmlView && ./build.sh )            # POSIX sh; seeded executable
+( cd docs/docsHtmlView && ./build.sh --clean )    # delete build/ first
+( cd docs/docsHtmlView && DOCS_PY=/path/to/.venv-docs/bin/python ./build.sh )
+```
+```bat
+docs\docsHtmlView\build.bat                       :: Windows (from the project root)
+docs\docsHtmlView\build.bat --clean
+```
+
+Both helpers `cd` to `docs/docsHtmlView` and use `DOCS_PY` if set, otherwise `../../.venv-docs/bin/python` (`..\..\.venv-docs\Scripts\python.exe` on Windows). Before building they require the render environment plus `conf.py`, `guard.py`, `_manifest.json`, `_meta.json`, and `index.md`; otherwise they print an error to run the docs-html-view skill first and exit non-zero without building. `--clean` is the only option; unknown or extra arguments print `usage: ... [--clean]` and exit 2. They then run exactly:
+
+```bash
+"$PY" -m sphinx -b html -c . -d build/doctrees -w build/warnings.log .. build/html
+```
+
+and print the warnings count plus the root entry and cover paths. The helpers build only: they never generate content, run `check_prd.py`, install packages, look for the skill directory, or open a browser/server. Re-run `gen_prd.py` first after changing `docs/toc.yml`, `CONTEXT.md`, or the module set.
 
 Repeat render (same approved scope; re-run the generator after every TOC change):
 
@@ -175,6 +200,10 @@ To change the publication, edit `docs/toc.yml` — never the generated files —
 
 All generated Markdown files start with a MyST comment marker (`% docs-html-view: ...`) that renders as nothing; JSON files carry `"generated_by": "docs-html-view gen_prd.py"`. Only marked/owned files are overwritten or pruned.
 
+### `docsHtmlView/build.sh` / `build.bat` (seeded helpers)
+
+`gen_prd.py` seeds these two helpers **only when the files are missing** and never overwrites an existing one. They are user-owned after seeding (edit freely), carry no `%` marker, are not pruned, and are not listed in `_manifest.json` or `_meta.json`. Both `cd` to `docs/docsHtmlView` and run `"$PY" -m sphinx -b html -c . -d build/doctrees -w build/warnings.log .. build/html`, where `PY` comes from `DOCS_PY` or defaults to `../../.venv-docs/bin/python` (`..\..\.venv-docs\Scripts\python.exe` on Windows). `--clean` removes `build/` first and is the only option. The helpers build only: they do not generate, validate, install, or look for the skill directory. `--json` reports their status in a `build_helpers` map; human output prints each helper's status.
+
 ### Provenance stripping (published copies only)
 
 `guard.py` strips leading `模板来源` (template-origin) markers at `source-read`, before rendering. Two forms are recognized: a blockquote line beginning with `模板来源` (plus its immediately following contiguous blockquote lines), or an `<!-- 模板来源 ... -->` HTML comment. Each may be preceded by a BOM and blank lines, must sit before the first heading, and stacked leading markers are stripped one after another. Occurrences later in the body are never touched. Only the in-memory source (`source[0]`) changes; the source files on disk are never modified. Sphinx then copies the original source files into `build/html/_sources/`, so `build-finished` applies the same strip to every copied `*.md.txt` / `*.rst.txt`; the "View page source" link therefore shows clean content too.
@@ -247,7 +276,7 @@ There is no environment switch: one TOC, one publication, one output directory.
 6. **No unlisted docs.** Every `build/html/product/**/*.html`, `current/**`, `adr/**` page must map back to a manifest document; extras fail. A `nav/**` page with no generated counterpart (for example a stale landing page for a section that is now single-document) is also rejected.
 7. **Provenance.** No published page and no copied `_sources/**/*.txt` may contain `模板来源`; a leak fails the check.
 
-The summary reports toc documents, manifest entries, PRD files/links checked, glossary state, anchors checked, unlisted docs, and violation count; exit 0 only when the violation count is zero. `--skip-html` omits phases 5–7 (use it before a build).
+The summary reports toc documents, manifest entries, PRD files/links checked, glossary state, anchors checked, unlisted docs, and violation count; exit 0 only when the violation count is zero. `--skip-html` omits phases 5–7 (use it before a build). `check_prd.py` does not validate the user-owned build helpers.
 
 ## Anchor and link rules
 
@@ -257,7 +286,7 @@ The summary reports toc documents, manifest entries, PRD files/links checked, gl
 
 ## Approval and consent
 
-The Skill asks once, before any write/install/scaffold, covering packages, environment, files, `.gitignore` additions, output path, and the TOC title/version. There is no stored consent state or fingerprint. Repeated renders inside the approved scope do not re-ask; dependency upgrades, overwriting existing files, or changing the approved output root require a fresh ask. Missing TOC/source docs or a malformed workspace → report and stop, never guess. The template tokens are unquoted, so substitute each with `repr(value)` (a valid, escaped Python literal), never raw interpolation into executable config.
+The Skill asks once, before any write/install/scaffold, covering packages, environment, files, `.gitignore` additions, output path, and the TOC title/version. There is no stored consent state or fingerprint. Repeated renders inside the approved scope do not re-ask; dependency upgrades, overwriting existing files, or changing the approved output root require a fresh ask. The build helpers are part of the created-files list and are seeded only when missing; existing helper files are never overwritten. Missing TOC/source docs or a malformed workspace → report and stop, never guess. The template tokens are unquoted, so substitute each with `repr(value)` (a valid, escaped Python literal), never raw interpolation into executable config.
 
 ## Limitations
 
@@ -267,4 +296,6 @@ The Skill asks once, before any write/install/scaffold, covering packages, envir
 - No custom theme, browser, server, or deployment.
 - Only documents listed in `docs/toc.yml` are published. Module sidecars (`00-index.md`) and `design/` are excluded by the default TOC; adding them explicitly makes them public.
 - The glossary is the verbatim `CONTEXT.md` body. A relative image inside it resolves under `docsHtmlView/`, outside the approved roots, so the build fails; keep the glossary text-only.
-- Failed `make` may leave stale/partial `build/` output; no publisher normalises it.
+- The build helpers build only; they do not regenerate. TOC, `CONTEXT.md`, or module-set changes require re-running the skill so `gen_prd.py` refreshes the generated files first.
+- The helpers require the render environment and the generated workspace files (`conf.py`, `guard.py`, `_manifest.json`, `_meta.json`, `index.md`), and they neither install dependencies nor validate the result.
+- Failed `make` or a failed helper may leave stale/partial `build/` output; no publisher normalises it.

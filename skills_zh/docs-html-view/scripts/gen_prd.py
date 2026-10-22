@@ -17,8 +17,13 @@ published:
 
 Generated Markdown files carry the ``% docs-html-view: ...`` marker (a MyST
 comment that renders as nothing). Stale marked files are pruned; unmarked files
-are never overwritten or deleted. Source documents are never written. The helper
-runs before ``sphinx-build`` and never invokes Sphinx itself.
+are never overwritten or deleted. Source documents are never written. This
+generator runs before ``sphinx-build`` and never invokes Sphinx itself.
+
+Missing ``build.sh`` / ``build.bat`` build helpers are seeded into the workspace
+once. They are build-only wrappers over the standard Sphinx command: they never
+invoke this script, install anything, or look for the skill directory, and they
+are user-owned, so an existing helper is never overwritten.
 
 Exit codes: 0 = generated; 1 = refused (invalid TOC, unsafe output, no docs).
 """
@@ -45,6 +50,11 @@ META_NAME = "_meta.json"
 WORKSPACE = "docs/docsHtmlView"
 CONTEXT = "CONTEXT.md"
 GLOSSARY_DOCNAME = "docsHtmlView/glossary"
+BUILD_HELPERS = ("build.sh", "build.bat")
+HELPER_NEWLINES = {"build.sh": "\n", "build.bat": "\r\n"}
+ASSETS_DIR = os.path.normpath(
+    os.path.join(os.path.dirname(os.path.abspath(__file__)), os.pardir, "assets")
+)
 ALLOWED_ROOTS = ("docs/product", "docs/current", "docs/adr")
 REQUIRED_SECTIONS = ("overview", "requirements", "architecture", "appendix")
 REQUIRED_APPENDIX = ("glossary", "spec", "current", "adr")
@@ -592,6 +602,42 @@ def check_legacy(project_root: str) -> None:
         )
 
 
+def seed_build_helpers(workspace: str) -> dict:
+    """Seed missing build helpers; never touch a file that already exists."""
+    statuses = {}
+    for name in BUILD_HELPERS:
+        dest = os.path.join(workspace, name)
+        if os.path.lexists(dest):
+            if os.path.islink(dest) or not os.path.isfile(dest):
+                warn("%s is a symlink or not a regular file; leaving it untouched" % dest)
+                statuses[name] = "skipped"
+            else:
+                statuses[name] = "exists"
+            continue
+        asset = os.path.join(ASSETS_DIR, name)
+        try:
+            with open(asset, encoding="utf-8") as fh:
+                text = fh.read()
+        except OSError as exc:
+            warn("cannot read build helper asset %s: %s" % (asset, exc))
+            statuses[name] = "missing-asset"
+            continue
+        newline = HELPER_NEWLINES[name]
+        # Normalize first so the seeded bytes are identical on every platform.
+        text = text.replace("\r\n", "\n").replace("\n", newline)
+        try:
+            with open(dest, "w", encoding="utf-8", newline="") as fh:
+                fh.write(text)
+        except OSError as exc:
+            warn("cannot write build helper %s: %s" % (dest, exc))
+            statuses[name] = "failed"
+            continue
+        if name == "build.sh" and os.name == "posix":
+            os.chmod(dest, 0o755)
+        statuses[name] = "created"
+    return statuses
+
+
 def generate(project_root: str) -> dict:
     root = os.path.abspath(project_root)
     docs = os.path.join(root, "docs")
@@ -608,14 +654,25 @@ def generate(project_root: str) -> dict:
     outputs = render_plan(plan)
     nav_root = os.path.join(workspace, "nav")
     preflight_outputs(outputs, workspace, nav_root)
+    helpers = seed_build_helpers(workspace)
     written = write_outputs(workspace, outputs)
     removed = prune(workspace, nav_root, outputs)
-    return {"plan": plan, "written": written, "removed": removed}
+    return {
+        "plan": plan,
+        "written": written,
+        "removed": removed,
+        "helpers": helpers,
+    }
 
 
 def main() -> None:
     ap = argparse.ArgumentParser(
-        description="Generate the PRD publication from docs/toc.yml (marked files only)."
+        description=(
+            "Generate the PRD publication from docs/toc.yml "
+            "(marked publication files plus missing build helpers). "
+            "Missing build.sh/build.bat helpers are seeded once; they are "
+            "build-only, user-owned wrappers and are never overwritten."
+        )
     )
     ap.add_argument("--project-root", default=os.getcwd())
     ap.add_argument("--json", action="store_true", help="print a machine-readable summary")
@@ -638,6 +695,10 @@ def main() -> None:
                     "glossary": plan["glossary"],
                     "generated": [WORKSPACE + "/" + rel for rel in result["written"]],
                     "pruned": [WORKSPACE + "/" + rel for rel in result["removed"]],
+                    "build_helpers": {
+                        WORKSPACE + "/" + name: status
+                        for name, status in sorted(result["helpers"].items())
+                    },
                 },
                 indent=2,
                 ensure_ascii=False,
@@ -648,6 +709,8 @@ def main() -> None:
     print("generated %d file(s) for %d document(s)" % (len(result["written"]), len(plan["documents"])))
     print("cover: docs/docsHtmlView/index.md")
     print("manifest: %d entries" % len(plan["manifest"]))
+    for name in BUILD_HELPERS:
+        print("build helper: docs/docsHtmlView/%s (%s)" % (name, result["helpers"][name]))
     if result["removed"]:
         print("pruned %d stale marked file(s)" % len(result["removed"]))
 

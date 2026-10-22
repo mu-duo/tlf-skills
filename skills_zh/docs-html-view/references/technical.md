@@ -40,6 +40,8 @@
       glossary.md                 # 由 CONTEXT.md 生成（带标记）
       _manifest.json              # 生成的准确包含清单
       _meta.json                  # 生成的标题/版本/日期/摘要/作者
+      build.sh                    # 预置的构建辅助脚本（POSIX sh；仅缺失时预置）
+      build.bat                   # 预置的构建辅助脚本（Windows 批处理；仅缺失时预置）
       build/html/docsHtmlView/index.html   # 发布封面
       build/html/index.html       # 生成的根入口（跳转到封面）
 ```
@@ -49,10 +51,12 @@
 ## 本 skill 提供的文件
 
 - `scripts/prepare_env.py` — 创建/复用可识别的 venv；可选安装固定依赖 / freeze。仅标准库。
-- `scripts/gen_prd.py` — 校验 `docs/toc.yml`，展开 glob/`modules: auto`，生成封面、按需的章节落地页、术语表与清单；仅写带标记的文件。
+- `scripts/gen_prd.py` — 校验 `docs/toc.yml`，展开 glob/`modules: auto`，生成封面、按需的章节落地页、术语表与清单；缺失时预置两个构建辅助脚本。发布内容仅限带标记的文件；辅助脚本不带标记，归用户所有。
 - `scripts/check_prd.py` — 校验 TOC、清单、PRD 源链接、术语表新鲜度、构建后锚点与未列出页面。标准库 + PyYAML。
 - `assets/conf.py.template` — 新发布使用的受管 `conf.py`。
 - `assets/guard.py` — 解析/渲染防护扩展。
+- `assets/build.sh` — POSIX sh 构建辅助脚本，仅缺失时预置到工作区。
+- `assets/build.bat` — Windows 批处理构建辅助脚本，仅缺失时预置到工作区。
 - `requirements.txt` — 固定版本。
 
 ## 命令
@@ -79,10 +83,31 @@ mkdir -p docs/docsHtmlView
 # 删除生成的 docs/docsHtmlView/index.rst
 # Makefile: SOURCEDIR = ..   BUILDDIR = build   SPHINXOPTS = -c . -w build/warnings.log
 "$DOCS_PY" "$SKILL"/scripts/gen_prd.py --project-root .
+# gen_prd.py 在缺失时还会预置 docs/docsHtmlView/build.sh 与 build.bat
 mkdir -p docs/docsHtmlView/build
 ( cd docs/docsHtmlView && make html SPHINXBUILD="$DOCS_SPHINXBUILD" SPHINXOPTS='-c . -w build/warnings.log' )
 "$DOCS_PY" "$SKILL"/scripts/check_prd.py --project-root .
 ```
+
+一键重建（辅助脚本由 `gen_prd.py` 仅在缺失时预置；绝不覆盖）：
+
+```bash
+( cd docs/docsHtmlView && ./build.sh )            # POSIX sh；预置时带可执行位
+( cd docs/docsHtmlView && ./build.sh --clean )    # 先删除 build/
+( cd docs/docsHtmlView && DOCS_PY=/path/to/.venv-docs/bin/python ./build.sh )
+```
+```bat
+docs\docsHtmlView\build.bat                       :: Windows（从项目根目录运行）
+docs\docsHtmlView\build.bat --clean
+```
+
+两个辅助脚本都会 `cd` 到 `docs/docsHtmlView`，优先使用 `DOCS_PY`，否则使用 `../../.venv-docs/bin/python`（Windows 为 `..\..\.venv-docs\Scripts\python.exe`）。构建前，它们要求渲染环境以及 `conf.py`、`guard.py`、`_manifest.json`、`_meta.json`、`index.md` 存在；否则打印错误，提示先运行 docs-html-view skill，并以非零码退出且不构建。`--clean` 是唯一选项；未知或多余参数会打印 `usage: ... [--clean]` 并以 2 退出。随后它们精确执行：
+
+```bash
+"$PY" -m sphinx -b html -c . -d build/doctrees -w build/warnings.log .. build/html
+```
+
+并打印警告数、根入口与封面路径。辅助脚本只负责构建：它们绝不生成内容、运行 `check_prd.py`、安装包、查找 skill 目录，也不启动浏览器/服务器。更改 `docs/toc.yml`、`CONTEXT.md` 或模块集合后，请先重新运行 `gen_prd.py`。
 
 重复渲染（相同已批准范围；每次 TOC 变更后都要重新运行生成器）：
 
@@ -175,6 +200,10 @@ sections:
 
 所有生成的 Markdown 文件以 MyST 注释标记开头（`% docs-html-view: ...`），渲染后无内容；JSON 文件带有 `"generated_by": "docs-html-view gen_prd.py"`。只有带标记/归属的文件会被覆盖或清理。
 
+### `docsHtmlView/build.sh` / `build.bat`（预置辅助脚本）
+
+`gen_prd.py` **仅在文件缺失时**预置这两个辅助脚本，绝不覆盖已有文件。预置后它们归用户所有（可自由编辑），不带 `%` 标记，不会被清理，也不列入 `_manifest.json` 或 `_meta.json`。二者都会 `cd` 到 `docs/docsHtmlView`，并运行 `"$PY" -m sphinx -b html -c . -d build/doctrees -w build/warnings.log .. build/html`，其中 `PY` 来自 `DOCS_PY`，默认是 `../../.venv-docs/bin/python`（Windows 为 `..\..\.venv-docs\Scripts\python.exe`）。`--clean` 会先删除 `build/`，且是唯一选项。辅助脚本只负责构建：不生成、不校验、不安装，也不查找 skill 目录。`--json` 会在 `build_helpers` 映射中报告它们的状态；人类可读输出会打印每个辅助脚本的状态。
+
 ### 模板来源剥离（仅发布副本）
 
 `guard.py` 在 `source-read` 阶段、渲染之前剥离开头的 `模板来源` 标记。识别两种形态：以 `模板来源` 开头的引用块行（连同紧随其后的连续引用块行），或 `<!-- 模板来源 ... -->` HTML 注释。二者前面都允许有 BOM 与空行，必须位于首个标题之前；连续多个开头标记会逐个剥离。正文中间的出现绝不处理。只修改内存中的源码（`source[0]`），磁盘上的源文件绝不修改。Sphinx 随后会把原始源文件复制到 `build/html/_sources/`，因此 `build-finished` 会对每个复制出的 `*.md.txt` / `*.rst.txt` 应用同样的剥离；“查看页面源代码”链接因此也是干净的。
@@ -247,7 +276,7 @@ sections:
 6. **无未列文档。** 每个 `build/html/product/**/*.html`、`current/**`、`adr/**` 页面都必须映射回清单文档；多余页面失败。没有对应生成页面的 `nav/**` 页面（例如某个章节已变为单文档后遗留的旧落地页）也会被拒绝。
 7. **模板来源。** 任何发布页面与复制出的 `_sources/**/*.txt` 都不得包含 `模板来源`；泄漏即失败。
 
-摘要报告 TOC 文档数、清单条目数、PRD 文件/链接检查数、术语表状态、锚点检查数、未列文档数与违规数；仅当违规数为零时退出 0。`--skip-html` 省略第 5–7 阶段（构建前使用）。
+摘要报告 TOC 文档数、清单条目数、PRD 文件/链接检查数、术语表状态、锚点检查数、未列文档数与违规数；仅当违规数为零时退出 0。`--skip-html` 省略第 5–7 阶段（构建前使用）。`check_prd.py` 不校验归用户所有的构建辅助脚本。
 
 ## 锚点与链接规则
 
@@ -257,7 +286,7 @@ sections:
 
 ## 批准与同意
 
-Skill 在**任何写入/安装/脚手架操作之前**只询问一次，涵盖包、环境、文件、`.gitignore` 新增项、输出路径与 TOC 标题/版本。没有存储的同意状态或指纹。在已批准范围内重复渲染不会再次询问；依赖升级、覆盖已有文件或更改已批准输出根目录需要重新询问。TOC/源文档缺失或工作区畸形 → 报告并停止，绝不猜测。模板 token 不带引号，因此用 `repr(value)`（合法、转义的 Python 字面量）逐个替换，绝不将原始文本插入可执行配置。
+Skill 在**任何写入/安装/脚手架操作之前**只询问一次，涵盖包、环境、文件、`.gitignore` 新增项、输出路径与 TOC 标题/版本。没有存储的同意状态或指纹。在已批准范围内重复渲染不会再次询问；依赖升级、覆盖已有文件或更改已批准输出根目录需要重新询问。构建辅助脚本属于「创建的文件」清单，仅在缺失时预置；已有辅助脚本绝不覆盖。TOC/源文档缺失或工作区畸形 → 报告并停止，绝不猜测。模板 token 不带引号，因此用 `repr(value)`（合法、转义的 Python 字面量）逐个替换，绝不将原始文本插入可执行配置。
 
 ## 限制
 
@@ -267,4 +296,6 @@ Skill 在**任何写入/安装/脚手架操作之前**只询问一次，涵盖�
 - 不做自定义主题、浏览器、服务器或部署。
 - 只有 `docs/toc.yml` 中列出的文档会被发布。模块附属文件（`00-index.md`）与 `design/` 被默认 TOC 排除；显式加入它们即意味着公开。
 - 术语表是原样的 `CONTEXT.md` 正文。其中若含相对图片，会解析到 `docsHtmlView/` 下（超出已批准根目录），导致构建失败；请保持术语表为纯文本。
-- 失败的 `make` 可能留下陈旧/部分 `build/` 产物；没有发布器会规范化它。
+- 构建辅助脚本只负责构建，不会重新生成。TOC、`CONTEXT.md` 或模块集合变化后，需要先重新运行本 skill，由 `gen_prd.py` 刷新生成文件后再构建。
+- 辅助脚本需要渲染环境与生成的工作区文件（`conf.py`、`guard.py`、`_manifest.json`、`_meta.json`、`index.md`），既不安装依赖，也不校验结果。
+- 失败的 `make` 或失败的辅助脚本可能留下陈旧/部分 `build/` 产物；没有发布器会规范化它。

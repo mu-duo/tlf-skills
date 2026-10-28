@@ -1,0 +1,4 @@
+# docs-docx-view — pinned render dependencies (verified on PyPI 2026-10-28)
+# pandas not needed. pypandoc_binary bundles pandoc 3.9; requires Python >= 3.12 per this skill.
+pypandoc_binary==1.17
+PyYAML==6.0.2

@@ -17,6 +17,8 @@ const COPIED_PREFIXES = [
   "project-docs-workflow/assets/",
   "docs-html-view/scripts/",
   "docs-html-view/assets/",
+  "docs-docx-view/scripts/",
+  "docs-docx-view/assets/",
 ];
 const COPIED_EXACT = new Set(["docs-html-view/requirements.txt"]);
 

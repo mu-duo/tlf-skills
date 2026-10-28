@@ -1,0 +1,5 @@
+interface:
+  display_name: "Docs DOCX View"
+  short_description: "Publish the PRD + SPEC/Current/ADR appendices from docs/toc.yml as one Word document after approval"
+policy:
+  allow_implicit_invocation: false

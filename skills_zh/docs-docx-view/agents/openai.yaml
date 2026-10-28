@@ -1,0 +1,5 @@
+interface:
+  display_name: "文档 Word 渲染"
+  short_description: "经批准后，依据 docs/toc.yml 将 PRD 与 SPEC/Current/ADR 附录发布为单个 Word 文档"
+policy:
+  allow_implicit_invocation: false

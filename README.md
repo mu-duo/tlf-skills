@@ -51,7 +51,7 @@ skill 会检查并创建缺少的内容，包括：
 
 ## 安装与更新语义
 
-普通安装（默认动作）对**第一方 skill**（`project-docs-workflow`、`doc-opt`、`docs-html-view`、`docs-docx-view`、`lite-task`）执行**全目录同步**：
+普通安装（默认动作）对**第一方 skill**（`project-docs-workflow`、`doc-opt`、`docs-html-view`、`docs-docx-view`、`lite-task`、`repo-read-assistant`）执行**全目录同步**：
 
 - 若上一份**有效清单**确认该路径由本包安装（`installed` / `forced`、本地），安装会用源包内容覆盖该目录——**可能覆盖你对本地文件所做的修改**。第一方受管安装目录是可整体替换的分发副本。
 - 若某第一方路径无法被有效清单确认为包内安装（手工复制、清单记为 `skipped`、清单缺失、清单损坏 / 不可解析、符号链接），默认**保留**不动；只有显式 `--force` 才替换该第一方条目。替换的是该路径本身，符号链接指向的 referent 不被改动。
@@ -97,7 +97,7 @@ skill 会检查并创建缺少的内容，包括：
 
 ## docs-html-view（可选：手动发布 PRD）
 
-本包附带一个第一方 skill `docs-html-view`（与主 skill、`doc-opt`、`docs-docx-view`、`lite-task` 一样，不属于上游集合）。安装器会随包一起分发它，但**安装时不会运行它**，项目文档初始化时也不会启用它；它只在用户手动调用时工作。
+本包附带一个第一方 skill `docs-html-view`（与主 skill、`doc-opt`、`docs-docx-view`、`lite-task`、`repo-read-assistant` 一样，不属于上游集合）。安装器会随包一起分发它，但**安装时不会运行它**，项目文档初始化时也不会启用它；它只在用户手动调用时工作。
 
 用途：从 `docs/toc.yml` 构建一份可发布的**多页 PRD**——封面 + 三个核心 PRD 章节（项目说明与典型应用场景、产品需求、架构设计与模块划分）+ 各模块 PRD，外加四个附录组（术语表、SPEC、Current、ADR）。使用标准 Sphinx、MyST Markdown 与原生 Read the Docs（RTD）主题渲染，输出到 `docs/docsHtmlView/build/html`；产物是一个本地 HTML 文件夹，不替代源文档。
 
@@ -118,7 +118,7 @@ skill 会检查并创建缺少的内容，包括：
 
 ## docs-docx-view（可选：手动导出 Word）
 
-本包附带一个第一方 skill `docs-docx-view`（与主 skill、`doc-opt`、`docs-html-view`、`lite-task` 一样，不属于上游集合）。安装器会随包一起分发它，但**安装时不会运行它**，项目文档初始化时也不会启用它；它只在用户手动调用时工作。
+本包附带一个第一方 skill `docs-docx-view`（与主 skill、`doc-opt`、`docs-html-view`、`lite-task`、`repo-read-assistant` 一样，不属于上游集合）。安装器会随包一起分发它，但**安装时不会运行它**，项目文档初始化时也不会启用它；它只在用户手动调用时工作。
 
 用途：从同一份 `docs/toc.yml` 导出**单个** Word 文档（`.docx`）——封面 + 三个核心 PRD 章节（项目说明与典型应用场景、产品需求、架构设计与模块划分）+ 各模块 PRD，外加四个附录组（术语表、SPEC、Current、ADR）。使用 `pypandoc_binary==1.17`（内置 pandoc 3.9）与固定的 `reference.docx` 模板渲染，产物是可在 Word 中打开的单个文档，不替代源文档。
 
@@ -136,17 +136,27 @@ skill 会检查并创建缺少的内容，包括：
 
 ## lite-task（可选：轻型任务开发流程）
 
-本包附带一个第一方 skill `lite-task`（与主 skill、`doc-opt`、`docs-html-view`、`docs-docx-view` 一样，不属于上游集合）。它是面向**小、低风险任务**（或用户显式选择时）的轻型开发流程：与 `project-docs-workflow` 相同的五步（功能同步 / 骨架 / 实现 / 异常 / 回顾），但不强制 issue、PRD、Current 或 ADR 记录——默认一般只产出代码。
+本包附带一个第一方 skill `lite-task`（与主 skill、`doc-opt`、`docs-html-view`、`docs-docx-view`、`repo-read-assistant` 一样，不属于上游集合）。它是面向**小、低风险任务**（或用户显式选择时）的轻型开发流程：与 `project-docs-workflow` 相同的五步（功能同步 / 骨架 / 实现 / 异常 / 回顾），但不强制 issue、PRD、Current 或 ADR 记录——默认一般只产出代码。
 
 当任务变大（涉及契约变更、跨模块影响，或需要留存长期决策）时，应升级到 `project-docs-workflow`，不要在本流程里静默写文档。具体行为以该 skill 的 `SKILL.md` 为准（安装后位于 `<skills 根目录>/lite-task/SKILL.md`），README 不再重复其接口。
 
+## repo-read-assistant（可选：仓库理解与接手）
+
+本包附带一个第一方 skill `repo-read-assistant`（与主 skill、`doc-opt`、`docs-html-view`、`docs-docx-view`、`lite-task` 一样，不属于上游集合）。它面向**刚接手一个陌生仓库**的工程师：通过「先预测、后揭示」的引导式教学，把代码库的阅读过程变成可验证的理解，而不是一次性倾倒架构说明。
+
+- **只写 `docs/teach/`**：教学过程中产生的讲解、练习与阅读记录都落在该目录下，不散落到源码树。
+- **仓库只读**：把目标仓库当作只读输入，允许执行构建 / 测试等命令，但不修改任何源码。
+- **按用户持久化掌握画像**：为每个用户记录已掌握 / 待巩固的概念，后续会话据此调整教学重点。
+
+和本包其他可选 skill 一样，安装器会随包一起分发它，但**安装时不会运行它**，项目文档初始化时也不会启用它；它只在用户手动调用时工作。具体接口与流程以该 skill 的 `SKILL.md` 为准（安装后位于 `<skills 根目录>/repo-read-assistant/SKILL.md`），README 不再重复其接口。
+
 ## 中文镜像（--zh）
 
-`skills_zh/` 是随包分发的中文镜像，用于让中文使用者以相同的 skill 名称工作。它完整覆盖五个第一方 skill：`project-docs-workflow`、`doc-opt`、`docs-html-view`、`docs-docx-view`、`lite-task`；目录名与 frontmatter `name` 均与英文源完全一致。
+`skills_zh/` 是随包分发的中文镜像，用于让中文使用者以相同的 skill 名称工作。它完整覆盖六个第一方 skill：`project-docs-workflow`、`doc-opt`、`docs-html-view`、`docs-docx-view`、`lite-task`、`repo-read-assistant`；目录名与 frontmatter `name` 均与英文源完全一致。
 
 - **同名互斥**：同一目标目录一次只应安装一种语言。默认安装英文源 `skills/`；`--zh` 安装中文镜像 `skills_zh/`，并会把本包接管的同名第一方 skill 替换为中文版本。再运行不带 `--zh` 的安装即切回英文。`--zh` 仅适用于 install；`check` 与 `uninstall` 与语言无关。
-- **手工快照，不自动同步**：中文镜像基于英文源 `v5.3`（2026-10-28）翻译，不随英文源后续修改自动同步；英文源更新后需要重新翻译与审校。内容以英文源为准，发现不一致时应修正中文镜像。
-- **审校策略**：5 个 `SKILL.md` 与 `skills_zh/README.md` 经人工审校，references / EXAMPLES / technical 抽样复核后合入；不以未审校的机器翻译作为最终版本，涉及命令、路径、边界条件与技术术语的段落需对照英文源复核。
+- **手工快照，不自动同步**：中文镜像基于英文源 `v5.4`（2026-10-28）翻译，不随英文源后续修改自动同步；英文源更新后需要重新翻译与审校。内容以英文源为准，发现不一致时应修正中文镜像。
+- **审校策略**：6 个 `SKILL.md` 与 `skills_zh/README.md` 经人工审校，references / EXAMPLES / technical 抽样复核后合入；不以未审校的机器翻译作为最终版本，涉及命令、路径、边界条件与技术术语的段落需对照英文源复核。
 - **一致性检查**：可运行 `node scripts/check-skills-zh.js` 检查中文镜像的结构与名称等一致性。
 - **与 `--with-matt-skills` 的关系**：8 个外部依赖来自上游，只有英文；`--zh` 只影响本包第一方 skill 的来源。组合使用时请写成 `--zh --with-matt-skills`；若只运行默认（不带 `--zh`）的安装，会把第一方 skill 切回英文。
 
@@ -156,9 +166,9 @@ skill 会检查并创建缺少的内容，包括：
 
 PRD, SPEC, and Current form one document system with ADRs as peers. The PRD (`docs/product/00-README.md` cover and typical scenarios, `01-requirements.md`, `02-architecture.md`, plus each module's `00-README.md`) is the macro product narrative and owns scope and intent. The SPEC (`01-spec.md`, `02-interfaces.md`, `03-nfr.md`, `design/`) is the implementation fact standard — functional requirements with acceptance criteria, interfaces, and NFRs — and owns implementation details. `docs/current/` is the as-built snapshot and the only status source; an ADR records a decision and its rationale. On implementation-detail conflicts the SPEC wins, on scope/intent conflicts the PRD wins, and a conflict is escalated to the orchestrator/user rather than silently resolved. Roles are user (intent, scope, approval), orchestrator (maintains the PRD, composes the SPEC, owns `docs/toc.yml`, triggers publication), and coder agent (implements from the SPEC, updates Current facts at wrap-up, proposes SPEC changes through an issue). `docs/toc.yml` is the publication source consumed by `docs-html-view`. Product `00-index.md` is retired; only the unpublished module `00-index.md` sidecar remains. Existing projects are never rewritten: init detects legacy layouts (such as `docs/prd/`) and offers migration, and the legacy bootstrap is consent-gated and produces drafts.
 
-An ordinary install full-directory-syncs the first-party skills (`project-docs-workflow`, `doc-opt`, `docs-html-view`, `docs-docx-view`, `lite-task`) when a valid manifest confirms the package installed them, so it may overwrite local edits; a first-party path not confirmed as package-owned is preserved unless `--force` replaces that entry. External dependencies are preserved by default, and `--force` alone does not update them; explicit `--with-matt-skills` refreshes the eight supported upstream names (updating existing ones and installing missing) only on the default codex target, with other target/agent combinations rejected before any write. The package ships no standalone dependency skills: missing external names are covered by the skill's internal fallback references (`references/deps/*`), no independent lite skill is copied, and existing standalone installs (including older lite copies) are preserved and never auto-cleaned or migrated. A manifest file that is itself a symlink is always refused (even with `--force`), unlike a first-party skill path that is a symlink; per-skill replacement failures restore the old content or retain a backup and report the path, so this is not an all-skills transaction. The installer supports custom directories, dry runs, dependency checks, and manifest-based uninstall. Uninstall removes recorded package-owned paths by name, not by content hash, and records no local-edit fingerprints; review the manifest or use a dry run before deleting anything. See the advanced details below for optional upstream dependencies and manifest behavior.
+An ordinary install full-directory-syncs the first-party skills (`project-docs-workflow`, `doc-opt`, `docs-html-view`, `docs-docx-view`, `lite-task`, `repo-read-assistant`) when a valid manifest confirms the package installed them, so it may overwrite local edits; a first-party path not confirmed as package-owned is preserved unless `--force` replaces that entry. External dependencies are preserved by default, and `--force` alone does not update them; explicit `--with-matt-skills` refreshes the eight supported upstream names (updating existing ones and installing missing) only on the default codex target, with other target/agent combinations rejected before any write. The package ships no standalone dependency skills: missing external names are covered by the skill's internal fallback references (`references/deps/*`), no independent lite skill is copied, and existing standalone installs (including older lite copies) are preserved and never auto-cleaned or migrated. A manifest file that is itself a symlink is always refused (even with `--force`), unlike a first-party skill path that is a symlink; per-skill replacement failures restore the old content or retain a backup and report the path, so this is not an all-skills transaction. The installer supports custom directories, dry runs, dependency checks, and manifest-based uninstall. Uninstall removes recorded package-owned paths by name, not by content hash, and records no local-edit fingerprints; review the manifest or use a dry run before deleting anything. See the advanced details below for optional upstream dependencies and manifest behavior.
 
-The package also ships `skills_zh/`, a manually reviewed Chinese mirror of the five first-party skills with identical directory and skill names. Installs default to the English tree (`skills/`); pass `--zh` to install the Chinese mirror. The two variants are mutually exclusive: running the other language switches the package-owned same-named first-party skills, and the manifest records the choice in the `lang` field of each package-owned first-party entry. `--zh` is install-only; `check` and `uninstall` are language-agnostic. The mirror is a snapshot of `v5.3` (2026-10-28) and is not auto-synced; use `node scripts/check-skills-zh.js` to check it. `--with-matt-skills` installs English upstream dependencies, so pass `--zh` too to keep the first-party skills Chinese; an English install without `--zh` switches them back.
+The package also ships `skills_zh/`, a manually reviewed Chinese mirror of the six first-party skills with identical directory and skill names. Installs default to the English tree (`skills/`); pass `--zh` to install the Chinese mirror. The two variants are mutually exclusive: running the other language switches the package-owned same-named first-party skills, and the manifest records the choice in the `lang` field of each package-owned first-party entry. `--zh` is install-only; `check` and `uninstall` are language-agnostic. The mirror is a snapshot of `v5.4` (2026-10-28) and is not auto-synced; use `node scripts/check-skills-zh.js` to check it. `--with-matt-skills` installs English upstream dependencies, so pass `--zh` too to keep the first-party skills Chinese; an English install without `--zh` switches them back.
 
 The package also ships a first-party `docs-html-view` skill (manual invocation only; distributed but not run at install). It builds one publishable multi-page PRD from `docs/toc.yml`: a cover, the three core PRD chapters, the module PRDs, and four appendix groups (glossary, SPEC, Current, ADR). Rendering uses standard Sphinx, MyST, and the stock RTD theme, with `scripts/gen_prd.py` generating the cover and conditional section landing pages plus `_manifest.json` / `_meta.json`, and `scripts/check_prd.py` validating the TOC, manifest, PRD-layer links, glossary freshness, built anchors, template-provenance stripping, and unlisted pages (PyYAML is pinned in `requirements.txt`). Only TOC-listed documents are built — module `00-index.md` sidecars and default-unlisted `design/` files never enter the output — and the root `CONTEXT.md` becomes the generated glossary. Output lands in `docs/docsHtmlView/build/html`; the generated root `index.html` redirects to the cover. Packaging, hosting, and delivery are outside the skill and remain the user's decision. There is one TOC-driven publication: no profiles, full-site build, or product-narrative-only build, and no single-file HTML. After approval of packages, environment, and files, first-time setup uses `sphinx-quickstart`; `gen_prd.py` then seeds `docs/docsHtmlView/build.sh` / `build.bat` only when missing (user-owned, editable, never overwritten), and later repeated builds use those helpers, which are build-only wrappers around the same `sphinx-build` and do not regenerate, validate, or install anything. `make html` and `sphinx-build` remain fallbacks; there is no auto-build, watcher, browser, server, or deployment, and source docs are never rewritten. `check` does not cover the skill.
 
@@ -166,19 +176,21 @@ The package also ships a first-party `docs-docx-view` skill (manual invocation o
 
 The package also ships a first-party `lite-task` skill: a lightweight development workflow for small, low-risk tasks (or when the user explicitly opts in). It keeps the same five steps as `project-docs-workflow` (功能同步 / 骨架 / 实现 / 异常 / 回顾) but drops its documentation obligations — no forced issue, PRD, Current, or ADR bookkeeping, generally code only. Escalate to `project-docs-workflow` when the task grows (contract change, cross-module impact, or a durable decision).
 
+The package also ships a first-party `repo-read-assistant` skill (manual invocation only; distributed but not run at install). It onboards a new engineer onto an unfamiliar repository through prediction-first tutoring: the learner predicts behavior before the code is revealed, so understanding is checked rather than merely narrated. It writes only under `docs/teach/`, treats the repository as read-only (build/test execution is allowed, but no source edits), and persists a per-user mastery profile so later sessions can focus on concepts that still need reinforcement. As with the other optional first-party skills, installation distributes it but does not run it or enable it during project-document initialization; invoke it manually. See its `SKILL.md` for the full interface.
+
 <details>
 <summary>高级细节</summary>
 
 ### 可选上游依赖
 
-主 skill **自带内部回退**（`references/deps/{grilling,domain-modeling,tdd,doc-opt,boundaries}.md`）：外部依赖未安装时按对应回退执行，功能可用。本包**不**随包分发独立依赖 skill——默认只分发五个第一方 skill（`project-docs-workflow`、`doc-opt`、`docs-html-view`、`docs-docx-view`、`lite-task`）；安装器也不复制任何独立轻量 skill。
+主 skill **自带内部回退**（`references/deps/{grilling,domain-modeling,tdd,doc-opt,boundaries}.md`）：外部依赖未安装时按对应回退执行，功能可用。本包**不**随包分发独立依赖 skill——默认只分发六个第一方 skill（`project-docs-workflow`、`doc-opt`、`docs-html-view`、`docs-docx-view`、`lite-task`、`repo-read-assistant`）；安装器也不复制任何独立轻量 skill。
 
 **默认（不带 `--with-matt-skills`）：**
 - 已存在的独立依赖一律**保留**（含旧版本曾复制的轻量目录），不判定完整版、不自动清理 / 迁移。
 - 缺失的受支持名称：仅在交互式安装（stdin 与 stdout 均为 TTY、非 dry-run）且上游目标安全、Node >= 22.20 时**可选**询问一次；这是**可选的完整版增强**，不是必需依赖。回答 yes 只安装缺失项；No / 直接回车 / 非 TTY / 非等价的自定义 `--dir` / Node 不足时，直接使用内部回退（**不**复制独立轻量 skill）。
 - `--force` 单独使用**不**安装或更新外部依赖。
 
-**显式 `--with-matt-skills`（可选增强）：** 通过 `npx` 安装缺失 + **更新**已存在的 8 个外部上游完整版；不询问，提示**本地依赖改动可能被覆盖**。第一方自带集合（主 skill、`doc-opt`、`docs-html-view`、`docs-docx-view`、`lite-task`）**不提交上游**，但仍照常执行普通第一方全目录同步；命名集合之外的外部目录保留不动。需 Node.js >= 22.20。
+**显式 `--with-matt-skills`（可选增强）：** 通过 `npx` 安装缺失 + **更新**已存在的 8 个外部上游完整版；不询问，提示**本地依赖改动可能被覆盖**。第一方自带集合（主 skill、`doc-opt`、`docs-html-view`、`docs-docx-view`、`lite-task`、`repo-read-assistant`）**不提交上游**，但仍照常执行普通第一方全目录同步；命名集合之外的外部目录保留不动。需 Node.js >= 22.20。
 
 仅以下 8 个名称参与上游操作：`grilling`、`grill-me`、`grill-with-docs`、`domain-modeling`、`tdd`、`deepwork`、`retro`、`improve-codebase-architecture`。`/grill-me` 不再由本包提供独立入口；需要独立入口请安装上游，主 skill 的内部回退仍支持相同行为（无斜杠别名）。
 
@@ -205,13 +217,13 @@ The package also ships a first-party `lite-task` skill: a lightweight developmen
 }
 ```
 
-`kind` 可为 `main`、`doc-opt`、`docs-html-view`、`docs-docx-view`、`lite-task` 或 `upstream`；历史清单里还可能出现 `lite`（早期版本曾复制独立轻量 skill）——安装时一律保留，用户主动运行 `uninstall` 时仍按历史归属处理（升级时不会静默清除用户目录；清理 / 迁移仅在用户显式授权时进行）。`action` 可为 `installed`、`forced` 或 `skipped`。由本包安装（`installed` / `forced`）的第一方条目还记录 `lang`（`en` / `zh`）；`skipped` 条目与上游条目不带 `lang`。卸载按记录的路径/名称操作：`skipped` 以及未知状态的条目保留。上游项会尽量通过 `skills` CLI 批量移除；若 CLI 无法运行或返回失败，安装器会直接删除对应目录作为回退，这可能使 `~/.agents/.skill-lock.json` 留有过期记录。
+`kind` 可为 `main`、`doc-opt`、`docs-html-view`、`docs-docx-view`、`lite-task`、`repo-read-assistant` 或 `upstream`；历史清单里还可能出现 `lite`（早期版本曾复制独立轻量 skill）——安装时一律保留，用户主动运行 `uninstall` 时仍按历史归属处理（升级时不会静默清除用户目录；清理 / 迁移仅在用户显式授权时进行）。`action` 可为 `installed`、`forced` 或 `skipped`。由本包安装（`installed` / `forced`）的第一方条目还记录 `lang`（`en` / `zh`）；`skipped` 条目与上游条目不带 `lang`。卸载按记录的路径/名称操作：`skipped` 以及未知状态的条目保留。上游项会尽量通过 `skills` CLI 批量移除；若 CLI 无法运行或返回失败，安装器会直接删除对应目录作为回退，这可能使 `~/.agents/.skill-lock.json` 留有过期记录。
 
 ### 依赖解析与来源
 
 `check` 逐项检查依赖：目标目录中存在同名 skill（按名解析即可，**不**验证是否为完整版）**或**主 skill 内置 `references/deps/*.md` 回退可用，即视为通过——因此全新安装（未装任何独立依赖）也会通过。这不是主 skill 安装检查，也不是项目初始化检查。
 
-内部回退文档中**源自上游的部分**（见 [`NOTICE`](./NOTICE)：`references/deps/{grilling,domain-modeling,tdd,boundaries}.md`）裁剪 / 改编自 [mattpocock/skills](https://github.com/mattpocock/skills)（MIT，Matt Pocock）；`references/deps/doc-opt.md` 为本包第一方回退，**非**上游派生。本包**不**随包分发独立依赖 skill；`doc-opt`、`docs-html-view`、`docs-docx-view` 与 `lite-task` 是本包附带的第一方 skill。主 skill 对引用能力先按名解析已安装的独立 skill，不存在时执行内部 ref 回退。详见 [`NOTICE`](./NOTICE)。
+内部回退文档中**源自上游的部分**（见 [`NOTICE`](./NOTICE)：`references/deps/{grilling,domain-modeling,tdd,boundaries}.md`）裁剪 / 改编自 [mattpocock/skills](https://github.com/mattpocock/skills)（MIT，Matt Pocock）；`references/deps/doc-opt.md` 为本包第一方回退，**非**上游派生。本包**不**随包分发独立依赖 skill；`doc-opt`、`docs-html-view`、`docs-docx-view`、`lite-task` 与 `repo-read-assistant` 是本包附带的第一方 skill。主 skill 对引用能力先按名解析已安装的独立 skill，不存在时执行内部 ref 回退。详见 [`NOTICE`](./NOTICE)。
 
 </details>
 

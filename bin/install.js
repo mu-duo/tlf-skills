@@ -23,7 +23,7 @@ const UPSTREAM_REPO = "mattpocock/skills";
 const UPSTREAM_DEFAULT_AGENT = "codex";
 // 上游安装器要求 Node >= 22.20（本项目不引入 semver 依赖，手工比较 major/minor）。
 const UPSTREAM_MIN_NODE = { major: 22, minor: 20 };
-// 仅这 8 个依赖 skill 受上游支持；doc-opt、docs-html-view、docs-docx-view、lite-task 与主 skill 不属于。
+// 仅这 8 个依赖 skill 受上游支持；doc-opt、docs-html-view、docs-docx-view、lite-task、repo-read-assistant 与主 skill 不属于。
 const MATT_DEP_NAMES = [
   "grilling",
   "grill-me",
@@ -35,7 +35,7 @@ const MATT_DEP_NAMES = [
   "improve-codebase-architecture",
 ];
 
-// 第一方 skill：本包自带、随包版本分发的 skill（共五项）。这是一份**显式名单**——未列出的
+// 第一方 skill：本包自带、随包版本分发的 skill（共六项）。这是一份**显式名单**——未列出的
 // 目录一律不是第一方，也不随包分发（未知包内目录仅提示忽略）。外部依赖（8 个上游名）不随包
 // 分发：默认保留已存在的独立安装，缺失时使用主 skill 内部回退文档（references/deps）；只有
 // --with-matt-skills 才通过 npx 安装/更新独立完整版。kind 与名单同源。
@@ -44,6 +44,7 @@ const FIRST_PARTY_DEP_KINDS = {
   "docs-html-view": "docs-html-view",
   "docs-docx-view": "docs-docx-view",
   "lite-task": "lite-task",
+  "repo-read-assistant": "repo-read-assistant",
 };
 const FIRST_PARTY_NAMES = [MAIN_SKILL].concat(Object.keys(FIRST_PARTY_DEP_KINDS));
 const FIRST_PARTY_SET = new Set(FIRST_PARTY_NAMES);
@@ -55,6 +56,7 @@ const KNOWN_LOCAL_KINDS = new Set([
   "docs-html-view",
   "docs-docx-view",
   "lite-task",
+  "repo-read-assistant",
 ]);
 
 function depKind(name) {
@@ -103,7 +105,7 @@ function usage() {
       "用法说明：运行 `npx @tanlinfeng/project-docs-workflow@<version> install` 选择安装器/源码版本",
       "（`npm i` 只是把包装进 node_modules，不会运行本工具）。所选旧版本自带它当时的安装器，",
       "行为可能与当前不同，这里只保证兼容、不承诺升级。",
-      "普通安装只同步本包自带的第一方 skill（project-docs-workflow、doc-opt、docs-html-view、docs-docx-view、lite-task）：",
+      "普通安装只同步本包自带的第一方 skill（project-docs-workflow、doc-opt、docs-html-view、docs-docx-view、lite-task、repo-read-assistant）：",
       "缺失则安装；已由本包接管则用当前包内版本全量替换（会移除其中多余/过期文件）；",
       "未接管条目、符号链接（含悬空）默认保留。外部依赖不再随包分发：默认保留已存在的独立安装，",
       "缺失时使用主 skill 内部回退文档（references/deps），功能可用、无需独立目录。",

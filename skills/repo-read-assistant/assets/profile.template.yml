@@ -1,0 +1,36 @@
+# Mastery profile. Copy to docs/teach/<user>/profile.yml.
+# Machine-readable state for one user on one repo. Every concept needs an anchor and evidence.
+# Mark each entry verified / inferred. Never store a verdict ("mastered"); store observations.
+
+version: 1
+user: <slug>                   # slug of `git config user.name`, fallback: default
+repo: <name>
+repo_commit: <sha>             # `git rev-parse --short HEAD` at last session
+focus: <what the user will change first>
+density: normal                # low | normal | high
+mode: tutor                    # tour | tutor | drill
+updated: <YYYY-MM-DD>
+
+curriculum:
+  orientation: { status: todo }   # todo | active | done
+  skeleton:    { status: todo }
+  spine:       { status: todo }
+  structure:   { status: todo }
+  apply:       { status: todo }
+
+concepts:
+  - id: <stable-id>
+    canonical: <name>
+    aliases: []
+    anchor: <path:line>
+    level: L0                 # L0 unknown | L1 locate | L2 explain | L3 predict | L4 apply
+    confidence: 0.0           # user self-rating 0-1
+    accuracy: 0.0             # measured 0-1
+    evidence: []              # quote the prediction or the error, with a date
+    misconceptions: []
+    next_review: null         # YYYY-MM-DD
+    verified: <verified|inferred>
+
+pending_explanations: []      # queued mid-session discoveries, one line each
+open_questions: []            # questions the user asked that were not answered
+last_session: null            # YYYY-MM-DD

@@ -24,7 +24,7 @@
 | 项目 | 值 |
 | --- | --- |
 | 源目录 | `skills/` |
-| 基线提交 | `v5.3` |
+| 基线提交 | `v5.4` |
 | 基线日期 | 2026-10-28 |
 
 `skills/` 在本目录创建后若有新提交，本目录不会自动跟随；需要按用户请求重新快照并更新上表。
@@ -49,7 +49,7 @@
 
 ## 范围与映射
 
-本镜像包含五个第一方 skill，目录名和 `name` 均与英文版相同：
+本镜像包含六个第一方 skill，目录名和 `name` 均与英文版相同：
 
 | Skill | 目录 | frontmatter `name` |
 | --- | --- | --- |
@@ -58,6 +58,7 @@
 | docs-html-view | `docs-html-view/` | `docs-html-view` |
 | docs-docx-view | `docs-docx-view/` | `docs-docx-view` |
 | lite-task | `lite-task/` | `lite-task` |
+| repo-read-assistant | `repo-read-assistant/` | `repo-read-assistant` |
 
 ## 更新清单
 
@@ -69,7 +70,7 @@
 
 ## 复核策略
 
-- 五个 skill 的 `SKILL.md` 与本文档 `README.md` 做完整复核。
+- 六个 skill 的 `SKILL.md` 与本文档 `README.md` 做完整复核。
 - `references/**` 等其余 Markdown（包括 `EXAMPLES.md`）做抽样复核。
 - 逐字节复制的文件由 `scripts/check-skills-zh.js` 做机械校验，避免人工遗漏。
 

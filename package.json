@@ -1,10 +1,10 @@
 {
   "name": "@tanlinfeng/project-docs-workflow",
-  "version": "5.3.0",
+  "version": "5.4.0",
   "publishConfig": {
     "access": "public"
   },
-  "description": "项目文档工作流 skill 包：提供 issue tracker / ADR / PRD / 术语表与工作流约定；随包分发主 skill 与 doc-opt / docs-html-view / docs-docx-view / lite-task，并附带中文镜像 skills_zh（--zh），内置依赖回退 ref（不随包分发独立依赖 skill），可独立使用。",
+  "description": "项目文档工作流 skill 包：提供 issue tracker / ADR / PRD / 术语表与工作流约定；随包分发主 skill 与 doc-opt / docs-html-view / docs-docx-view / lite-task / repo-read-assistant，并附带中文镜像 skills_zh（--zh），内置依赖回退 ref（不随包分发独立依赖 skill），可独立使用。",
   "license": "MIT",
   "bin": {
     "project-docs-workflow": "bin/install.js"

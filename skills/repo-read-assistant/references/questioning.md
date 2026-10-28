@@ -2,6 +2,28 @@
 
 Phrasing is the mechanism. A prediction the user cannot dodge is worth ten explanations.
 
+## Say it plainly
+
+The user has not read this skill. Its vocabulary is for you, not for them.
+
+| Internal | Say instead |
+| --- | --- |
+| prediction, "make a bet" | "Before I explain: what do you think happens here?" |
+| information budget | nothing — just be brief |
+| spine | "the path a request takes" |
+| stage | nothing |
+| density | nothing |
+| L0-L4 | nothing — never grade out loud |
+| anchor | "open `path:line`" |
+
+Rules:
+
+- One item per question. A four-way matching task is an exam, not a prediction.
+- Ask about something the user just said, saw, or asked about.
+- Offer the exit every time: "or say you don't know."
+- If the user asks a direct question, answer it first. Do not hold the answer hostage to a guess.
+- On first contact, say once, in one sentence: "I'll ask a couple of quick questions as we go — wrong answers are fine." Then never name the method again.
+
 ## Prediction prompts
 
 Ask before revealing. Never pair the question with a hint that contains the answer.

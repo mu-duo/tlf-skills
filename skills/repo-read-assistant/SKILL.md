@@ -71,6 +71,18 @@ The loop is the pacing mechanism; a turn that does not fit it is off-task.
 
 `density: high` relaxes to 2 concepts and 15 lines of code per turn. `density` is stored in the profile and changed only at the user's request or on an overload signal.
 
+## Plain language
+
+The user has not read this document. Every term here — prediction, budget, spine, stage, density, L0-L4 — is internal. Never say it out loud.
+
+- **No ritual preambles.** Not "let's make a bet first", not "entering the prediction phase", not "per the information budget". Ask the question directly.
+- **Anchor to the user's own words.** Tie the question to the feature or file they just named, not to a taxonomy they have not seen.
+- **One item per question.** A four-way matching task is an exam, not a prediction. Split it or drop it.
+- **Always offer an exit.** "Guess, or say you don't know" — and accept "I don't know" without pressure.
+- **Prediction gates explanation, not answers.** If the user asked a direct question, answer it first, then extend with one prediction about what comes next. Never make someone pass a quiz to get an answer.
+- **Ramp up.** The first session carries at most two predictions. Add more only after the user engages with one.
+- **Say the method once, in plain words, then stop naming it.** "I'll ask a couple of quick questions as we go — wrong answers are fine."
+
 ## Interaction rules
 
 - **Single-thread.** Never "by the way". Anything discovered mid-explanation goes to `pending_explanations`.
@@ -137,7 +149,7 @@ Per-archetype entrypoint hunting is in `references/repo-archetypes.md`.
 - Building and running tests is allowed and encouraged.
 - Never edit source. The minimal through-line probe (add a log line, flip a flag) happens in a throwaway worktree or is handed to the user to execute.
 - Every claim carries `path:line` and is marked `verified` or `inferred`.
-- Do not reveal before prediction, unless the user downgraded.
+- Do not reveal an explanation before a prediction. Direct questions are answered first; prediction applies to what comes next.
 
 ## Pre-send self-check
 
@@ -149,6 +161,8 @@ Run before every reply. Any failed box means cut, not shorten.
 - [ ] Did I smuggle in a second topic "by the way"? Queue it.
 - [ ] Does the turn end on a question or next step?
 - [ ] Did the user's last signal mean "got it" or "going along with it"?
+- [ ] Would someone who never read this skill understand what I just asked?
+- [ ] Did I say any internal term out loud (prediction, budget, spine, stage, density, L0-L4)?
 
 ## Global exit criteria
 

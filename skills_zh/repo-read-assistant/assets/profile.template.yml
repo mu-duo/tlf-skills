@@ -1,36 +1,36 @@
 # 掌握度 profile。复制到 docs/teach/<user>/profile.yml。
-# 某个用户在一个仓库上的机器可读状态。每个概念都需要锚点和证据。
-# 每条记录标记 verified / inferred。绝不存判决（"mastered"）；存观察。
+# 一个用户在一个仓库上的机器可读状态。每个概念都需要锚点和证据。
+# 给每条记录标注 verified / inferred。绝不要存判定（「已掌握」）；存观察。
 
 version: 1
-user: <slug>                   # `git config user.name` 的 slug，回退：default
+user: <slug>                   # `git config user.name` 的 slug，回退值：default
 repo: <name>
 repo_commit: <sha>             # 上次会话时的 `git rev-parse --short HEAD`
-focus: <用户会最先改动的部分>
-density: normal                # low | normal | high
+focus: <用户会先改什么>
+density: normal                # low | normal | high —— 只影响节奏；绝不改变 brief 的深度
 mode: tutor                    # tour | tutor | drill
 updated: <YYYY-MM-DD>
 
-curriculum:
-  orientation: { status: todo }   # todo | active | done
-  skeleton:    { status: todo }
-  spine:       { status: todo }
-  structure:   { status: todo }
-  apply:       { status: todo }
+curriculum:                    # 四份 brief，从粗到细
+  model:      { status: todo, path: 00-model.md }      # todo | active | done
+  map:        { status: todo, path: 01-map.md }
+  structure:  { status: todo, path: 02-structure.md }
+  operations: { status: todo, path: 03-operations.md }
+  runbook:    { status: todo, path: runbook.md }
 
 concepts:
   - id: <stable-id>
     canonical: <name>
     aliases: []
-    anchor: <path:line>
+    anchor: <brief 章节或 path:line>
     level: L0                 # L0 unknown | L1 locate | L2 explain | L3 predict | L4 apply
     confidence: 0.0           # 用户自评 0-1
     accuracy: 0.0             # 实测 0-1
-    evidence: []              # 引用预测或错误，附日期
+    evidence: []              # 引用回答或错误，并带日期
     misconceptions: []
     next_review: null         # YYYY-MM-DD
     verified: <verified|inferred>
 
-pending_explanations: []      # 会话中途发现、排队待讲的内容，每条形一行
-open_questions: []            # 用户提出但未回答的问题
+pending_explanations: []      # 会话中途发现的待办解释，每行一条
+open_questions: []            # 用户提出但尚未回答的问题
 last_session: null            # YYYY-MM-DD

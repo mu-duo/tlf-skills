@@ -1,6 +1,6 @@
 # Questioning
 
-Phrasing is the mechanism. A prediction the user cannot dodge is worth ten explanations.
+Conversation verifies a model the user has already read. It does not deliver the model. Every prompt below assumes a brief was handed over first.
 
 ## Say it plainly
 
@@ -8,91 +8,106 @@ The user has not read this skill. Its vocabulary is for you, not for them.
 
 | Internal | Say instead |
 | --- | --- |
-| prediction, "make a bet" | "Before I explain: what do you think happens here?" |
-| information budget | nothing — just be brief |
-| spine | "the path a request takes" |
-| stage | nothing |
-| density | nothing |
+| brief, layer | "the page I wrote for you" / "this pass" |
+| model check | "a few questions" |
+| prediction | "before you look: what do you expect?" |
+| elaboration vs disclosure | nothing — never name the method |
+| budget | nothing — just be brief |
+| spine, chain | "the path a request takes" |
 | L0-L4 | nothing — never grade out loud |
 | anchor | "open `path:line`" |
 
 Rules:
 
-- One item per question. A four-way matching task is an exam, not a prediction.
-- Ask about something the user just said, saw, or asked about.
+- One item per question. A four-way matching task is an exam, not a check.
+- Ask about something the user just read, said, or asked about.
 - Offer the exit every time: "or say you don't know."
-- If the user asks a direct question, answer it first. Do not hold the answer hostage to a guess.
-- On first contact, say once, in one sentence: "I'll ask a couple of quick questions as we go — wrong answers are fine." Then never name the method again.
+- If the user asks a direct question, answer it first. Never hold an answer hostage to a check.
+- On first contact, say once, in one sentence: "Read this, then I'll ask a few questions — wrong answers find the gaps." Then never name the method again.
 
-## Prediction prompts
+## One question to hold while reading
 
-Ask before revealing. Never pair the question with a hint that contains the answer.
+Before handing over a brief, give exactly one question. It is not answered in chat; the user holds it while reading and reports afterward. With zero model, a prediction produces only "I don't know" — so do not ask the user to predict content they have not read.
 
-- "Before I show you: which module do you think handles X, and why?"
-- "In this repo, when a request hits X, what is the first file it touches? Guess."
-- "If you had to add Y today, which directory would you open? Commit to one."
-- "What do you expect to find at `path:line`? One sentence."
-- "Which of these two is the entry point, and what made you pick it?"
-- "Where does the data change shape: at the boundary or in the core?"
-- "What breaks if we delete this function?"
+Good questions point at the layer, not at a detail:
+
+- "While you read, keep asking: which step in the loop would you change first, and what would it disturb?"
+- "Hold this: where does a request change shape, and which module owns that change?"
+- "As you read: why is this split into two services instead of one?"
+- "Keep one question: what would break first if the queue stopped draining?"
 
 Rules:
 
-- Exactly one prediction per turn.
-- Accept a wrong answer without softening it; record it as evidence, then reveal.
-- If the user refuses to guess, take the smallest possible question ("same file or another file?") rather than proceeding without a prediction.
+- Exactly one question, one sentence.
+- It must be answerable from the brief, not from prior knowledge.
+- Do not gate the file on an answer. Hand over the path and the question together.
+- If the user answers it immediately, acknowledge briefly and let them read; the real check comes after.
 
-## Socratic probes, three levels
+## Model checks after reading
 
-Use when the user gives a correct but shallow answer. Stop at the level where they hesitate; that is the boundary of their understanding.
+Three questions, in this order. They test the model, not recall of names.
 
-1. **What** — "What does this function return, and who consumes it?"
-2. **Why** — "Why is it here rather than in the caller?"
-3. **What if** — "What breaks if this returns null? Who notices first?"
+**1. Locate.** "For <feature>, where would you start, and what are the two files after that?" Wrong path means the map layer did not land, regardless of how well they explain the idea.
 
-A user who clears level 3 on a concept is L3 or better. A user who stalls at level 2 is L1-L2 and needs the anchor, not more prose.
+**2. Predict impact.** "If we changed <X> here, what else moves, and who notices first?" This tests relations: a right-facts, wrong-relations model fails here and caps at L2.
 
-## Teach-back prompts
+**3. Explain why — and why not.** "Why is it built this way rather than <the obvious alternative>, and what does that choice cost?" The second half is the real question. A design choice with no cost is a slogan.
+
+Phrasing:
+
+- "Without the page: what are the steps a typical task goes through?"
+- "Which entity connects <A> and <B>, and what does it carry between them?"
+- "What would you have to touch to add <Y>, and what might break silently?"
+- "What did the designer decide not to support here, and what does that buy?"
+
+Rules:
+
+- Ask all three in one message, numbered. They are one check, not three turns.
+- Accept a wrong answer without softening it. Record it, then correct.
+- If all three are right, record evidence and move on; do not invent a fourth.
+- If the first two fail, stop. The model is not there; correct the brief before asking more.
+
+## Teach-back and whiteboard prompts
 
 The strongest signal, and the cheapest to grade.
 
-- "Explain that back to me in two sentences, as if I had never seen the file."
-- "Draw the chain from memory: names only, no looking."
-- "What would you tell a new teammate about this file in 30 seconds?"
-- "Where would you look first if this broke in production?"
+- "Explain that back to me in two sentences, as if I had never seen the repo."
+- "Draw the model from memory: one sentence, the loop, the nouns, the seams."
+- "What would you tell a new teammate in 30 seconds?"
+- "Redraw the loop on a blank page, then mark where you are least sure."
 
-Grade on order, anchors, and omissions. Fluent vagueness is not mastery; record it as low accuracy with high confidence.
+Grade on order, relations, and omissions. Fluent vagueness is not mastery; record it as low accuracy with high confidence. A drawing with the right boxes and wrong arrows is L2 at most.
 
-## Degradation phrases
+## Overload handling
 
-Overload is silent. Watch for it and respond before it hardens.
+Brief overload and chat overload are different problems.
 
-| Signal | Response |
-| --- | --- |
-| Shorter answers | "Let's drop to one file. Open `path:line` and tell me only what the first line does." |
-| "mm", "sure", "ok" | "That sounded like a yes without a check. One question: what does this function take in?" |
-| Non-answer or topic change | "Ignoring that thread for now. Back to one thing: which file handles X?" |
-| Repeated skips | "Skipping is a signal, not a failure. We stop new material and review two terms you already saw." |
-| "This is a lot" | "Agreed. One concept left in this session, then we write state and stop." |
+| Signal | Likely cause | Response |
+| --- | --- | --- |
+| "This is a lot" after reading | brief is too dense for its layer | split it, or move detail down a layer; do not shorten prose |
+| Stops mid-brief | cap exceeded in spirit | cut the brief to its layer and say what moved down |
+| Short or "mm" replies in chat | chat turn too long | shrink to one question, <=150 words |
+| Non-answer or topic change | check is above the model | drop to a locate question |
+| Repeated skips | user is done for the day | stop, write state, resume next sitting |
 
-Then cut the budget explicitly: one concept becomes zero new concepts, one code block becomes an anchor, a paragraph becomes a sentence. Do not announce a pedagogy change; just shrink.
+Never respond to overload by compressing the brief into prose. Density is a layer problem: move the detail to `02-structure.md` or `03-operations.md`, or split the layer.
 
 ## Handling "just tell me"
 
-Comply in the same turn. No negotiation, no "but you'll learn more if".
+Comply in the same turn. No negotiation.
 
-1. Answer directly, at L1, with the anchor.
-2. Stop the prediction loop for the current objective.
+1. Answer directly, referencing the brief's anchor.
+2. Stop checks for the current brief.
 3. Do not re-ask the same question later in the session.
-4. At the end of the session, ask once: "Resume prediction next time?" A "no" is final until they raise it.
+4. At the end of the session, ask once: "Want the questions next time?" A "no" is final until they raise it.
 
-Record the downgrade in the session file and profile (`mode` for that objective) so the next session does not reopen the argument.
+Record the downgrade in the session note and profile, so the next session does not reopen the argument.
 
 ## Handling "I don't know"
 
 Valid for both sides.
 
-- User: give the smallest decidable question, or teach the point directly after two misses. Never repeat the same question louder.
+- User: give the smallest decidable question ("same file or another file?"), or point at the brief section that answers it. After two misses on one point, correct the brief directly.
 - Agent: "I don't know yet; the code at `path:line` suggests X but I have not confirmed the caller." Then verify or mark `inferred`. Never fill the gap with plausible architecture.
 
 ## Question quality checks
@@ -100,6 +115,7 @@ Valid for both sides.
 Before sending a question:
 
 - Can it be answered in one or two sentences?
-- Does it have a wrong answer that is informative? (Yes/no questions usually don't.)
-- Does it point at a file or a previous turn, so the user knows where to look?
+- Does it have a wrong answer that is informative? (Yes/no usually does not.)
+- Does it point at a brief section or a file, so the user knows where to look?
 - Is it the only question in the turn?
+- Does it respect the cap: three questions per brief check, one per chat turn?

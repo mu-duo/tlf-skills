@@ -1,19 +1,18 @@
 <!-- Template: docs/teach/<user>/sessions/YYYY-MM-DD.md -->
-<!-- One file per session. Replace <...>. Content is the 40-minute transcript, not a summary. -->
+<!-- One file per session. Replace <...>. Content is what happened, not a summary of the brief. -->
 <!-- The next agent resumes from this file plus profile.yml; anything not written here is lost. -->
 
 # Session <YYYY-MM-DD>
 
 User: <slug>
 Repo commit: <sha>
-Stage: <orientation | skeleton | spine | structure | apply | drill>
+Brief: <00-model | 01-map | 02-structure | 03-operations | drill>
 Mode: <tour | tutor | drill>
-Density: <low | normal | high>
 Duration: <minutes>
 
-## Objective
+## Why this brief
 
-<One sentence. One stage only.>
+<One sentence: what the previous session left unresolved and why this layer comes next.>
 
 ## Resume state
 
@@ -21,29 +20,45 @@ Duration: <minutes>
 - Concepts due for review: <ids>
 - pending_explanations carried in: <count>
 
-## Warm-up retrieval
+## The brief
 
-| Concept | Question | Answer | Correct |
+- Path: `docs/teach/<user>/<file>.md`
+- Written as: <new document | delta against <doc>>
+- Length: <word count> against cap <cap>
+- Deliberately ignores: <the simplification contract, verbatim from the brief>
+
+## Handover
+
+- Why this layer: <one sentence>
+- One question to hold while reading: <verbatim>
+
+## Model check after reading
+
+### 1. Locate
+
+- Question: <feature or term>
+- User's answer: > <verbatim>
+- Verdict: <correct / partial / wrong>
+
+### 2. Predict impact
+
+- Question: <change and its consequences>
+- User's answer: > <verbatim>
+- Verdict: <correct / partial / wrong>
+
+### 3. Explain why, and why not
+
+- Question: <design choice, alternative, and cost>
+- User's answer: > <verbatim>
+- Verdict: <correct / partial / wrong>
+
+## Corrections made to the brief
+
+| Section | What the user's model had | What the brief now says | Anchor |
 | --- | --- | --- | --- |
-| <id> | <question> | <verbatim> | <yes/partial/no> |
+| <heading> | <wrong relation or fact> | <corrected sentence> | `<path:line>` |
 
-## Predictions and reveals
-
-### Prediction 1
-
-- Question: <what you asked before revealing>
-- User's answer: > <verbatim>
-- Reveal: <the fact>
-- Anchor: `<path:line>`
-- Delta: <what was wrong, precisely>
-
-### Prediction 2
-
-- Question:
-- User's answer: > <verbatim>
-- Reveal:
-- Anchor: `<path:line>`
-- Delta:
+<!-- Edit at the exact point of error. Do not append a new essay. -->
 
 ## Concept updates
 
@@ -53,25 +68,26 @@ Duration: <minutes>
 
 ## Misconceptions found
 
-- <verbatim belief> — corrected at `<path:line>`
+- <verbatim belief> — corrected at `<brief section>` / `<path:line>`
 
 ## Downgrades and overload
 
 - <signal observed> -> <response>. Mode for remainder: <...>
 
-## Stage exit test
+## Whiteboard test
 
-- Test: <the done criterion from references/curriculum.md>
-- Result: <passed/failed>
-- Evidence: <what the user did>
+- Drawn from memory: <the six parts or the loop and nouns>
+- Missing or wrong: <what was absent>
+- Result: <passed / failed>
 
 ## Artifacts touched
 
 - [ ] `profile.yml`
-- [ ] `<artifact>` — <what changed>
+- [ ] `<brief>` — <what changed>
+- [ ] `runbook.md` / `glossary.md` — <what changed>
 
 ## Next session
 
+- Next brief: <which, and why>
 - Start with: <concept id and why>
-- Stage: <next stage, or repeat>
 - Pending: <queued explanations to schedule>

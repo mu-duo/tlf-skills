@@ -1,45 +1,71 @@
-<!-- 模板：docs/teach/<user>/02-map.md -->
-<!-- 阶段 2 产物。替换 <...>。把 map 写成假设；走查过之后才把边提升为 verified。 -->
-<!-- 范围限定在 spine 上。整棵树的 map 只是目录。 -->
+<!-- 模板：docs/teach/<user>/01-map.md -->
+<!-- 四份 brief 中的第 2 份。上限：1500 词。一份完整文档，一次坐下读完。 -->
+<!-- 地图用地址给模型加密细节。它不是目录。 -->
+<!-- 链路（「spine」）住在这里。在走过之前，每一跳都需要 path:line 和状态。 -->
 
-# Map: <repo>
+# 地图：<repo>
 
-假设状态：<草稿 | 部分验证 | spine 上已验证>
-原型：<http-service | cli | library | event-driven | plugin-di | monorepo | data-pipeline | codegen>
+> **如果你只读一段：**<工作从哪里进入系统、承载大多数任务的那一条链路，以及一次改动通常跨过的三个边界。4-6 句。>
 
-## 入口点
+## 这一层刻意忽略什么
 
-| 入口点 | 类型 | 锚点 | 可信度 |
+<这些形状为何存在、失败行为和历史。这一层回答「在哪里」，不回答「为什么」或「如果……会怎样」。>
+
+## 原型
+
+<http-service | cli | library | event-driven | plugin-di | monorepo | data-pipeline | codegen> — 信号：<决定它的目录树证据>。见本 skill 中的 `references/repo-archetypes.md`。
+
+## 入口
+
+| 入口 | 类型 | 锚点 | 状态 |
 | --- | --- | --- | --- |
-| <name> | <http 路由 / cli 命令 / 导出 / 消费者 / job> | `<path:line>` | <verified/inferred> |
+| <名称> | <http 路由 / cli 命令 / 导出 / 消费者 / 作业> | `<path:line>` | <verified/inferred> |
+
+## 功能所在位置
+
+| 功能 | 入口 | 路径上的文件 |
+| --- | --- | --- |
+| <用户提到的功能> | <入口> | `<path:line>`、`<path:line>` |
+
+## 链路
+
+Focus：<用户对「你会先改哪一部分？」的回答>
+选定链路：<名称>
+理由：<一句话>
+回退：<是/否——若是，明确说明>
+
+| # | 跳 | 发生什么 | 锚点 | 状态 |
+| --- | --- | --- | --- | --- |
+| 1 | <触发> | <一行> | `<path:line>` | <verified/inferred> |
+| 2 | <模块> | <一行> | `<path:line>` | <verified/inferred> |
+| 3 | <模块> | <一行> | `<path:line>` | <verified/inferred> |
+| 4 | <模块> | <一行> | `<path:line>` | <verified/inferred> |
+| 5 | <效果> | <一行> | `<path:line>` | <verified/inferred> |
+
+```text
+<触发> -> <模块> -> <模块> -> <效果>
+```
+
+在走过之前，每个箭头都是 `inferred`。标注生成的文件；没人会去改它们。
 
 ## 边界
 
-| 边界 | 跨越什么 | 锚点 | 可信度 |
-| --- | --- | --- | --- |
-| <api / db / queue / 文件系统> | <数据形状> | `<path:line>` | <verified/inferred> |
-
-## Spine
-
-Focus：<用户对 "which part will you change first?" 的回答>
-选定的 spine：<name>
-原因：<一句话>
-回退：<yes/no — 若是，明确说明>
-
-## 边
-
-```text
-<entrypoint> -> <module> -> <module> -> <effect>
-```
-
-在阶段 3 走查之前，上面每个箭头都是 `inferred`。
+| 边界 | 穿过什么 | 数据形态 | 锚点 | 状态 |
+| --- | --- | --- | --- | --- |
+| <api / db / 队列 / 文件系统> | <调用或载荷> | <之前 -> 之后> | `<path:line>` | <verified/inferred> |
 
 ## 不在范围内
 
-- <有意排除的包或功能，以及原因>
+- <被刻意排除的包或功能，以及原因>
 
-## 更正
+## 纠正
 
-<!-- 构建 map 时做出的错误猜测。保留它们；它们能预测用户会在哪里迷路。 -->
+<!-- 错误的第一猜测是证据：它们预测读者会在哪里迷路。保留它们。 -->
 
-- <guess> 是错的；实际是 <...>。锚点：`<path:line>`
+- <猜测> 是错的；实际是 <...>。锚点：`<path:line>`
+
+## 读完后你应能回答
+
+1. 对于 <feature>，入口是什么，其路径上的三个文件是什么？
+2. 链路上数据在哪里改变形态，改变前后各是什么？
+3. 要添加 <extension> 需要跨过哪个边界，必须遵守什么契约？

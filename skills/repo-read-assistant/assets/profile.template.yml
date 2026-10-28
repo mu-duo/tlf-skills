@@ -7,26 +7,26 @@ user: <slug>                   # slug of `git config user.name`, fallback: defau
 repo: <name>
 repo_commit: <sha>             # `git rev-parse --short HEAD` at last session
 focus: <what the user will change first>
-density: normal                # low | normal | high
+density: normal                # low | normal | high — pace only; never changes a brief's depth
 mode: tutor                    # tour | tutor | drill
 updated: <YYYY-MM-DD>
 
-curriculum:
-  orientation: { status: todo }   # todo | active | done
-  skeleton:    { status: todo }
-  spine:       { status: todo }
-  structure:   { status: todo }
-  apply:       { status: todo }
+curriculum:                    # four briefs, coarse to fine
+  model:      { status: todo, path: 00-model.md }      # todo | active | done
+  map:        { status: todo, path: 01-map.md }
+  structure:  { status: todo, path: 02-structure.md }
+  operations: { status: todo, path: 03-operations.md }
+  runbook:    { status: todo, path: runbook.md }
 
 concepts:
   - id: <stable-id>
     canonical: <name>
     aliases: []
-    anchor: <path:line>
+    anchor: <brief section or path:line>
     level: L0                 # L0 unknown | L1 locate | L2 explain | L3 predict | L4 apply
     confidence: 0.0           # user self-rating 0-1
     accuracy: 0.0             # measured 0-1
-    evidence: []              # quote the prediction or the error, with a date
+    evidence: []              # quote the answer or the error, with a date
     misconceptions: []
     next_review: null         # YYYY-MM-DD
     verified: <verified|inferred>

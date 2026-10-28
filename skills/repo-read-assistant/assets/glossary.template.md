@@ -1,5 +1,6 @@
-<!-- Template: docs/teach/<user>/01-glossary.md -->
-<!-- Stage 1 artifact. Replace <...>. Write DELTAS only if a glossary already exists elsewhere. -->
+<!-- Template: docs/teach/<user>/glossary.md -->
+<!-- Support artifact, grown across all four briefs and converging on the nouns in 00-model.md. -->
+<!-- Replace <...>. Write DELTAS only if a glossary already exists elsewhere. -->
 <!-- Three classes: product nouns, code nouns, infra nouns. Aliases are where newcomers get lost. -->
 
 # Glossary: <repo>
@@ -33,6 +34,6 @@ This file contains: <deltas only | full glossary>
 
 ## Queued
 
-<!-- Terms the user has not met yet. Move up only when the budget allows. -->
+<!-- Terms the user has not met yet. Move each up when a brief introduces it. -->
 
 - <term>

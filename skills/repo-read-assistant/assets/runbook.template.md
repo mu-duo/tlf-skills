@@ -1,6 +1,7 @@
-<!-- Template: docs/teach/<user>/00-runbook.md -->
-<!-- Stage 1 artifact. Replace <...>. Mark every command verified (you ran it) or inferred (read from config). -->
-<!-- This file has more reuse value than any diagram. Keep it executable, not narrative. -->
+<!-- Template: docs/teach/<user>/runbook.md -->
+<!-- Support artifact, written alongside 00-model.md and refreshed with 03-operations.md. -->
+<!-- Replace <...>. Mark every command verified (you ran it) or inferred (read from config). -->
+<!-- This file has more reuse value than any brief. Keep it executable, not narrative. -->
 
 # Runbook: <repo>
 

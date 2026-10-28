@@ -1,143 +1,211 @@
 # Curriculum
 
-Five stages, one per session. Each stage has a runnable checklist, a grep target list, a record target, and a done test. A stage that cannot be graded is a stage that did not happen.
+Four briefs, coarse to fine. Each is a complete document for one layer, written to be read in one sitting. Caps are caps: if a brief will not fit, the detail belongs one layer lower, or the layer needs splitting — never more compression.
 
-## Session to stage mapping
+## Session to brief mapping
 
-| Session | Stage | Mode allowed | Artifact written |
+| Session | Brief | Mode allowed | Supporting artifacts |
 | --- | --- | --- | --- |
-| 1 | Orientation | `tour`, `tutor` | `00-runbook.md`, `01-glossary.md`, `profile.yml`, session note |
-| 2 | Skeleton | `tour`, `tutor` | `02-map.md`, session note |
-| 3 | Spine | `tutor` only | `03-spine.md`, session note |
-| 4 | Structure | `tutor` only | `04-architecture.md`, session note |
-| 5 | Apply | `tutor` only | session note plus patch plan |
-| any later | `drill` | `drill` | session note, profile update |
+| 1 | `00-model.md` | `tour`, `tutor` | `runbook.md`, `glossary.md`, `profile.yml`, session note |
+| 2 | `01-map.md` | `tour`, `tutor` | `glossary.md` update, session note |
+| 3 | `02-structure.md` | `tutor` only | `glossary.md` update, session note |
+| 4 | `03-operations.md` | `tutor` only | `runbook.md` refresh, session note |
+| any later | `drill` | `drill` | session note, `profile.yml` |
 
-Skipping forward is allowed when the user already knows a stage; grade it in one question and mark it `done` with the evidence. Skipping backward is normal and not a failure.
+A brief may be skipped when the user already holds that layer: grade it with one model check and mark it `done` with the evidence. Going backward is normal and not a failure.
 
-## Stage 1 — Orientation
+Every brief follows the same top-level contract:
 
-Goal: minimum vocabulary. The user can say what the project does, gets it running, and knows ten words the team uses.
+1. One-paragraph summary, first thing on the page.
+2. "What this layer deliberately ignores" — the simplification contract.
+3. The body: anchored `path:line`, each claim `verified` / `inferred`, headings that follow the model rather than the file tree.
+4. Three "after reading you should be able to answer" questions that test the model.
 
-Checklist:
+## 00-model.md — what was the designer building?
 
-1. Read `README`, `package.json` / `pyproject.toml` / `go.mod` / `Cargo.toml`, and the top-level directory listing. Nothing deeper.
-2. List entrypoints: `main`, `index`, `cmd/*/main.go`, `bin/*`, `__main__.py`, server bootstrap.
-3. Three-class terminology sync. Ask the user to sort ten terms into: product nouns, code nouns, infra nouns. Correct only the misplacements. This finds false friends faster than a glossary dump.
-4. Get build and tests running. Run them yourself, in the repo, read-only.
-5. Write `00-runbook.md` and `01-glossary.md`.
+Cap: 600 words. This is the only brief normally short enough to inline in chat.
+
+Read before writing:
+
+- `README`, `CONTEXT.md`, `docs/product/*`, `AGENTS.md` — stated purpose.
+- The oldest and newest commits, plus `git log --oneline --reverse | head -20` — what the project was before it was this.
+- Manifests and runtime version pins — the shape of the constraints.
+- CI, Dockerfile, deploy config — what the team could not change.
 
 Grep targets:
 
 ```bash
-rg -n "^(#|##) " README* CONTRIBUTING* 2>/dev/null
-rg -n '"scripts"' -A 20 package.json
-rg -n "^(def main|if __name__|func main|int main)" -g '!vendor' -g '!node_modules'
-rg -n "docker-compose|docker run|make " README* docs/ 2>/dev/null
+rg -n "^(#|##) " README* CONTEXT* 2>/dev/null
+git log --reverse --oneline | head -20
+rg -n "engines|python_requires|go [0-9]|rust-version|node" package.json pyproject.toml go.mod Cargo.toml 2>/dev/null
+rg -n "TODO|NOTE|HACK|for now|on purpose|by design" -g '!node_modules' -g '!vendor' | head -40
 ```
 
-Record: the ten terms with `path:line` anchors and `verified`/`inferred`; the exact build/test commands and whether they passed.
+Section skeleton:
 
-Done test: the user explains the project in one sentence without reading, and the build/test commands are reproduced from the runbook, not from memory.
+1. Summary paragraph.
+2. What this layer deliberately ignores (usually: paths, module names, failure handling, history).
+3. One sentence: whose problem, solved how.
+4. Constraints table: constraint / evidence anchor / what it forced.
+5. Core loop: 5-7 numbered steps for one typical task; every step anchored.
+6. Nouns: 5-8 entities, what each is, how it relates to the others.
+7. Seams: where the system is cut and what crosses.
+8. Deliberate omissions: what the designer chose not to do, and which strange structure it explains.
+9. Three questions.
 
-## Stage 2 — Skeleton
+Self-check question pattern (the three at the end):
 
-Goal: spatial sense. The user knows where things live and can name the entry point for any feature.
+- "Without looking: what are the five or six steps a typical task goes through?"
+- "Which two entities does <noun> connect, and what does it pass between them?"
+- "Name one thing the design deliberately does not do, and the constraint that justified it."
 
-Checklist:
+Done test: the user draws the core loop and the nouns on a whiteboard, in the right relations, and can say why each constraint is in the list.
 
-1. Build the entrypoint inventory: HTTP routes, CLI subcommands, exported symbols, queue consumers, scheduled jobs.
-2. Write `02-map.md` as a HYPOTHESIS, not a fact. Mark every edge `inferred` until a hop is walked.
-3. Pick the spine (see `repo-archetypes.md`) and record `focus`.
-4. Ask the user to place three named features on the map before showing the correct placement.
+Deliberately omit: file paths beyond the anchor evidence, module inventories, class lists, failure modes, commit archaeology. Paths and modules belong to `01-map.md`; failure modes and history belong to `03-operations.md`.
+
+## 01-map.md — where does everything live?
+
+Cap: 1500 words. The chain (formerly the "spine") belongs here.
+
+Read before writing:
+
+- The tree, two levels deep, plus the manifest scripts.
+- Existing architecture docs and `CONTEXT.md` — reuse, then diff.
+- One entrypoint per archetype in `references/repo-archetypes.md`.
+- The user's `focus` answer, recorded in the profile.
 
 Grep targets:
 
 ```bash
 rg -n "\.(get|post|put|patch|delete)\(|@(app|router)\.(route|get|post)" -g '!node_modules'
-rg -n "cobra\.Command|argparse|click\.command|clap::Command|@click"
+rg -n "cobra\.Command|argparse|click\.command|clap::Command|@click" -g '!node_modules'
 rg -n "subscribe|consume|handler|listener|worker" -g '!node_modules' -g '!vendor'
 rg -n "export (default )?(function|class|const)" src/ lib/ 2>/dev/null
+rg -n "^(def main|if __name__|func main|int main)" -g '!vendor' -g '!node_modules'
 ```
 
-Record: inventory table (entrypoint, kind, `path:line`, confidence), the spine choice and its justification, `focus`.
+Section skeleton:
 
-Done test: given any feature named by the user, they name the entry point. Wrong answers are recorded as `misconceptions`, not corrected silently.
+1. Summary paragraph.
+2. What this layer deliberately ignores (usually: why the shapes exist, failure behaviour, history).
+3. Archetype, in one line, with the signal that decided it.
+4. Entrypoints table: entrypoint / kind / anchor / status.
+5. Feature-to-path table: the user's named features, their entrypoint, the files on the path.
+6. The chain: 5-7 hops from trigger to observable effect, each anchored.
+7. Boundaries: what crosses each one, and in what shape.
+8. Focus and fallback: what the user said they will change first, and whether that path is peripheral.
+9. Not in scope: packages or features deliberately excluded.
+10. Corrections: wrong first guesses, kept as evidence.
+11. Three questions.
 
-## Stage 3 — Spine
+Self-check question pattern:
 
-Goal: temporal sense. One end-to-end chain, from ingress to the effect the user cares about.
+- "For <feature>, name the entry point and the three files on its path."
+- "Where does the data change shape on the chain, and what is it before and after?"
+- "Which boundary would you cross to add <extension>, and what contract must you honour?"
 
-Checklist:
+Done test: given any feature the user names, they name the entry point and the path, and can place the chain on a blank page.
 
-1. Ask for the chain in the user's words first; that prediction is the baseline evidence.
-2. Trace hop by hop. After each hop, ask "what happens next?" before revealing.
-3. Write every hop as `path:line` plus one line of what it does. A hop without an anchor is a guess.
-4. Note the branch that surprised the user; it is the highest-value misconception.
-5. Write `03-spine.md`.
+Deliberately omit: abstraction rationale, trade-offs, incident history, full symbol inventories. The map is spatial, not explanatory. A map of every file is a table of contents, not a model.
 
-Grep targets depend on the archetype; use the table in `repo-archetypes.md`. For the generic case:
+## 02-structure.md — why is it shaped this way?
 
-```bash
-rg -n "functionName|handlerName|methodName" -g '!node_modules' -g '!vendor'
-rg -n "await |\.then\(|yield |return " <the file at the current hop>
-```
+Cap: 2500 words. The densest brief; still under 15 minutes of reading.
 
-Record: ordered hop list, each with anchor and `verified`/`inferred`; the user's first prediction, verbatim; elapsed time to recite.
+Read before writing:
 
-Done test: the user recites the chain from memory, in order, and can open the file for each hop. Recitation without location is L2; location without order is L1.
-
-## Stage 4 — Structure
-
-Goal: structural sense. Why the code is shaped this way, and what that shape costs.
-
-Checklist:
-
-1. Pick three abstractions the spine touched. No new abstractions.
-2. For each: what problem it solves, what it replaced, what it forbids.
-3. Name the trade-off and its cost in one sentence each.
-4. Read the existing architecture docs first, then write `04-architecture.md` as DELTAS only.
-5. One diagram maximum, and only if it carries an edge the prose cannot.
+- The abstractions the chain touched. No new abstractions.
+- Existing architecture docs first, so the brief is a delta.
+- Tests around those abstractions: they encode the contract.
+- Interface and schema definitions; type boundaries.
 
 Grep targets:
 
 ```bash
-rg -n "interface |abstract class |protocol |trait |type .* struct" <module dirs>
+rg -n "interface |abstract class |protocol |trait |type .* struct|type .* = " <module dirs>
 rg -n "TODO|HACK|deprecated|legacy|workaround" -g '!node_modules' -g '!vendor'
 git log --oneline -20 -- <path>
+rg -n "<symbolName>" --type test
 ```
 
-Record: three trade-offs, each with the anchor where the constraint is visible, and the doc-delta.
+Section skeleton:
 
-Done test: the user explains three trade-offs and their costs, and can point at the code that enforces each one.
+1. Summary paragraph.
+2. What this layer deliberately ignores (usually: runtime operations, incident history, exhaustive symbol coverage).
+3. Abstractions table: abstraction / problem it solves / what it replaced / what it forbids / anchor.
+4. Data shape: the central types and how data transforms across the chain.
+5. Contracts: what each seam promises and what breaks the promise.
+6. Extension points: where the design expects change, and the intended way to change it.
+7. Trade-offs table: choice / obvious alternative / why not / what it costs / anchor.
+8. At most one diagram, only if it carries an edge prose cannot.
+9. Three questions.
 
-## Stage 5 — Apply
+Self-check question pattern:
 
-Goal: operability. The user can reason about change impact.
+- "Why is <abstraction> separate from its caller, and what would get worse if it were merged?"
+- "Which contract does <seam> enforce, and what is the failure if a caller violates it?"
+- "State one trade-off and its cost, with the code that makes it real."
 
-Checklist:
+Done test: the user explains three abstractions and their contracts, names the data shape at each boundary, and defends one trade-off including its cost.
 
-1. Take one S-sized change the user actually needs (or one they propose).
-2. Ask them to name the files they would touch and the blast radius before any analysis.
-3. Walk the impact: call sites, tests, migrations, config, contracts, consumers.
-4. Draft a patch plan: ordered steps, verification per step, rollback.
-5. Do not write the patch. This skill stops at the plan unless the user asks for implementation elsewhere.
+Deliberately omit: line-by-line walkthroughs, exhaustive exported-symbol lists, long code blocks. Three short blocks maximum for the whole brief.
+
+## 03-operations.md — when does it break?
+
+Cap: 2000 words.
+
+Read before writing:
+
+- Error paths, retries, timeouts, and the places that swallow exceptions.
+- Logging, metrics, health checks, and alert definitions.
+- `git log` for the last few fixes and rollbacks; issue tracker if present.
+- The runbook commands, run again if the environment allows.
 
 Grep targets:
 
 ```bash
-rg -n "symbolName" -g '!node_modules' -g '!vendor'
-rg -n "symbolName" --type test
-rg -n "tableName|env\.|config\." -g '!node_modules'
+rg -n "catch|except|rescue|recover\(|on error|retry|timeout|circuit" -g '!node_modules' -g '!vendor'
+rg -n "logger|log\.|metrics|health|readyz|livez|alert" -g '!node_modules' -g '!vendor'
+git log --oneline -30 --grep="fix\|revert\|hotfix\|rollback"
+rg -n "TODO|FIXME|HACK|known issue" -g '!node_modules' -g '!vendor'
 ```
 
-Record: patch plan with blast radius, and the user's pre-analysis guess versus the measured set.
+Section skeleton:
 
-Done test: files and blast radius named correctly for an S-sized change, with at least one non-obvious call site found.
+1. Summary paragraph.
+2. What this layer deliberately ignores (usually: architecture rationale already covered, full runbook duplication).
+3. Failure paths table: failure / symptom the user sees / how it is detected / anchor.
+4. Degradation and recovery: what protects the system, and what that protection costs.
+5. History: two or three commits or incidents that explain current shape; anchored.
+6. Operational trade-offs: what is fast to fix versus correct to fix; known traps.
+7. Link to `runbook.md` rather than repeating it.
+8. Three questions.
+
+Self-check question pattern:
+
+- "A request fails at <hop>. What does the user see first, and which log line tells you where it stopped?"
+- "What breaks if <dependency> is slow rather than down?"
+- "Name one historical fix that still constrains the design, and what it prevents."
+
+Done test: the user names the first failure they would investigate for a given symptom, the detection point, and one trade-off they would not undo.
+
+Deliberately omit: a second copy of the runbook, exhaustive error-code lists, generic advice ("add monitoring"). Every line must be about this repo.
+
+## When an existing doc already covers this layer
+
+A large architecture note, a `docs/product/02-architecture.md`, or a good `CONTEXT.md` may already own a layer. Do not rewrite it.
+
+1. **Reuse:** link it from the brief and quote the one paragraph that carries the layer.
+2. **Diff:** list what the doc gets right, what it misses, and what is stale against the current commit.
+3. **Delta only:** write the missing layer, or the delta, under a heading that says so. Start with an explicit line:
+
+   > This brief extends `docs/product/02-architecture.md`; it does not replace it. Stale after commit `<sha>`.
+
+4. **Never duplicate.** If the existing doc is correct and complete for that layer, the brief may be a short pointer with the three questions. That is a valid brief, not a missing one.
 
 ## The runbook has priority
 
-`00-runbook.md` outlives every diagram. A new engineer with a working runbook and no architecture diagram ships on day one; the reverse is not true. It must contain:
+`runbook.md` outlives every brief. A new engineer with a working runbook and no architecture diagram ships on day one; the reverse is not true. It must contain:
 
 - Prerequisites with versions, and how to check them.
 - Install, build, run, test, and lint commands, verbatim and verified.

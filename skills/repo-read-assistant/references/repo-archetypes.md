@@ -1,6 +1,6 @@
 # Repo Archetypes
 
-The spine is not always `main` -> handler -> service. Identify the archetype before tracing; a wrong archetype produces a chain that looks plausible and teaches the wrong mental model.
+The end-to-end chain is not always `main` -> handler -> service. Identify the archetype before writing `01-map.md`; a wrong archetype produces a chain that looks plausible and teaches the wrong mental model. This file decides which entrypoints and chain to put in that brief; the chain itself belongs there, not in chat.
 
 ## Quick identification
 
@@ -42,7 +42,7 @@ Trace the middleware list before the handler. Most "why is this field missing" b
 - Global flags or config files merged before command execution.
 - Shared `RunE` / `run()` helpers that hide the real work.
 
-Pick the subcommand closest to `focus`. A CLI "spine" that starts at argument parsing is often boring; say so and skip to the command body.
+Pick the subcommand closest to `focus`. A chain that starts at argument parsing is often boring; say so and begin at the command body.
 
 ## Library / SDK
 
@@ -72,7 +72,7 @@ Start from an exported symbol the user will call, not from the directory tree.
 - Retries, dead-letter queues, and idempotency wrappers change the effective order.
 - Multiple consumers per topic; the user cares about one.
 
-Never guess a spine here. Ask which event and which consumer, and state that the broker hop is `inferred` unless you can see its config.
+Never guess the chain here. Ask which event and which consumer, and state that the broker hop is `inferred` unless you can see its config.
 
 ## Plugin / DI container
 
@@ -102,7 +102,7 @@ Trace registration first, then the resolved implementation. If the binding is co
 - Build tooling that rewrites imports or aliases paths.
 - Duplicate implementations in two packages, one deprecated.
 
-Scope the map to the packages on the spine. A monorepo map of everything is a table of contents, not a mental model.
+Scope the map to the packages on the chain. A monorepo map of everything is a table of contents, not a mental model.
 
 ## Data pipeline
 

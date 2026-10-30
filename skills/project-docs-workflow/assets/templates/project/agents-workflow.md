@@ -78,7 +78,7 @@
 
 ### 细节
 
-主路径实现、细节打磨与代码质量。任何测试工作按 `testing.md` 执行；`tdd` 可作内部红 → 绿循环（可选；未安装则按 `docs/agents/deps/tdd.md` 执行），从属于测试准则。
+主路径实现、细节打磨与代码质量。任何测试工作按 `testing.md` 执行（执行 / 临时 / 落盘三层；临时测试收尾删除）；`tdd` 可作内部红 → 绿循环（可选；未安装则按 `docs/agents/deps/tdd.md` 执行），从属于测试准则。
 
 ### 异常
 
@@ -91,7 +91,7 @@ issue 完成时做一次轻量的文档同步清单（coder 更新 Current 事�
 - **PRD 检查**：对照上面 4 项影响触发；需要改动则由编排者更新 PRD 并展示 diff，否则记一行「PRD 无变化」的 Log。
 - **SPEC 检查**：coder 通过 issue 提议必要的 SPEC 变更；用户 + 编排者确认后落盘。coder 不直接改 SPEC。
 - **Current 检查**：确认变更已包含在选定基线内；是则就地更新 `docs/current/` 对应文件（只改事实，不插入指向 issue 的自链接或任务历史），否则在 issue 记待同步项；编排者 review Current diff。
-- 其余：`adr`、`context`、`issues`、`agents` 按需更新；全无更新时一行 Log 即可。
+- 其余：`adr`、`context`、`issues`、`agents` 按需更新；issue 的 `## 测试` 已填（执行证据 / 临时结论 / 落盘追溯），scratch 测试已清理；全无更新时一行 Log 即可。
 
 仅做文档同步；会话复盘属于 `retro`（未安装则按 `docs/agents/deps/boundaries.md` 执行）。
 

@@ -67,9 +67,9 @@
 
 1. **规划 / Plan**——编排者 + 用户确认范围并对齐 SPEC；coder 细化验收判据、更新步骤清单状态，并写 1–2 句方案。产出最小；不新开章节。差距分析在此完成，读 SPEC 目标与 Current；PRD 只作人类理解参考。
 2. **骨架 / Skeleton**——最小可运行的垂直切片（忽略输出 / 格式打磨）；留一条运行证据并展示给用户——首个 review 点。纯修复可跳过（Log 原因）；feature 与结构性工作必做。
-3. **细节 / Details**——主路径实现、细节补全、代码质量。任何测试工作按 `docs/agents/testing.md` 执行；`tdd`（未安装则按 `references/deps/tdd.md` 执行）是可选的内部红 → 绿循环，从属于该准则。
+3. **细节 / Details**——主路径实现、细节补全、代码质量。任何测试工作按 `docs/agents/testing.md` 执行（执行 / 临时 / 落盘三层；临时测试在收尾前删除）；`tdd`（未安装则按 `references/deps/tdd.md` 执行）是可选的内部红 → 绿循环，从属于该准则。
 4. **异常 / Exceptions**——主路径之后的失败路径、边界与稳定性；其测试同样按测试准则执行（防御层级归属、禁止弱断言）。真实开发阻塞立即处理并记 Log，绝不排队到这一步。
-5. **回顾 / Wrap-up review**（收尾回顾）——issue 完成时的轻量文档同步清单：coder 更新 Current 事实并提议 SPEC 变更；编排者评审 PRD / SPEC / Current，模块或附录变化时更新 TOC；`adr` / `context` / `issues` / `agents` 按需更新。无需更新则一行 Log。仅做文档同步；会话 / agent 复盘属于 `retro`（未安装则按 `references/deps/boundaries.md` 执行）。
+5. **回顾 / Wrap-up review**（收尾回顾）——issue 完成时的轻量文档同步清单：coder 更新 Current 事实并提议 SPEC 变更；编排者评审 PRD / SPEC / Current，模块或附录变化时更新 TOC；`adr` / `context` / `issues` / `agents` 按需更新。issue 的 `## 测试` 已填（执行证据、临时结论、落盘追溯），scratch 测试已清理。无需更新则一行 Log。仅做文档同步；会话 / agent 复盘属于 `retro`（未安装则按 `references/deps/boundaries.md` 执行）。
 
 ## 进度与续接
 

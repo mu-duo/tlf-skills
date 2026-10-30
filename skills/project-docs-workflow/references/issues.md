@@ -38,6 +38,7 @@ docs/issues/
   - [ ] 回顾（收尾回顾：文档同步）
   ```
 
+- `## 测试` — the three fixed slots from `testing.md` (execution / temporary / persistent), filled in at wrap-up. Absence reads as "no account given"; it is test evidence, never task history or a progress log.
 - `## Log` — dated lines appended in place; existing lines are history and never rewritten. Record only key events, briefly: scope change, blocker, handoff, abandonment. Mechanical per-step entries are not required. A skipped-skeleton rationale on a pure fix is a legitimate key entry.
 - `Status` is updated in place.
 - Work that changes an ADR or PRD must sync those documents.

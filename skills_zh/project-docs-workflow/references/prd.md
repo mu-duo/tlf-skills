@@ -61,7 +61,7 @@ CONTEXT.md                    # 项目根术语表源
 ```
 
 - 只有**单一 `docs/product/` 树**。产品 `00-index.md` 已退役；仅保留模块 `00-index.md`，作为不发布的 agent 侧车。
-- `docs/prd/` 是 v4 / 旧版布局。init 会检测并提供迁移（`migration.md`）；init 期间绝不改写。
+- `docs/prd/` 是 v4 / 旧版布局。init 会检测并提供迁移（`migration.md`）；init 期间未经明确确认绝不改写。
 
 ## PRD 契约
 

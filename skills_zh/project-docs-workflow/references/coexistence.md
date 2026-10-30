@@ -6,7 +6,7 @@
 
 ## 内置能力
 
-所有依赖能力都解析到 `references/deps/` 下的副本（物化为 `docs/agents/deps/`）。绝不按名称调用外部 skill——即使它已安装，内置副本才是本方案对齐的契约。外部 skill 仍可为其他项目安装；本方案忽略它们。
+所有依赖能力都解析到 `references/deps/` 下的副本（物化为 `docs/agents/deps/`）；内置副本才是本方案对齐的契约。
 
 ## `domain-modeling`
 
@@ -48,7 +48,7 @@
 
 这些项目不用它做 issue 跟踪（DA_AGENT 先例：ADR-0012，由 ADR-0026 细化）。本 skill 的 `docs/issues` 约定取代旧式 `.scratch` 风格跟踪约定。
 
-使用本方案的项目不会用一个通用脚手架工具来搭建这些相同表面（`docs/agents/domain.md`、`## Agent skills` 区块、偏好 `CLAUDE.md`）；如果之前运行过这类工具，请对照本方案规则审查其残留（init 报告差异；绝不覆盖）。
+使用本方案的项目不会用一个通用脚手架工具来搭建这些相同表面（`docs/agents/domain.md`、`## Agent skills` 区块、偏好 `CLAUDE.md`）；如果之前运行过这类工具，请对照本方案规则审查其残留（init 报告差异；改写需确认）。
 
 ## 调用
 

@@ -1,4 +1,4 @@
-# 遗留 bootstrap（有代码、无产品文档）
+# Bootstrap（有代码、无产品文档）
 
 Bootstrap 是**需用户同意**的路径，面向已有源码但没有 PRD / SPEC 的项目。它从代码库起草 v5 文档；用户评审前，草稿绝不当作事实。
 
@@ -32,7 +32,7 @@ init 检测到该状态，并在写入任何内容前**询问用户**。这不�
 ## 产出是草稿
 
 - 五个阶段完成前，bootstrap 产出都是草稿。不要发布，也不要在评审前把它当作实现事实标准。
-- 绝不覆盖现有文件。展示 diff，由用户决定。
+- 未经 diff 与用户决定，绝不覆盖现有文件。
 - 创建**一个** `docs/issues/chore/agent/...` bootstrap issue 跟踪阶段与推断 / 待定项。它是 bootstrap 的验收清单。
 - 用户选择 Bootstrap 后，按 `references/deps/domain-modeling.md` 执行一次。常规 init 或对齐期间不执行。
 

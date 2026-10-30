@@ -1,6 +1,6 @@
 ---
 name: project-docs-workflow
-description: Initialize or align a project's documentation workflow — issue tracker, ADRs, a macro PRD with a normative SPEC and a separate Current status tree, the recommended five-step workflow, test authoring rules, roles, and legacy bootstrap/migration. Run manually once per project (idempotent); creates missing files and reports alignment without overwriting.
+description: Initialize or align a project's documentation system — issue tracker, ADRs, a macro PRD with a normative SPEC and a separate Current (as-built) tree, the five-step workflow, test authoring rules, roles, and bootstrap for code-without-docs / migration. Manual and re-runnable: missing files are created automatically; existing files are only rewritten or moved after a per-file diff and explicit confirmation.
 disable-model-invocation: true
 ---
 
@@ -8,15 +8,15 @@ disable-model-invocation: true
 
 Scaffold and align a project's documentation system: issue tracker, ADRs, a macro PRD, a normative SPEC, a Current as-built tree, domain terminology, a recommended five-step development workflow with explicit roles, and test authoring rules. The skill is the canonical source; init materializes the rules into the target project so agents read them at runtime.
 
-Run it manually, once per project — on adoption, or again after the skill's templates evolve to check alignment. Re-runs are idempotent: they create what is missing and report drift, never rewrite existing content.
+Run it manually — on adoption, or again after the skill's templates evolve to check alignment. Re-runs are idempotent for additions: they create what is missing and report drift; rewrites or moves happen only after a per-file diff and explicit confirmation.
 
 ## Ownership model
 
 - **Canonical**: this skill holds the rules (`references/`) and templates (`assets/templates/`).
 - **Materialized**: init copies rules into the target project. Those copies are the runtime source agents read; the skill does not auto-load.
-- **Overrides are legitimate**: projects edit their copies to fit local reality. Init reports the diff, it does not enforce or revert.
+- **Overrides are legitimate**: projects edit their copies to fit local reality. Init reports the diff; it does not enforce or revert the project's edits, and a rewrite needs explicit confirmation.
 - **Language**: templates default to Chinese; for non-Chinese projects, translate the materialized copies, including `docs/agents/deps/*` — overrides are legitimate. "Copied unchanged" constrains init's copy step, not later project edits.
-- **Never overwrite**: existing content is compared, never rewritten (two additive exceptions: the missing `AGENTS.md` block, and the `version` line in `docs/agents/metadata.yml`, which advances only after a verified run).
+- **Never overwrite silently**: existing content is compared; nothing is rewritten without first showing a per-file diff and getting explicit confirmation. Two writes may touch an existing file without those steps: appending the missing `AGENTS.md` block, and advancing the `version` line in `docs/agents/metadata.yml` after a verified run.
 - **Maintenance**: project docs are agent-maintained by default. Humans steer, review the PRD / SPEC / ADR, and may edit style directly. Factual corrections go through the agent.
 
 ## Roles
@@ -25,7 +25,7 @@ Three roles: **user** (intent, scope, approval; reviews PRD / SPEC / ADRs), **or
 
 ## Bundled dependencies
 
-External capability references resolve to the copies bundled with this skill — **one level, no installed-skill lookup**:
+Capability references resolve to the copies bundled with this skill — **one level; never resolved outside `references/deps/`**:
 
 | Capability | Bundled source | Notes |
 | :--- | :--- | :--- |
@@ -38,7 +38,7 @@ External capability references resolve to the copies bundled with this skill —
 
 First-party siblings — `docs-html-view`, `docs-docx-view`, `lite-task` — are separate skills of this package, invoked by name when installed; they are not dependency skills.
 
-Never invoke an external skill by name, even when one happens to be installed: the bundled copy is the contract this profile is aligned with. Aliases are routing only, never separate flows.
+The bundled copy is the contract this profile is aligned with. Aliases are routing only, never separate flows.
 
 Canonical wording: 按 `<deps 路径>/<file>.md` 执行 — skill-internal docs use `references/deps/<file>.md`, materialized project files use `docs/agents/deps/<file>.md`.
 
@@ -48,7 +48,7 @@ Run from the target project root (`cwd`).
 
 1. **Read `docs/agents/metadata.yml`, then classify the state** (below) before touching anything. The state decides whether init may write, repair, or only report.
 2. **Inventory** every artifact in the checklist. Classify each as *missing* or *existing*. Done when every row has a classification.
-3. **Create missing** artifacts from their templates, per the state rules, plus the issue directory tree. Do not force module files; never create a product `00-index.md`.
+3. **Create missing** artifacts from their templates, per the state rules, plus the issue directory tree. If step 2 routed to bootstrap or migration, ask first — that branch's consent gates every write, including these additions. Do not force module files; never create a product `00-index.md`.
 4. **Fill placeholders**: fill only obvious, determinable *fill-in* placeholders (e.g. project name from the repo/directory name); list every remaining fill-in placeholder under `Next:` in the report. **Never guess the Current baseline** — if it is unset, `选定 Current 基线（revision / release + 日期）` is the first `Next:` item. Format notation such as `<标题>` is documentation, not a placeholder — skip it.
 5. **Compare existing** files against their template: classify *aligned*, or *diff* with the specific differences listed.
 6. **Report** using the format below.
@@ -65,7 +65,7 @@ Read `docs/agents/metadata.yml` **first** — it records the skill version this 
 | **ahead** | `version` is higher than the current skill version | write nothing; report "upgrade the skill, or keep as-is" |
 | **unknown** | the file is missing or unparsable | run the establishment procedure |
 
-Conformance is **structural**: a version match plus artifact presence. Rule drift is reported, never enforced — project overrides are legitimate.
+Conformance is **structural**: a version match plus artifact presence. Rule drift is reported, not silently enforced; fixing it is a rewrite and needs explicit confirmation — project overrides are legitimate.
 
 #### Establishment procedure (behind / unknown)
 
@@ -103,8 +103,8 @@ Bootstrap and migration keep their own consent options — the establishment pro
 - Create `AGENTS.md` only if missing — its whole content is this block; a file containing only this section is intentional (projects add their own guidance around it). If `AGENTS.md` exists: heading `## Agent skills` present → compare the block in place (never edit); absent → append the block at end of file, separated by one blank line. Only `AGENTS.md` is touched, never `CLAUDE.md`.
 - The provenance line sits immediately under the `## Agent skills` heading and is intentional — keep it (it identifies materialized files and their generation; current generation `v5`).
 - Issue tree: `bug/{human,agent,history}`, `feature/{human,agent,history}`, `chore/{human,agent,history}`, `suggestion/{human,agent}`; add a `.gitkeep` to each leaf directory (one containing no files). Do not run `git init`.
-- Bundled dependencies: init copies `references/deps/*` into the project's `docs/agents/deps/` as a whole-directory copy (content unchanged at copy time); they are the runtime source for every dependency capability, so target projects never need an external skill. Projects may translate or edit them afterwards.
-- Test rules: `docs/agents/testing.md` (source `references/testing.md`) is **first priority and always present** — it ships with the skill, so no installed-skill / fallback split applies; `tdd` contributes mechanics only. Init creates it when missing; projects may override its defaults. The issue's `## 测试` section (execution / temporary / persistent) is the evidence it produces.
+- Bundled dependencies: init copies `references/deps/*` into the project's `docs/agents/deps/` as a whole-directory copy (content unchanged at copy time); they are the runtime source for every dependency capability, so target projects need no additional skill. Projects may translate or edit them afterwards.
+- Test rules: `docs/agents/testing.md` (source `references/testing.md`) is **first priority and always present** — it ships with the skill; `tdd` contributes mechanics only. Init creates it when missing; projects may override its defaults. The issue's `## 测试` section (execution / temporary / persistent) is the evidence it produces.
 - Metadata: `docs/agents/metadata.yml` carries `skill`, `version`, and `updated`. It is the conformance stamp: equal version + complete artifacts = skip. Never hand-bump it past the version whose rules the tree satisfies.
 - Current tree: init creates the `docs/current/00-README.md` overview when missing; it does **not** force module files — add them as modules need describing. The Current tree is peer to the PRD, never embedded in it.
 - PRD tree: init creates the three product PRD chapters (`00-README.md`, `01-requirements.md`, `02-architecture.md`) and `docs/toc.yml` when missing. It does **not** force module files, and it never creates a product `00-index.md` — that artifact is retired. Module `00-index.md` is an unpublished agent sidecar created only when a module exists.
@@ -115,9 +115,9 @@ Bootstrap and migration keep their own consent options — the establishment pro
 
 Compare **rules, not bytes**. An existing file is **aligned** when every required rule/section below is present in recognizable form — wording, language, ordering, formatting and filled-in project content may all differ. Project additions are always fine, never a diff.
 
-**diff** = a required rule/section is missing, or a default rule is contradicted. Diffs are informational; init never auto-fixes. One bullet per file: `- <file>: <missing or contradicted rule>`.
+**diff** = a required rule/section is missing, or a default rule is contradicted. Diffs are informational; fixing one is a rewrite and needs explicit confirmation. One bullet per file: `- <file>: <missing or contradicted rule>`.
 
-**Legacy drift** (existing projects): a v4 `docs/prd/` or `docs/pdr/` tree, a product `00-index.md`, a v3/v4 provenance line, or embedded current/progress material in the PRD (e.g. per-module `04-current.md`, a `当前进展` section) is reported as informational legacy drift and offered for migration. init never moves, rewrites, or deletes it.
+**Legacy drift** (existing projects): a v4 `docs/prd/` or `docs/pdr/` tree, a product `00-index.md`, a v3/v4 provenance line, or embedded current/progress material in the PRD (e.g. per-module `04-current.md`, a `当前进展` section) is reported as informational legacy drift and offered for migration. Without explicit confirmation, init never moves, rewrites, or deletes it.
 
 Ignore in every comparison: the provenance line; filled placeholders; index/table rows; module/term/entry names; language; extra content.
 
@@ -146,11 +146,11 @@ Extras are informational, never a diff.
 
 ### Report format
 
-Write the report in the project's documentation language (default: Chinese, matching the templates).
+Write the report in the project's documentation language (default: Chinese, matching the templates). Field names and the state / repair tokens below are fixed; values are in the project's language.
 
 ```
 ## Init report
-- State: skip｜skip+repair｜behind｜ahead｜unknown
+- State: skip｜skip + repair｜behind｜ahead｜unknown
 - Repair: none｜additive｜scaffold｜bootstrap｜migrate｜align
 - Created: …
 - Aligned: …
@@ -181,5 +181,5 @@ Rules carry the detail; read the one you need.
 
 - `assets/templates/project/*` — the files init materializes (Chinese). They carry the provenance marker (current generation: `v5`; in `agents-block.md` it sits just under the `## Agent skills` heading) — keep it; future generations update the marker so stale copies are detectable.
 - `assets/templates/project/toc.yml` — the `docs/toc.yml` publication source: required section ids, `modules: auto`, and the appendix set.
-- `references/deps/*` — the bundled dependency docs: the single source for every capability (no installed-skill lookup). init copies the whole directory as-is into the project's `docs/agents/deps/`; they are not materialized templates and carry no provenance marker.
+- `references/deps/*` — the bundled dependency docs: the single source for every capability. init copies the whole directory as-is into the project's `docs/agents/deps/`; they are not materialized templates and carry no provenance marker.
 - `assets/templates/entries/*` — day-to-day authoring aids used when this skill is at hand (copy the skeleton when creating a new entry). NOT materialized by init; the rule docs are self-sufficient without them; materialized docs may reference their path opportunistically.

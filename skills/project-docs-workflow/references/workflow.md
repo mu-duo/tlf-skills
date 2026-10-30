@@ -26,6 +26,10 @@ The default shape for developing a single issue: align, build a thin slice, fill
 - **Tests**: `docs/agents/testing.md` — the rules that govern writing or changing tests. First priority; `tdd` supplies mechanics only.
 - **Conflict**: implementation detail → SPEC wins; scope / intent → PRD wins; if still unclear, escalate to the orchestrator / user.
 
+## Design model
+
+PRD and SPEC record the **tentative design**, stated positively; they are models, not histories. Write only the design currently held — if it cannot be stated positively, it is undecided and stays unwritten. Absence means undecided: neither permitted nor forbidden. When the design changes, delete or rewrite the entry; never add "was", "previously", or a rejected-alternatives note. Non-goals are boundaries, not rejections; recording a rejection is opt-in and goes in an ADR only. The reconstructability check is the acceptance test (`prd.md`).
+
 ## Alignment
 
 - **Align before building**: implementation starts only after the alignment is done and the plan / steps are written (align → plan & steps → build).

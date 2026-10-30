@@ -1,6 +1,6 @@
 ---
 name: project-docs-workflow
-description: 初始化或对齐项目的文档工作流——issue 跟踪、ADR、宏观 PRD 与规范 SPEC、独立的 Current 现状树、推荐的五步流程、测试用例编写准则、角色，以及遗留项目的 bootstrap / 迁移。每个项目手动运行一次（幂等）；创建缺失文件并报告对齐情况，不覆盖现有内容。
+description: 初始化或对齐项目的文档体系——issue 跟踪、ADR、宏观 PRD 与规范 SPEC、独立的 Current 现状树、推荐的五步流程、测试准则、角色，以及有代码无文档的 bootstrap / 迁移。手动、可重跑：缺失文件自动创建；既有文件仅在逐文件 diff 与明确确认后改写或移动。
 disable-model-invocation: true
 ---
 
@@ -8,15 +8,15 @@ disable-model-invocation: true
 
 搭建并对齐项目的文档体系：issue 跟踪、ADR、宏观 PRD、规范 SPEC、Current 现状树、领域术语、带明确角色的推荐五步开发流程，以及测试用例编写准则。本 skill 是权威源；init 将规则物化到目标项目，使 agent 在运行时读取。
 
-手动运行，每个项目一次——在接入时，或在 skill 模板演进后再次运行以检查对齐。重复运行是幂等的：只创建缺失内容并报告漂移，绝不改写现有内容。
+手动运行——在接入时，或在 skill 模板演进后再次运行以检查对齐。重复运行对新增是幂等的：只创建缺失内容并报告漂移；改写或移动必须经逐文件 diff 与明确确认。
 
 ## 归属模型
 
 - **权威源**：本 skill 持有规则（`references/`）与模板（`assets/templates/`）。
 - **物化**：init 把规则复制到目标项目。这些副本是 agent 在运行时读取的源；本 skill 不会自动加载。
-- **允许覆盖**：项目可按本地实际情况修改副本。init 只报告差异，不强制执行也不回退。
+- **允许覆盖**：项目可按本地实际情况修改副本。init 只报告差异，不强制执行也不回退；改写需明确确认。
 - **语言**：模板默认中文；非中文项目可翻译物化副本（含 `docs/agents/deps/*`）——覆盖是正当的。「内容不变」约束的是 init 的复制动作，不约束项目后续编辑。
-- **绝不覆盖**：现有内容只做比较，绝不改写（两处加法例外：缺失的 `AGENTS.md` 区块；以及 `docs/agents/metadata.yml` 的 `version` 行，仅在一次已验证的运行后前移）。
+- **绝不静默覆盖**：现有内容只做比较；未经逐文件 diff 与明确确认，绝不改写。只有两处可在无确认时触及既有文件：追加缺失的 `AGENTS.md` 区块；在一次已验证的运行后前移 `docs/agents/metadata.yml` 的 `version` 行。
 - **维护**：项目文档默认由 agent 维护。人类掌舵、评审 PRD / SPEC / ADR，并可直接修改文风。事实性修正走 agent。
 
 ## 角色
@@ -25,7 +25,7 @@ disable-model-invocation: true
 
 ## 内置依赖
 
-外部能力引用一律使用本 skill 随附的副本——**单层解析，不查已安装 skill**：
+能力引用一律使用本 skill 随附的副本——**单层解析，不解析到 `references/deps/` 之外**：
 
 | 能力 | 内置来源 | 说明 |
 | :--- | :--- | :--- |
@@ -38,7 +38,7 @@ disable-model-invocation: true
 
 第一方兄弟 skill——`docs-html-view`、`docs-docx-view`、`lite-task`——是本包的其他 skill，安装后按名称调用，不属于依赖。
 
-绝不按名称调用外部 skill，即使它恰好已安装：内置副本才是本方案对齐的契约。别名只用于路由，不是独立流程。
+内置副本才是本方案对齐的契约。别名只用于路由，不是独立流程。
 
 规范措辞：按 `<deps 路径>/<file>.md` 执行——skill 内部文档使用 `references/deps/<file>.md`，物化的项目文件使用 `docs/agents/deps/<file>.md`。
 
@@ -48,7 +48,7 @@ disable-model-invocation: true
 
 1. **先读 `docs/agents/metadata.yml`，再判定状态**（见下）。状态决定 init 可以写入、修复，还是只报告。
 2. **盘点**下方清单中的每个产物。将每项归类为*缺失*或*已存在*。每一行都有分类即完成。
-3. **按状态规则创建缺失**产物（按模板），并创建 issue 目录树。不强制创建模块文件；绝不创建产品 `00-index.md`。
+3. **按状态规则创建缺失**产物（按模板），并创建 issue 目录树。若第 2 步路由到 bootstrap 或迁移，先征询——该分支的同意门槛管辖所有写入，包括这些新增。不强制创建模块文件；绝不创建产品 `00-index.md`。
 4. **填充占位符**：只填充明显、可确定的*待填*占位符（例如由仓库/目录名得到项目名）；将剩余每个待填占位符列在报告的「下一步」下。**绝不猜 Current 基线**——未选定基线时，`选定 Current 基线（revision / release + 日期）` 是「下一步」的第一项。`<标题>` 这类格式记号是文档说明，不是占位符——跳过。
 5. **比较现有**文件与模板：归类为*已对齐*，或*有差异*并列出具体差异。
 6. **报告**：使用下方格式。
@@ -65,7 +65,7 @@ disable-model-invocation: true
 | **ahead** | `version` 高于当前 skill 版本 | 零写入；报告「请升级 skill，或保持现状」 |
 | **unknown** | 文件缺失或无法解析 | 走建立流程 |
 
-符合性是**结构性**的：版本相同 + 产物齐全。规则差异只报告、不强制执行——项目覆盖是正当的。
+符合性是**结构性**的：版本相同 + 产物齐全。规则差异只报告、不静默强制执行；修复差异属于改写，必须经明确确认——项目覆盖是正当的。
 
 #### 建立流程（behind / unknown）
 
@@ -103,8 +103,8 @@ bootstrap 与迁移保留各自的同意选项——建立流程不得绕过它�
 - 仅在缺失时创建 `AGENTS.md`——其全部内容就是本区块；只含本区块的文件是有意为之（项目会在其周围添加自己的说明）。若 `AGENTS.md` 已存在：已有 `## Agent skills` 标题 → 就地比较该区块（绝不编辑）；没有 → 在文件末尾追加该区块，中间空一行。只动 `AGENTS.md`，绝不碰 `CLAUDE.md`。
 - provenance 行紧跟在 `## Agent skills` 标题下，是有意保留的——不要删（它标识物化文件及其代次；当前代次 `v5`）。
 - Issue 目录树：`bug/{human,agent,history}`、`feature/{human,agent,history}`、`chore/{human,agent,history}`、`suggestion/{human,agent}`；给每个叶子目录（其中没有文件的）加 `.gitkeep`。不要运行 `git init`。
-- 内置依赖：init 将 `references/deps/*` 整目录复制到项目的 `docs/agents/deps/`（复制时内容不变）；它们是每个依赖能力的运行时来源，目标项目无需任何外部 skill。项目之后可翻译或修改它们。
-- 测试准则：`docs/agents/testing.md`（源 `references/testing.md`）是**第一优先级、始终存在**——随 skill 分发，不适用「已安装 skill / 兜底」二分；`tdd` 只提供机制。缺失时 init 创建；项目可覆盖其默认值。其产出落在 issue 的 `## 测试`（执行 / 临时 / 落盘）。
+- 内置依赖：init 将 `references/deps/*` 整目录复制到项目的 `docs/agents/deps/`（复制时内容不变）；它们是每个依赖能力的运行时来源，目标项目无需额外 skill。项目之后可翻译或修改它们。
+- 测试准则：`docs/agents/testing.md`（源 `references/testing.md`）是**第一优先级、始终存在**——随 skill 分发；`tdd` 只提供机制。缺失时 init 创建；项目可覆盖其默认值。其产出落在 issue 的 `## 测试`（执行 / 临时 / 落盘）。
 - 元数据：`docs/agents/metadata.yml` 携带 `skill`、`version`、`updated`，是符合性戳：版本相同 + 产物齐全即跳过。绝不手工把它改成这棵树并不满足的版本。
 - Current 树：缺失时 init 创建 `docs/current/00-README.md` 概览；**不**强制创建模块文件——按需补充。Current 树与 PRD 平级，绝不嵌入 PRD。
 - PRD 树：缺失时 init 创建三个产品 PRD 章节（`00-README.md`、`01-requirements.md`、`02-architecture.md`）与 `docs/toc.yml`。它**不**强制创建模块文件，也绝不创建产品 `00-index.md`——该产物已退役。模块 `00-index.md` 是不发布的 agent 侧车，仅在模块存在时创建。
@@ -115,9 +115,9 @@ bootstrap 与迁移保留各自的同意选项——建立流程不得绕过它�
 
 比较**规则，而非字节**。当下列每项必需规则 / 章节都以可识别形式存在时，现有文件即为**已对齐**——措辞、语言、顺序、格式与已填项目内容均可不同。项目额外内容始终正常，绝不算差异。
 
-**差异（diff）** = 缺少必需规则 / 章节，或与默认规则矛盾。差异仅供参考；init 绝不自动修复。每个文件一条：`- <file>: <missing or contradicted rule>`。
+**差异（diff）** = 缺少必需规则 / 章节，或与默认规则矛盾。差异仅供参考；修复差异属于改写，必须经明确确认。每个文件一条：`- <file>: <missing or contradicted rule>`。
 
-**遗留漂移**（现有项目）：v4 `docs/prd/` 或 `docs/pdr/` 树、产品 `00-index.md`、v3/v4 provenance 行，或 PRD 中嵌入的现状 / 进展材料（例如每模块 `04-current.md`、`当前进展` 章节）都作为信息性遗留漂移报告，并提供迁移选项。init 绝不移动、改写或删除它们。
+**遗留漂移**（现有项目）：v4 `docs/prd/` 或 `docs/pdr/` 树、产品 `00-index.md`、v3/v4 provenance 行，或 PRD 中嵌入的现状 / 进展材料（例如每模块 `04-current.md`、`当前进展` 章节）都作为信息性遗留漂移报告，并提供迁移选项。未经明确确认，init 绝不移动、改写或删除它们。
 
 每次比较都忽略：provenance 行；已填占位符；索引 / 表格行；模块 / 术语 / 条目名称；语言；额外内容。
 
@@ -146,7 +146,7 @@ bootstrap 与迁移保留各自的同意选项——建立流程不得绕过它�
 
 ### 报告格式
 
-用项目的文档语言撰写报告（默认：中文，与模板一致）。
+用项目的文档语言撰写报告（默认：中文，与模板一致）。字段名与下文的 state / repair 记号固定；值用项目语言。
 
 ```
 ## Init report
@@ -181,5 +181,5 @@ bootstrap 与迁移保留各自的同意选项——建立流程不得绕过它�
 
 - `assets/templates/project/*`——init 物化的文件（中文）。它们带有 provenance 标记（当前代次：`v5`；`agents-block.md` 中位于 `## Agent skills` 标题正下方）——保留它；后续代次会更新标记，以便发现过期副本。
 - `assets/templates/project/toc.yml`——`docs/toc.yml` 发布源：必需章节 id、`modules: auto` 与附录集合。
-- `references/deps/*`——内置依赖文档：每个能力的唯一来源（不查外部 skill）。init 将整个目录原样复制到项目的 `docs/agents/deps/`；它们不是物化模板，不带 provenance 标记。
+- `references/deps/*`——内置依赖文档：每个能力的唯一来源。init 将整个目录原样复制到项目的 `docs/agents/deps/`；它们不是物化模板，不带 provenance 标记。
 - `assets/templates/entries/*`——本 skill 在手时日常写作辅助（新建条目时复制骨架）。init **不**物化；规则文档本身自足；物化文档可机会性引用其路径。

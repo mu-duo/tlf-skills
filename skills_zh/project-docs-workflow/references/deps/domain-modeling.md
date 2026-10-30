@@ -1,6 +1,6 @@
 # 内置：domain-modeling
 
-> 该能力的唯一来源，按本文执行，不调用外部 skill。
+> 该能力的唯一来源，按本文执行。
 
 用途：把模糊说法收敛成稳定的项目词汇，并在决策定型时留下记录。
 
@@ -60,4 +60,4 @@ _Avoid_: Purchase、transaction
 {一到三句：背景 → 决定了什么 → 为什么。}
 ```
 
-可选小节按需：`Status`、`Considered Options`、`Consequences`。本仓库的 ADR 生命周期以 `references/adr.md` 为准，冲突时以它为准。
+可选小节按需：`Status`、`Considered Options`、`Consequences`。ADR 生命周期以项目内 `docs/adr/README.md` 为准（skill 内为 `references/adr.md`），冲突时以它为准。

@@ -13,7 +13,7 @@
 
 如果这些文件不存在，**静默继续**：不要提示缺失，也不要主动建议创建它们。`docs/agents/deps/domain-modeling.md` 的流程会在词条或决策真正定案时按需创建。
 
-依赖能力的唯一来源物化在 `docs/agents/deps/`。**组合流程**：`grill-with-docs` 是 `grilling` + `domain-modeling` 的包装（术语确定即写入 `CONTEXT.md`，满足三条判据记 ADR）：按 `docs/agents/deps/grilling.md` 与 `docs/agents/deps/domain-modeling.md` 交织执行；`improve-codebase-architecture` 见 `docs/agents/deps/boundaries.md`。以上能力均由内置副本提供，不调用外部 skill。
+依赖能力的唯一来源物化在 `docs/agents/deps/`。**组合流程**：`grill-with-docs` 是 `grilling` + `domain-modeling` 的包装（术语确定即写入 `CONTEXT.md`，满足三条判据记 ADR）：按 `docs/agents/deps/grilling.md` 与 `docs/agents/deps/domain-modeling.md` 交织执行；`improve-codebase-architecture` 见 `docs/agents/deps/boundaries.md`。以上能力均由内置副本提供。
 
 ## File structure
 

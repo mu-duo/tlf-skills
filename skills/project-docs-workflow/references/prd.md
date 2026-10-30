@@ -61,7 +61,7 @@ CONTEXT.md                    # project root glossary source
 ```
 
 - There is a **single `docs/product/` tree**. The product `00-index.md` is retired; only a module `00-index.md` remains, as an unpublished agent sidecar.
-- `docs/prd/` is the v4/legacy layout. It is detected and offered for migration (`migration.md`); it is never rewritten during init.
+- `docs/prd/` is the v4/legacy layout. It is detected and offered for migration (`migration.md`); it is never rewritten during init without explicit confirmation.
 
 ## PRD contract
 
@@ -142,7 +142,7 @@ The orchestrator maintains the PRD with the user; humans review the PRD diff for
 
 - The v4 layout (`docs/prd/`), a pre-rename `docs/pdr/` tree, v3/v4 provenance lines, and the old PFD / layered structure are **legacy**. Init detects them and offers migration (`migration.md`).
 - Legacy material is never auto-rewritten, moved, or deleted. The user chooses: migrate now, show the plan only, defer into one chore issue, or skip.
-- Existing projects without any product docs may use the consent-gated legacy bootstrap (`bootstrap.md`); it produces drafts, never instant facts.
+- Existing projects without any product docs may use the consent-gated bootstrap (`bootstrap.md`); it produces drafts, never instant facts.
 
 ## Example (DA_AGENT) — not part of the general rules
 

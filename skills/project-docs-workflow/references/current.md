@@ -43,5 +43,5 @@ Do not record: task logs, todos, planned / future capabilities, per-issue progre
 
 ## Adoption (existing projects)
 
-- Existing docs are never overwritten or moved. A v4 `docs/prd/` tree, an embedded current/progress section in the PRD (e.g. per-module `04-current.md`, a 当前进展 section), or a pre-rename `docs/pdr/` tree is informational legacy drift — detected by init, never moved, rewritten, or deleted (`migration.md`).
+- Existing docs are never overwritten or moved without explicit confirmation. A v4 `docs/prd/` tree, an embedded current/progress section in the PRD (e.g. per-module `04-current.md`, a 当前进展 section), or a pre-rename `docs/pdr/` tree is informational legacy drift — detected by init and never moved, rewritten, or deleted without explicit confirmation (`migration.md`).
 - Migrating to a separate Current tree, or from v4 to v5, is an explicit user decision; there is no automatic move.

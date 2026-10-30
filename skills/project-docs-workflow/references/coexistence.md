@@ -6,7 +6,7 @@ Single-context layouts. Multi-context (`CONTEXT-MAP.md`) is not covered by this 
 
 ## Bundled capabilities
 
-Every dependency capability resolves to its copy under `references/deps/` (materialized as `docs/agents/deps/`). No external skill is invoked by name, even when one is installed — the bundled copy is the contract this profile is aligned with. External skills may still be installed for other projects; this profile ignores them.
+Every dependency capability resolves to its copy under `references/deps/` (materialized as `docs/agents/deps/`); the bundled copy is the contract this profile is aligned with.
 
 ## `domain-modeling`
 
@@ -48,7 +48,7 @@ Post-hoc prose polishing of named files. Bundled: `references/deps/doc-opt.md`. 
 
 Not used for issue tracking in these projects (DA_AGENT precedent: ADR-0012, refined by ADR-0026). This skill's `docs/issues` conventions supersede older `.scratch`-style tracking conventions.
 
-A generic scaffolder writing the same surfaces (`docs/agents/domain.md`, an `## Agent skills` block, `CLAUDE.md` preference) is not used for scaffolding in projects on this profile; if one ran before, review its leftovers against this profile's rules (init reports diffs; never overwrites).
+A generic scaffolder writing the same surfaces (`docs/agents/domain.md`, an `## Agent skills` block, `CLAUDE.md` preference) is not used for scaffolding in projects on this profile; if one ran before, review its leftovers against this profile's rules (init reports diffs; rewrites only with confirmation).
 
 ## Invocation
 

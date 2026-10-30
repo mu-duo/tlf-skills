@@ -1,6 +1,6 @@
 # 内置：边界类能力（deepwork / retro / improve-codebase-architecture）
 
-> 该能力的唯一来源，按对应小节执行，不调用外部 skill。
+> 该能力的唯一来源，按对应小节执行。
 
 ## deepwork
 

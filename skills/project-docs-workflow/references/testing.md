@@ -1,6 +1,6 @@
 # Test authoring rules
 
-Test policy for this profile — **first priority and always present**: it ships with the skill and is materialized as `docs/agents/testing.md`. The `tdd` skill (installed, or the internal fallback `deps/tdd.md`) supplies only the red → green mechanics and the seam baseline; for expectation sources, assertion strength, mock / fixture boundaries, defense layering, and change control, these rules win.
+Test policy for this profile — **first priority and always present**: it ships with the skill and is materialized as `docs/agents/testing.md`. `tdd` (`references/deps/tdd.md`) supplies only the red → green mechanics and the seam baseline; for expectation sources, assertion strength, mock / fixture boundaries, defense layering, and change control, these rules win.
 
 Whether a change gets tests is the agent's call, sized to risk (the user may ask for them). Once any test activity happens, this document applies in full — it is not gated on a project declaration.
 

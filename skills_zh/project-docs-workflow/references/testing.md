@@ -1,6 +1,6 @@
 # 测试用例编写准则
 
-本方案的测试政策——**第一优先级，始终存在**：随 skill 分发，并物化为 `docs/agents/testing.md`。`tdd`（已安装则调用，否则按 `deps/tdd.md` 执行）只提供红 → 绿机制与 seam 基线；期望来源、断言强度、Mock / Fixture 边界、防御分层与变更控制，以本文为准。
+本方案的测试政策——**第一优先级，始终存在**：随 skill 分发，并物化为 `docs/agents/testing.md`。`tdd`（`references/deps/tdd.md`）只提供红 → 绿机制与 seam 基线；期望来源、断言强度、Mock / Fixture 边界、防御分层与变更控制，以本文为准。
 
 是否测试由 agent 按变更风险自行决定（用户也可要求）。一旦发生任何测试行为，本文即全量生效，不以项目声明为生效前提。
 

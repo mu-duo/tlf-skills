@@ -1,4 +1,4 @@
-# Legacy bootstrap (existing code, no product docs)
+# Bootstrap (existing code, no product docs)
 
 Bootstrap is the **consent-gated** path for a project that already has source code but no PRD/SPEC. It drafts the v5 documents from the codebase; it never treats drafts as facts before the user reviews them.
 
@@ -32,7 +32,7 @@ Never start the bootstrap phases without an explicit choice.
 ## Outputs are drafts
 
 - Bootstrap outputs are drafts until phase 5 completes. Do not publish them, and do not use them as the implementation fact standard before review.
-- Never overwrite existing files. Show diffs and let the user decide.
+- Never overwrite existing files without a diff and the user's decision.
 - Create **one** `docs/issues/chore/agent/...` bootstrap issue to track the phases and the inferred / pending items. It is the acceptance checklist for the bootstrap.
 - After the user chooses Bootstrap, run `references/deps/domain-modeling.md` once. It does not run during normal init or alignment.
 

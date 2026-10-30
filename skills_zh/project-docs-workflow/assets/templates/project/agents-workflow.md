@@ -23,6 +23,7 @@
 - **实现事实**：SPEC（`01-spec` / `02-interfaces` / `03-nfr` / `design/`）。
 - **现状**：Current（`docs/current/`），只看实际建成的能力与限制。
 - **发布**：`docs/toc.yml` 决定发布哪些文档。
+- **测试准则**：`docs/agents/testing.md`——写或改测试时按它执行（第一优先级，`tdd` 只提供机制）。
 - **冲突**：实现细节以 SPEC 为准，范围 / 意图以 PRD 为准；仍无法判定时升级给编排者 / 用户。
 
 ## 开工前对齐
@@ -77,7 +78,7 @@
 
 ### 细节
 
-主路径实现、细节打磨与代码质量。`tdd` 可作内部循环（可选；未安装则按 `docs/agents/deps/tdd.md` 执行）。
+主路径实现、细节打磨与代码质量。任何测试工作按 `testing.md` 执行；`tdd` 可作内部红 → 绿循环（可选；未安装则按 `docs/agents/deps/tdd.md` 执行），从属于测试准则。
 
 ### 异常
 
@@ -108,13 +109,14 @@ issue 完成时做一次轻量的文档同步清单（coder 更新 Current 事�
 ## 边界
 
 - 高风险 / 大规模多阶段 → `deepwork`（未安装则按 `docs/agents/deps/boundaries.md` 执行），不叠加。
-- `tdd` 可作细节内循环（seam 确认并入规划对齐；未安装则按 `docs/agents/deps/tdd.md` 执行）。
+- `tdd` 可作细节内循环（seam 确认并入规划对齐；未安装则按 `docs/agents/deps/tdd.md` 执行）；测试准则（`testing.md`）始终生效并优先。
 - `grilling` 为对齐访谈（`grill-me` 仅入口别名；未安装则按 `docs/agents/deps/grilling.md` 执行）。
 - 没有产品文档的既有项目 → 需用户同意的 bootstrap；旧版文档 → 迁移。两者都不会自动插入本流程。
 
 ## 相关
 
 - Issue 体系：`issues.md`
+- 测试准则：`testing.md`
 - 产品 PRD 封面：`../product/00-README.md`
 - 产品需求：`../product/01-requirements.md`
 - 架构与模块划分：`../product/02-architecture.md`

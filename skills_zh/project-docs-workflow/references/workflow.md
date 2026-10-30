@@ -23,6 +23,7 @@
 - **实现事实**：SPEC 文件（`01-spec` / `02-interfaces` / `03-nfr` / `design/`）。
 - **现状**：Current（`docs/current/`），看当前实际能做什么。
 - **发布**：`docs/toc.yml` 决定发布文档集合。
+- **测试**：`docs/agents/testing.md`——写或改测试时适用的准则，第一优先级；`tdd` 只提供机制。
 - **冲突**：实现细节 → SPEC 为准；范围 / 意图 → PRD 为准；仍不清楚则升级给编排者 / 用户。
 
 ## 对齐
@@ -66,8 +67,8 @@
 
 1. **规划 / Plan**——编排者 + 用户确认范围并对齐 SPEC；coder 细化验收判据、更新步骤清单状态，并写 1–2 句方案。产出最小；不新开章节。差距分析在此完成，读 SPEC 目标与 Current；PRD 只作人类理解参考。
 2. **骨架 / Skeleton**——最小可运行的垂直切片（忽略输出 / 格式打磨）；留一条运行证据并展示给用户——首个 review 点。纯修复可跳过（Log 原因）；feature 与结构性工作必做。
-3. **细节 / Details**——主路径实现、细节补全、代码质量。`tdd`（未安装则按 `references/deps/tdd.md` 执行）是可选的内部循环。
-4. **异常 / Exceptions**——主路径之后的失败路径、边界与稳定性。真实开发阻塞立即处理并记 Log，绝不排队到这一步。
+3. **细节 / Details**——主路径实现、细节补全、代码质量。任何测试工作按 `docs/agents/testing.md` 执行；`tdd`（未安装则按 `references/deps/tdd.md` 执行）是可选的内部红 → 绿循环，从属于该准则。
+4. **异常 / Exceptions**——主路径之后的失败路径、边界与稳定性；其测试同样按测试准则执行（防御层级归属、禁止弱断言）。真实开发阻塞立即处理并记 Log，绝不排队到这一步。
 5. **回顾 / Wrap-up review**（收尾回顾）——issue 完成时的轻量文档同步清单：coder 更新 Current 事实并提议 SPEC 变更；编排者评审 PRD / SPEC / Current，模块或附录变化时更新 TOC；`adr` / `context` / `issues` / `agents` 按需更新。无需更新则一行 Log。仅做文档同步；会话 / agent 复盘属于 `retro`（未安装则按 `references/deps/boundaries.md` 执行）。
 
 ## 进度与续接
@@ -94,7 +95,7 @@
 ## 边界
 
 - 大规模或高风险多阶段工作 → `deepwork`（未安装则按 `references/deps/boundaries.md` 执行）；绝不与本流程叠加。
-- `tdd`（未安装则按 `references/deps/tdd.md` 执行）嵌在细节内；seam 确认并入规划对齐（不设第二道门）。
+- `tdd`（未安装则按 `references/deps/tdd.md` 执行）嵌在细节内；seam 确认并入规划对齐（不设第二道门）。测试准则（`docs/agents/testing.md`，源 `references/testing.md`）始终生效且优先于 `tdd`。
 - `retro`（未安装则按 `references/deps/boundaries.md` 执行）拥有会话 / agent 复盘；第五步只做文档同步。
 - 没有产品文档的现有项目 → 需用户同意的 bootstrap（`bootstrap.md`）。v4 / 旧版文档 → 迁移（`migration.md`）。二者都不会在本流程中自动运行。
 - 文档 HTML 发布是可选手动能力（`rendering.md`）；绝不在本流程中运行——文档编辑不自动构建。本方案与这些 skill 的共存见 `coexistence.md`。

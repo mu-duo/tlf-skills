@@ -28,6 +28,8 @@
 
 嵌套在 `workflow.md` 的细节步骤内（红 → 绿循环）。seam 确认并入规划对齐——不设第二道门禁。
 
+只提供机制：测试准则（`docs/agents/testing.md`，源 `references/testing.md`）始终生效且优先——即使已安装独立的 `tdd` skill 也是如此。
+
 独立 skill 可选；内部兜底 `references/deps/tdd.md`。
 
 ## `retro`

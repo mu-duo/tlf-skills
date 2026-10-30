@@ -28,6 +28,8 @@ Standalone skill optional; internal fallback `references/deps/boundaries.md`.
 
 Nests inside the Details step of `workflow.md` (red → green loop). Seam confirmation is folded into the Plan alignment — no second gate.
 
+Mechanics only: the test rules (`docs/agents/testing.md`, source `references/testing.md`) always apply and take priority — including when the standalone `tdd` skill is installed.
+
 Standalone skill optional; internal fallback `references/deps/tdd.md`.
 
 ## `retro`

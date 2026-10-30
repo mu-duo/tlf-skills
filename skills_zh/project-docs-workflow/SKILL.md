@@ -1,12 +1,12 @@
 ---
 name: project-docs-workflow
-description: 初始化或对齐项目的文档工作流——issue 跟踪、ADR、宏观 PRD 与规范 SPEC、独立的 Current 现状树、推荐的五步流程、角色，以及遗留项目的 bootstrap / 迁移。每个项目手动运行一次（幂等）；创建缺失文件并报告对齐情况，不覆盖现有内容。
+description: 初始化或对齐项目的文档工作流——issue 跟踪、ADR、宏观 PRD 与规范 SPEC、独立的 Current 现状树、推荐的五步流程、测试用例编写准则、角色，以及遗留项目的 bootstrap / 迁移。每个项目手动运行一次（幂等）；创建缺失文件并报告对齐情况，不覆盖现有内容。
 disable-model-invocation: true
 ---
 
 # 项目文档工作流
 
-搭建并对齐项目的文档体系：issue 跟踪、ADR、宏观 PRD、规范 SPEC、Current 现状树、领域术语，以及带明确角色的推荐五步开发流程。本 skill 是权威源；init 将规则物化到目标项目，使 agent 在运行时读取。
+搭建并对齐项目的文档体系：issue 跟踪、ADR、宏观 PRD、规范 SPEC、Current 现状树、领域术语、带明确角色的推荐五步开发流程，以及测试用例编写准则。本 skill 是权威源；init 将规则物化到目标项目，使 agent 在运行时读取。
 
 手动运行，每个项目一次——在接入时，或在 skill 模板演进后再次运行以检查对齐。重复运行是幂等的：只创建缺失内容并报告漂移，绝不改写现有内容。
 
@@ -77,6 +77,7 @@ disable-model-invocation: true
 | `docs/agents/issues.md` | `assets/templates/project/agents-issues.md` |
 | `docs/agents/domain.md` | `assets/templates/project/agents-domain.md` |
 | `docs/agents/workflow.md` | `assets/templates/project/agents-workflow.md` |
+| `docs/agents/testing.md` | `assets/templates/project/agents-testing.md` |
 | `docs/agents/deps/` | `references/deps/*`（整目录复制，不改内容） |
 | `docs/issues/` 目录树 | 无——创建目录（见下） |
 | `docs/adr/README.md` | `assets/templates/project/adr-readme.md` |
@@ -91,6 +92,7 @@ disable-model-invocation: true
 - provenance 行紧跟在 `## Agent skills` 标题下，是有意保留的——不要删（它标识物化文件及其代次；当前代次 `v5`）。
 - Issue 目录树：`bug/{human,agent,history}`、`feature/{human,agent,history}`、`chore/{human,agent,history}`、`suggestion/{human,agent}`；给每个叶子目录（其中没有文件的）加 `.gitkeep`。不要运行 `git init`。
 - 依赖兜底：init 将 `references/deps/*` 整目录复制到项目的 `docs/agents/deps/`（内容不变），使目标项目即使未安装本 skill 也自足。
+- 测试准则：`docs/agents/testing.md`（源 `references/testing.md`）是**第一优先级、始终存在**——随 skill 分发，不适用「已安装 skill / 兜底」二分；`tdd` 只提供机制。缺失时 init 创建；项目可覆盖其默认值。
 - Current 树：缺失时 init 创建 `docs/current/00-README.md` 概览；**不**强制创建模块文件——按需补充。Current 树与 PRD 平级，绝不嵌入 PRD。
 - PRD 树：缺失时 init 创建三个产品 PRD 章节（`00-README.md`、`01-requirements.md`、`02-architecture.md`）与 `docs/toc.yml`。它**不**强制创建模块文件，也绝不创建产品 `00-index.md`——该产物已退役。模块 `00-index.md` 是不发布的 agent 侧车，仅在模块存在时创建。
 - 领域术语表（例如 `docs/common/glossary.md`）**不**搭建；规则覆盖它们，项目按需创建。
@@ -111,7 +113,8 @@ disable-model-invocation: true
 - `AGENTS.md` 区块：`## Agent skills` 标题 + 三个子章节（`### Issue tracker`、`### Domain docs`、`### Development workflow`）。
 - `docs/agents/issues.md`：目录契约；human/agent 责任；条目格式（`Status:` 行、`## 完成判据`、`## 步骤`、`## Log`；`## 结果` 本身可选）；归档后缀（`-done`/`-drop`）；`-drop` 是工作状态归档，不是否定决策（已放弃条目不被删除或改写）；suggestion 路由。
 - `docs/agents/domain.md`：探索前读 CONTEXT.md + docs/adr；缺失则静默继续；术语表用词规则；ADR 冲突标注。
-- `docs/agents/workflow.md`：角色与写入权限（用户 / 编排者 / coder，单 agent 说明）；读什么（PRD 用于意图与场景，SPEC 用于实现事实，Current 用于现状，TOC 用于发布）；PRD / SPEC 权威与冲突升级；先对齐再实现；对话式对齐（不冻结）；弹性粒度建议（≈0.5 人天启发式）；issue `## 步骤` 跟踪 + 续接锚点；差距→issue 候选推导；四项 PRD 影响触发与一行 no-op 记录；PRD / SPEC / Current / ADR 变更协议；范围收敛默认偏好；收尾（coder 更新 Current 事实并提议 SPEC 变更；编排者评审，模块 / 附录变化时更新 TOC）；边界（deepwork / tdd / retro / grilling 调用 + 兜底指针）；bootstrap / 迁移指针。
+- `docs/agents/workflow.md`：角色与写入权限（用户 / 编排者 / coder，单 agent 说明）；读什么（PRD 用于意图与场景，SPEC 用于实现事实，Current 用于现状，TOC 用于发布）；PRD / SPEC 权威与冲突升级；先对齐再实现；对话式对齐（不冻结）；弹性粒度建议（≈0.5 人天启发式）；issue `## 步骤` 跟踪 + 续接锚点；差距→issue 候选推导；四项 PRD 影响触发与一行 no-op 记录；PRD / SPEC / Current / ADR 变更协议；范围收敛默认偏好；收尾（coder 更新 Current 事实并提议 SPEC 变更；编排者评审，模块 / 附录变化时更新 TOC）；边界（deepwork / tdd / retro / grilling 调用 + 兜底指针；测试准则优先于 `tdd`）；bootstrap / 迁移指针。
+- `docs/agents/testing.md`：SPEC 为唯一真源（每个用例追溯 SPEC ID，绝不从实现反推）；测试先行或与实现同批提交；只断言可观察行为（无私有方法、无调用次数 / 顺序）；上下文隔离与实现可见性声明；防御层级归属与 `疑似越权防御`；Mock / Fixture 边界（Fixture 不补全业务逻辑）；L0–L3 变更等级；交付门禁；`tdd` 从属于本准则。
 - `docs/adr/README.md`：生命周期规则（修改 + Log、删除→墓碑桩、编号不复用）；目录表存在；引用 sweep 同时覆盖 `ADR-XXXX` 与 `adr/<NNNN>-<slug>.md` 路径链接（任意相对前缀）；正文默认不含 `Considered Options`；默认不记录被拒备选（仅约束持久记录；讨论仍可探索备选）。
 - `docs/product/00-README.md`：PRD 横幅（`本文档描述产品目标与方案，不代表当前实现状态；实现细节见 SPEC，现状见 Current。`）；项目说明章节（一句话、项目说明、目标用户与问题、典型应用场景）；无外链、无状态标记、无验收判据。
 - `docs/product/01-requirements.md`：能力地图、关键行为、非目标、关键产品约束；FR ID 为纯文本；无验收判据或接口细节。
@@ -144,6 +147,7 @@ disable-model-invocation: true
 规则承载细节；按需读取。
 
 - `references/workflow.md`——推荐的单 issue 开发流程：角色与写入权限、读什么、对齐、变更协议、五步、收尾、TOC 维护、发布指针、粒度、范围收敛、边界。
+- `references/testing.md`——测试用例编写准则：SPEC 追溯、强断言、Mock / Fixture 边界、防御分层、L0–L3 变更控制、交付门禁；优先级高于 `tdd`。
 - `references/prd.md`——PRD（宏观）、SPEC（细节）、Current、ADR 模型：目录结构、PRD / SPEC / TOC 契约、权威与冲突、边界、遗留 / 迁移指针。
 - `references/current.md`——Current 现状树、基线与验证信心、同步语义、与 PRD 的平级关系、接入规则。
 - `references/rendering.md`——可选的可发布多页 PRD 契约（`docs-html-view`）：TOC 驱动范围、PRD 核心 + SPEC / Current / ADR / 术语表附录、链接规则、生成的 manifest、源文档绝不改写、手动 opt-in。

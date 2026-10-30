@@ -1,12 +1,12 @@
 ---
 name: project-docs-workflow
-description: Initialize or align a project's documentation workflow — issue tracker, ADRs, a macro PRD with a normative SPEC and a separate Current status tree, the recommended five-step workflow, roles, and legacy bootstrap/migration. Run manually once per project (idempotent); creates missing files and reports alignment without overwriting.
+description: Initialize or align a project's documentation workflow — issue tracker, ADRs, a macro PRD with a normative SPEC and a separate Current status tree, the recommended five-step workflow, test authoring rules, roles, and legacy bootstrap/migration. Run manually once per project (idempotent); creates missing files and reports alignment without overwriting.
 disable-model-invocation: true
 ---
 
 # Project Docs Workflow
 
-Scaffold and align a project's documentation system: issue tracker, ADRs, a macro PRD, a normative SPEC, a Current as-built tree, domain terminology, and a recommended five-step development workflow with explicit roles. The skill is the canonical source; init materializes the rules into the target project so agents read them at runtime.
+Scaffold and align a project's documentation system: issue tracker, ADRs, a macro PRD, a normative SPEC, a Current as-built tree, domain terminology, a recommended five-step development workflow with explicit roles, and test authoring rules. The skill is the canonical source; init materializes the rules into the target project so agents read them at runtime.
 
 Run it manually, once per project — on adoption, or again after the skill's templates evolve to check alignment. Re-runs are idempotent: they create what is missing and report drift, never rewrite existing content.
 
@@ -77,6 +77,7 @@ Classify the project before init writes anything:
 | `docs/agents/issues.md` | `assets/templates/project/agents-issues.md` |
 | `docs/agents/domain.md` | `assets/templates/project/agents-domain.md` |
 | `docs/agents/workflow.md` | `assets/templates/project/agents-workflow.md` |
+| `docs/agents/testing.md` | `assets/templates/project/agents-testing.md` |
 | `docs/agents/deps/` | `references/deps/*`（整目录复制，不改内容） |
 | `docs/issues/` directory tree | none — create dirs (below) |
 | `docs/adr/README.md` | `assets/templates/project/adr-readme.md` |
@@ -91,6 +92,7 @@ Classify the project before init writes anything:
 - The provenance line sits immediately under the `## Agent skills` heading and is intentional — keep it (it identifies materialized files and their generation; current generation `v5`).
 - Issue tree: `bug/{human,agent,history}`, `feature/{human,agent,history}`, `chore/{human,agent,history}`, `suggestion/{human,agent}`; add a `.gitkeep` to each leaf directory (one containing no files). Do not run `git init`.
 - Dep fallbacks: init copies `references/deps/*` into the project's `docs/agents/deps/` as a whole-directory copy (content unchanged), so target projects are self-sufficient even without this skill installed.
+- Test rules: `docs/agents/testing.md` (source `references/testing.md`) is **first priority and always present** — it ships with the skill, so no installed-skill / fallback split applies; `tdd` contributes mechanics only. Init creates it when missing; projects may override its defaults.
 - Current tree: init creates the `docs/current/00-README.md` overview when missing; it does **not** force module files — add them as modules need describing. The Current tree is peer to the PRD, never embedded in it.
 - PRD tree: init creates the three product PRD chapters (`00-README.md`, `01-requirements.md`, `02-architecture.md`) and `docs/toc.yml` when missing. It does **not** force module files, and it never creates a product `00-index.md` — that artifact is retired. Module `00-index.md` is an unpublished agent sidecar created only when a module exists.
 - Domain glossaries (e.g. `docs/common/glossary.md`) are **not** scaffolded; the rules cover them and projects create them on demand.
@@ -111,7 +113,8 @@ Required elements per artifact:
 - `AGENTS.md` block: `## Agent skills` heading + three subsections (`### Issue tracker`, `### Domain docs`, `### Development workflow`).
 - `docs/agents/issues.md`: directory contract; human/agent responsibility; entry format (`Status:` line, `## 完成判据`, `## 步骤`, `## Log`; the `## 结果` section itself is optional); archiving suffixes (`-done`/`-drop`); `-drop` is a work-status archive, not a negative decision (dropped entries are not removed or rewritten); suggestion routing.
 - `docs/agents/domain.md`: read CONTEXT.md + docs/adr before exploring; silently continue if missing; glossary vocabulary rule; ADR-conflict flagging.
-- `docs/agents/workflow.md`: roles and write permissions (user / orchestrator / coder, single-agent note); what to read (PRD for intent & scenarios, SPEC for implementation facts, Current for as-built, TOC for publication); PRD / SPEC authority and conflict escalation; align-before-build ordering; conversational alignment (no freeze); elastic granularity suggestion (≈0.5 人天 heuristic); issue `## 步骤` tracking + resume anchor; gap→issue candidate derivation; the four-item PRD-impact trigger with one-line no-op logging; PRD / SPEC / Current / ADR change protocol; scope-convergence default; wrap-up (coder updates Current facts and proposes SPEC changes; orchestrator reviews and updates the TOC if modules/appendices changed); boundaries (deepwork / tdd / retro / grilling 调用 + 兜底指针); bootstrap / migration pointers.
+- `docs/agents/workflow.md`: roles and write permissions (user / orchestrator / coder, single-agent note); what to read (PRD for intent & scenarios, SPEC for implementation facts, Current for as-built, TOC for publication); PRD / SPEC authority and conflict escalation; align-before-build ordering; conversational alignment (no freeze); elastic granularity suggestion (≈0.5 人天 heuristic); issue `## 步骤` tracking + resume anchor; gap→issue candidate derivation; the four-item PRD-impact trigger with one-line no-op logging; PRD / SPEC / Current / ADR change protocol; scope-convergence default; wrap-up (coder updates Current facts and proposes SPEC changes; orchestrator reviews and updates the TOC if modules/appendices changed); boundaries (deepwork / tdd / retro / grilling 调用 + 兜底指针; test rules take priority over `tdd`); bootstrap / migration pointers.
+- `docs/agents/testing.md`: SPEC as the only source of truth (every case traces to a SPEC ID, never derived from the implementation); tests first or with the change; behavior-level assertions only (no private methods, no call counts / order); context isolation and implementation-visibility declaration; defense-layer ownership and `suspected out-of-scope defense`; mock / fixture boundaries (no fixture completing business logic); L0–L3 change levels; the delivery gate; `tdd` subordinate to these rules.
 - `docs/adr/README.md`: lifecycle rules (edit+Log, delete→tombstone stub, no renumber); catalog table present; reference sweep covers both `ADR-XXXX` and `adr/<NNNN>-<slug>.md` path links (any relative prefix); body defaults to no `Considered Options`; rejected alternatives are not recorded by default (durable records only; discussions may explore alternatives).
 - `docs/product/00-README.md`: PRD banner (`本文档描述产品目标与方案，不代表当前实现状态；实现细节见 SPEC，现状见 Current。`); project description sections (one-liner, project description, target users / problems, typical scenarios); no external links, no status markers, no acceptance criteria.
 - `docs/product/01-requirements.md`: capability map, key behaviors, non-goals, shape constraints; FR IDs plain text; no acceptance criteria or interface detail.
@@ -144,6 +147,7 @@ Write the report in the project's documentation language (default: Chinese, matc
 Rules carry the detail; read the one you need.
 
 - `references/workflow.md` — recommended single-issue development flow: roles & write permissions, what to read, alignment, change protocol, five steps, wrap-up, TOC maintenance, publication pointer, granularity, scope convergence, boundaries.
+- `references/testing.md` — test authoring rules: SPEC tracing, strong assertions, mock / fixture boundaries, defense layering, L0–L3 change control, delivery gate; first priority over `tdd`.
 - `references/prd.md` — PRD (macro), SPEC (detail), Current, ADR model: directory structure, PRD / SPEC / TOC contracts, authority & conflict, boundaries, legacy/migration pointer.
 - `references/current.md` — Current as-built tree, baseline & verification confidence, sync semantics, peer relationship to the PRD, adoption rules.
 - `references/rendering.md` — optional publishable multi-page PRD contract (`docs-html-view`): TOC-driven scope, PRD core + SPEC / Current / ADR / glossary appendices, link rules, generated manifest, sources never rewritten, manual opt-in.

@@ -510,6 +510,7 @@ category("simulated scaffold", () => {
     // Check F: published TOC dry run (optional; degrades to SKIP).
     const python = spawnSync("python3", ["-c", "import yaml"], {
       encoding: "utf8",
+      env: { ...process.env, PYTHONDONTWRITEBYTECODE: "1" },
     });
     if (python.error || python.status !== 0 || !fs.existsSync(GEN_PRD)) {
       const reason = !fs.existsSync(GEN_PRD)
@@ -526,7 +527,7 @@ category("simulated scaffold", () => {
       const run = spawnSync(
         "python3",
         [GEN_PRD, "--project-root", scaffold, "--json"],
-        { encoding: "utf8", timeout: 120000 }
+        { encoding: "utf8", timeout: 120000, env: { ...process.env, PYTHONDONTWRITEBYTECODE: "1" } }
       );
       if (run.error || run.status !== 0) {
         const detail = `${run.stderr || ""}${run.stdout || ""}`

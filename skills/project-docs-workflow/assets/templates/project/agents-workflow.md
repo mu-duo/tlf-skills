@@ -35,7 +35,12 @@
 - 对话确认即可：不冻结、不设仪式行。
 - 需求变化时主动重对齐，并更新 issue 内的计划与完成判据。
 - 方向有歧义 → 按 `docs/agents/deps/grilling.md` 执行对齐访谈；`grill-me` 仅入口别名。
+- 需求还模糊时，不要问「你想要什么」；给 2–3 个场景级的具体形态让用户比较，只把确认的写进 PRD，未确认的留白。
 - 不要吞并超出对齐范围的工作。
+
+## 设计模型（写 PRD / SPEC 前先读）
+
+PRD / SPEC / Current 记录的是**暂定设计**，不是决策日志：只写当前持有的设计；未写即未决（不等于允许或禁止）；推翻时直接删除或改写，不留「曾 / 此前 / 已废弃」；非目标是边界，不是被否定的备选。记录否定需用户显式要求，且只写进 ADR。
 
 ## 变更协议
 
@@ -92,6 +97,7 @@ issue 完成时做一次轻量的文档同步清单（coder 更新 Current 事�
 - **SPEC 检查**：coder 通过 issue 提议必要的 SPEC 变更；用户 + 编排者确认后落盘。coder 不直接改 SPEC。
 - **Current 检查**：确认变更已包含在选定基线内；是则就地更新 `docs/current/` 对应文件（只改事实，不插入指向 issue 的自链接或任务历史），否则在 issue 记待同步项；编排者 review Current diff。
 - 其余：`adr`、`context`、`issues`、`agents` 按需更新；issue 的 `## 测试` 已填（执行证据 / 临时结论 / 落盘追溯），scratch 测试已清理；全无更新时一行 Log 即可。
+- 可重建性检查：只读 PRD + SPEC，陌生 agent 能否说出终态；加上 Current 能否说出当前形态。
 
 仅做文档同步；会话复盘见 `docs/agents/deps/boundaries.md`。
 

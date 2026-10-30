@@ -128,11 +128,11 @@ bootstrap 与迁移保留各自的同意选项——建立流程不得绕过它�
 | `AGENTS.md` 区块 | `assets/templates/project/agents-block.md` | `## Agent skills` 标题；三个子章节（Issue tracker / Domain docs / Development workflow）；指向 `docs/agents/testing.md` 的指针 |
 | `docs/agents/issues.md` | `references/issues.md` | 目录契约；责任划分；条目格式（`Status:`、`## 完成判据`、`## 步骤`、`## 测试`、`## Log`；`## 结果` 可选）；归档后缀（`-done`/`-drop`，`-drop` ≠ 否定决策）；suggestion 路由 |
 | `docs/agents/domain.md` | `assets/templates/project/agents-domain.md` | 先读 CONTEXT.md + `docs/adr/`；缺失静默继续；术语表用词；ADR 冲突标注 |
-| `docs/agents/workflow.md` | `references/workflow.md` | 角色与写入权限；读什么；权威与升级；先对齐再实现；粒度；`## 步骤` + 续接；差距→issue；PRD 影响触发；变更协议；范围收敛；收尾；边界；测试准则指针 |
+| `docs/agents/workflow.md` | `references/workflow.md` | 角色与写入权限；读什么；权威与升级；先对齐再实现；粒度；`## 步骤` + 续接；差距→issue；PRD 影响触发；变更协议；范围收敛；收尾；边界；测试准则指针；设计模型规则（只写暂定设计、留白即未决、推翻即删除、不记否定）与可重建性检查 |
 | `docs/agents/testing.md` | `references/testing.md` | 三种测试行为；SPEC / 完成判据追溯；scratch 路径与清理；回归默认；断言；Mock / Fixture；防御分层；L0–L3；`## 测试` 槽位 |
 | `docs/agents/metadata.yml` | `assets/templates/project/metadata.yml` | `skill` + `version`（= 这棵树满足的版本）+ 可选 `updated`；戳只在验证过的运行后前移 |
 | `docs/adr/README.md` | `references/adr.md` | 生命周期（修改 + Log、删除→墓碑桩、编号不复用）；目录表；两种写法的引用 sweep；默认不设 `Considered Options` |
-| `docs/product/{00-README,01-requirements,02-architecture}.md` | `references/prd.md` | PRD 横幅；三章；仅 PRD 层链接；细节上限；无状态标记 |
+| `docs/product/{00-README,01-requirements,02-architecture}.md` | `references/prd.md` | PRD 横幅；三章；仅 PRD 层链接；细节上限；无状态标记；无变更史与被否定的备选 |
 | `docs/toc.yml` | `references/prd.md`（TOC 契约） | `title` / `version` / `date` / `abstract`；章节 id `overview` / `requirements` / `architecture` / `appendix`；附录 id `glossary` / `spec` / `current` / `adr`；所有路径存在；`modules: auto` |
 | 模块 `00-README.md` | `references/prd.md` | 模块 PRD 内容；回链产品 PRD；无文档地图 / 依赖 |
 | 模块 `00-index.md` | `references/prd.md` | 文档地图、依赖、接口归属、CAP↔FR 追溯；不发布；链接架构章节、TOC、模块 PRD |

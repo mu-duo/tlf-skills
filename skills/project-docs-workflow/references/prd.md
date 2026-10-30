@@ -16,6 +16,20 @@ Current = the **as-built snapshot** at a selected baseline; the only status sour
 | **ADR** | everyone | decision + rationale (peer) | why a decision was made |
 | **Issue** | orchestrator / coder | work unit | — |
 
+## Design model, not a log
+
+PRD, SPEC, and Current record the **tentative design** — the shape currently held, stated positively. They are models, not histories.
+
+- **Write only the design you hold.** A statement enters the PRD or SPEC only if it can be stated positively about the product's shape. If it cannot, it is undecided — leave it unwritten.
+- **Absence means undecided.** What is not written stays open: neither permitted nor forbidden. Ask before assuming either.
+- **Overturning deletes.** When the design changes, delete or rewrite the entry. Never add "was", "previously", "deprecated", or a rejected-alternatives note — git holds the history.
+- **Non-goals are boundaries, not rejections.** "We do not do X" is a scope constraint. "We considered Y and rejected it" is not recorded.
+- **Recording a rejection is opt-in.** Only when the user explicitly asks; then one line in an ADR, never in the PRD or SPEC.
+
+**Reconstructability is the acceptance test.** A fresh agent reading only `docs/product/` + the SPEC states the target shape in 3–5 sentences: who it serves, what it does, what it explicitly does not do, and the key constraints. Adding `docs/current/` lets it state the present shape. Hedged wording in that retelling ("may", "roughly", "depending") means the model has a hole: either add the design, or leave that part unwritten too.
+
+An ADR is different: a decision record with rationale, permanent and numbered, so it keeps tombstones. Do not borrow ADR language ("decided", "rejected", "superseded") for PRD or SPEC entries.
+
 ## Directory structure
 
 ```

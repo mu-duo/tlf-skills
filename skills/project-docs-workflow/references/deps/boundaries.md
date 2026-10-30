@@ -1,7 +1,5 @@
 # 内置：边界类能力（deepwork / retro / improve-codebase-architecture）
 
-> 内置副本（精简版），裁剪 / 改编自 [mattpocock/skills](https://github.com/mattpocock/skills) 的 deepwork / retro / improve-codebase-architecture（MIT License, Copyright (c) 2026 Matt Pocock）。
-
 > 本文件是边界类能力的唯一来源：按对应小节执行，不调用外部 skill。
 
 ## deepwork

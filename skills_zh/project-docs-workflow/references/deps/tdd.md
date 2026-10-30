@@ -2,8 +2,6 @@
 
 > 本文件是该能力的唯一来源：按本文执行，不调用外部 skill。
 
-> 内置副本（精简版），裁剪自 [mattpocock/skills](https://github.com/mattpocock/skills) 的 tdd（MIT License, Copyright (c) 2026 Matt Pocock）。
-
 > **优先级**：测试准则（`docs/agents/testing.md`，skill 内为 `references/testing.md`）始终是第一优先级；本文只提供 red → green 机制、seam 与 mock 基线。期望来源、断言强度、变更等级等冲突时以测试准则为准。
 
 以测试先行的方式构建功能或修 bug：red → green 循环。

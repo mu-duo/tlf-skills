@@ -8,15 +8,15 @@ Licensed under the MIT License (see LICENSE).
 Third-party attribution
 -----------------------
 
-Portions of the internal fallback references in this package are trimmed / adapted from:
+Portions of the bundled dependency docs in this package are trimmed / adapted from the
+project below. These docs ship with the package and are used directly; this package does
+not install or invoke any external skill.
 
   https://github.com/mattpocock/skills
   MIT License
   Copyright (c) 2026 Matt Pocock
 
-This package does not bundle standalone dependency skills. The following internal fallback
-references (used when the standalone skill is absent) contain material derived from the
-project above:
+The following bundled files contain material derived from that project:
 
   - skills/project-docs-workflow/references/deps/grilling.md
   - skills/project-docs-workflow/references/deps/domain-modeling.md

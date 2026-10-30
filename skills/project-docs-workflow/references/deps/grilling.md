@@ -2,8 +2,6 @@
 
 > 本文件是该能力的唯一来源：按本文执行，不调用外部 skill。
 
-> 内置副本（精简版），裁剪自 [mattpocock/skills](https://github.com/mattpocock/skills) 的 grilling（MIT License, Copyright (c) 2026 Matt Pocock）。
-
 > `grill-me` 只是本流程的入口别名，本身不含独立流程；`grill-with-docs` = 本流程 + `domain-modeling`（见同目录 `domain-modeling.md`），两者交织进行。
 
 持续追问用户，直到对方案达成共同理解。把它建模成一棵**设计树**：每个决策分叉出依赖它的子决策。用**轮次**遍历这棵树。

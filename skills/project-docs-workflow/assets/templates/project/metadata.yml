@@ -10,5 +10,5 @@
 # 否则后续 init 会误判为已对齐而跳过。项目有意保留不同写法时，保持旧 version 即可。
 
 skill: project-docs-workflow
-version: 5.8.0
+version: 5.9.0
 updated: <YYYY-MM-DD>

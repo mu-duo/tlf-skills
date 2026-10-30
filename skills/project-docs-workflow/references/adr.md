@@ -36,7 +36,7 @@ Status block on the first lines after the H1. Active entries carry none. Retired
 
 ## Reference sweep
 
-`ADR-XXXX` (4-digit zero-padded) is the native citation notation. PRD / Current may also link an ADR by **stable Markdown path** — e.g. `支持[离线使用](../../adr/0003-offline.md)`, optionally with a `#fragment`; there the descriptive phrase carries the meaning, so no `ADR-XXXX` label is required at the link site. Both notations are valid; this does not change the ADR lifecycle (see `rendering.md`).
+`ADR-XXXX` (4-digit zero-padded) is the native citation notation. PRD / Current may also link an ADR by **stable Markdown path** — e.g. `支持[离线使用](../../adr/0003-offline.md)`, optionally with a `#fragment`; there the descriptive phrase carries the meaning, so no `ADR-XXXX` label is required at the link site. The descriptive phrase stands alone and the rationale is never transcluded or summarized; linking is optional and never inferred. Both notations are valid; this does not change the ADR lifecycle (see `rendering.md`).
 
 Whenever an entry is **deleted or semantically edited**, the executor must sweep references: prefer a subagent; without one, grep directly. Sweep **both notations** — the `ADR-\d{4}` number, and Markdown links to an ADR file by its stable filename pattern `adr/<NNNN>-<slug>.md` (any relative prefix — `docs/adr/…`, `../adr/…`, `../../adr/…`, with or without a `#fragment`). Scope = the whole repository (`docs/` must be updated; code comments judged one by one: keep / update / annotate in place). Handle every hit before finishing. When a reference points at a deleted entry, prefer retargeting it to the replacing ADR number; with no replacement, drop the sentence or annotate it in place `(ADR-XXXX deleted)`.
 

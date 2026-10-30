@@ -21,10 +21,7 @@ Run it manually, once per project — on adoption, or again after the skill's te
 
 ## Roles
 
-- **User** — intent, scope, approval; reviews the PRD, SPEC, and ADRs.
-- **Orchestrator** — maintains the PRD; composes the SPEC with the user; reviews PRD / SPEC diffs; owns `docs/toc.yml`; triggers publication; delegates coding.
-- **Coder agent** — reads the SPEC, implements; updates Current facts at wrap-up; may propose SPEC changes through an issue; does not directly edit the PRD, SPEC, or TOC.
-- **Single-agent setups** — one agent may play orchestrator + coder; role boundaries still apply.
+Three roles: **user** (intent, scope, approval; reviews PRD / SPEC / ADRs), **orchestrator** (maintains the PRD, composes the SPEC with the user, owns `docs/toc.yml`, triggers publication), **coder agent** (reads the SPEC, implements, updates Current at wrap-up, proposes SPEC changes through an issue). A single agent may play both, switching hats explicitly. Write permissions: `references/workflow.md`.
 
 ## 依赖解析（两级）
 
@@ -47,7 +44,7 @@ Run from the target project root (`cwd`).
 
 1. **Read `docs/agents/metadata.yml`, then classify the state** (below) before touching anything. The state decides whether init may write, repair, or only report.
 2. **Inventory** every artifact in the checklist. Classify each as *missing* or *existing*. Done when every row has a classification.
-3. **Create missing** files from their template, per the state rules, and create the issue directory tree. Create the `docs/current/00-README.md` overview when missing — do not force module files. Create `docs/product/00-README.md`, `docs/product/01-requirements.md`, `docs/product/02-architecture.md`, and `docs/toc.yml` when missing — do **not** force module files, and never create a product `00-index.md`.
+3. **Create missing** artifacts from their templates, per the state rules, plus the issue directory tree. Do not force module files; never create a product `00-index.md`.
 4. **Fill placeholders**: fill only obvious, determinable *fill-in* placeholders (e.g. project name from the repo/directory name); list every remaining fill-in placeholder under `Next:` in the report. **Never guess the Current baseline** — if it is unset, `选定 Current 基线（revision / release + 日期）` is the first `Next:` item. Format notation such as `<标题>` is documentation, not a placeholder — skip it.
 5. **Compare existing** files against their template: classify *aligned*, or *diff* with the specific differences listed.
 6. **Report** using the format below.
@@ -104,7 +101,7 @@ Bootstrap and migration keep their own consent options — the establishment pro
 - Issue tree: `bug/{human,agent,history}`, `feature/{human,agent,history}`, `chore/{human,agent,history}`, `suggestion/{human,agent}`; add a `.gitkeep` to each leaf directory (one containing no files). Do not run `git init`.
 - Dep fallbacks: init copies `references/deps/*` into the project's `docs/agents/deps/` as a whole-directory copy (content unchanged at copy time), so target projects are self-sufficient even without this skill installed. Projects may translate or edit them afterwards.
 - Test rules: `docs/agents/testing.md` (source `references/testing.md`) is **first priority and always present** — it ships with the skill, so no installed-skill / fallback split applies; `tdd` contributes mechanics only. Init creates it when missing; projects may override its defaults. The issue's `## 测试` section (execution / temporary / persistent) is the evidence it produces.
-- Metadata: `docs/agents/metadata.yml` carries `skill`, `version`, and `updated`. It is the conformance stamp: equal version + complete artifacts = skip. Never hand-bump it to a version whose rules the tree does not actually satisfy.
+- Metadata: `docs/agents/metadata.yml` carries `skill`, `version`, and `updated`. It is the conformance stamp: equal version + complete artifacts = skip. Never hand-bump it past the version whose rules the tree satisfies.
 - Current tree: init creates the `docs/current/00-README.md` overview when missing; it does **not** force module files — add them as modules need describing. The Current tree is peer to the PRD, never embedded in it.
 - PRD tree: init creates the three product PRD chapters (`00-README.md`, `01-requirements.md`, `02-architecture.md`) and `docs/toc.yml` when missing. It does **not** force module files, and it never creates a product `00-index.md` — that artifact is retired. Module `00-index.md` is an unpublished agent sidecar created only when a module exists.
 - Domain glossaries (e.g. `docs/common/glossary.md`) are **not** scaffolded; the rules cover them and projects create them on demand.
@@ -120,25 +117,28 @@ Compare **rules, not bytes**. An existing file is **aligned** when every require
 
 Ignore in every comparison: the provenance line; filled placeholders; index/table rows; module/term/entry names; language; extra content.
 
-Required elements per artifact:
+Required elements per artifact: compare against the named source; the project copy is aligned when every rule there is recognizable. Wording, language, ordering, and extra content may differ.
 
-- `AGENTS.md` block: `## Agent skills` heading + three subsections (`### Issue tracker`, `### Domain docs`, `### Development workflow`) + a pointer to `docs/agents/testing.md` in the workflow subsection.
-- `docs/agents/issues.md`: directory contract; human/agent responsibility; entry format (`Status:` line, `## 完成判据`, `## 步骤`, `## 测试`, `## Log`; the `## 结果` section itself is optional); archiving suffixes (`-done`/`-drop`); `-drop` is a work-status archive, not a negative decision (dropped entries are not removed or rewritten); suggestion routing.
-- `docs/agents/domain.md`: read CONTEXT.md + docs/adr before exploring; silently continue if missing; glossary vocabulary rule; ADR-conflict flagging.
-- `docs/agents/workflow.md`: roles and write permissions (user / orchestrator / coder, single-agent note); what to read (PRD for intent & scenarios, SPEC for implementation facts, Current for as-built, TOC for publication); PRD / SPEC authority and conflict escalation; align-before-build ordering; conversational alignment (no freeze); elastic granularity suggestion (≈0.5 人天 heuristic); issue `## 步骤` tracking + resume anchor; gap→issue candidate derivation; the four-item PRD-impact trigger with one-line no-op logging; PRD / SPEC / Current / ADR change protocol; scope-convergence default; wrap-up (coder updates Current facts and proposes SPEC changes; orchestrator reviews and updates the TOC if modules/appendices changed; `## 测试` filled and scratch tests gone); boundaries (deepwork / tdd / retro / grilling 调用 + 兜底指针; test-rules pointer, which takes priority over `tdd`); bootstrap / migration pointers.
-- `docs/agents/testing.md`: three test activities (run / temporary / persistent) and the paperwork split between them; persistent cases trace to a SPEC ID or, with no SPEC, to the issue's completion criteria marked `pending SPEC write-back`; temporary tests live in the declared scratch path (default `tmp/`, gitignored) and are deleted before wrap-up; bug fixes land a regression case by default or record the reason in `## 测试`; behavior-level assertions only (no private methods, no call counts / order); context isolation and implementation-visibility declaration; defense-layer ownership and `suspected out-of-scope defense`; mock / fixture boundaries (no fixture completing business logic); L0–L3 change levels; the `## 测试` three slots and the delivery gate; `tdd` subordinate to these rules.
-- `docs/agents/metadata.yml`: `skill` + `version` (+ `updated`); `version` is the skill version the tree was built or last verified against; it advances only after a run with no rewrite pending, and a version mismatch is what triggers the establishment procedure.
-- `docs/adr/README.md`: lifecycle rules (edit+Log, delete→tombstone stub, no renumber); catalog table present; reference sweep covers both `ADR-XXXX` and `adr/<NNNN>-<slug>.md` path links (any relative prefix); body defaults to no `Considered Options`; rejected alternatives are not recorded by default (durable records only; discussions may explore alternatives).
-- `docs/product/00-README.md`: PRD banner (`本文档描述产品目标与方案，不代表当前实现状态；实现细节见 SPEC，现状见 Current。`); project description sections (one-liner, project description, target users / problems, typical scenarios); no external links, no status markers, no acceptance criteria.
-- `docs/product/01-requirements.md`: capability map, key behaviors, non-goals, shape constraints; FR IDs plain text; no acceptance criteria or interface detail.
-- `docs/product/02-architecture.md`: architecture overview + module map; links to module PRDs; no SPEC detail.
-- `docs/toc.yml`: `title` / `version` / `date` / `abstract`; required section ids `overview`, `requirements`, `architecture`, `appendix`; appendix ids `glossary`, `spec`, `current`, `adr`; all paths exist; `modules: auto`.
-- module `00-README.md`: module PRD (what it enables, key behaviors, boundaries, non-goals); backlink to the product PRD; no doc map / dependencies.
-- module `00-index.md`: doc map, dependencies, interface ownership, CAP↔FR traceability; not published; links to the architecture chapter, the TOC, and the module PRD.
-- `docs/current/00-README.md`: purpose; link to the PRD cover (`../product/00-README.md`); the baseline (revision/date) the tree describes; module/topic index; reading order; records as-built capabilities/limits, not task logs, planned work, or progress; optional descriptive ADR link rule.
-- `CONTEXT.md`: glossary structure (term blocks with `_Avoid_`).
-- `docs/issues/` tree: leaf directories exist (`.gitkeep` may be checked); extras informational only.
-- `docs/agents/deps/`: leaf files exist (`grilling.md`, `domain-modeling.md`, `tdd.md`, `doc-opt.md`, `boundaries.md`); extras informational only.
+| Artifact | Source of the rules | Required content |
+| :--- | :--- | :--- |
+| `AGENTS.md` block | `assets/templates/project/agents-block.md` | `## Agent skills` heading; three subsections (Issue tracker / Domain docs / Development workflow); pointer to `docs/agents/testing.md` |
+| `docs/agents/issues.md` | `references/issues.md` | directory contract; responsibility; entry format (`Status:`, `## 完成判据`, `## 步骤`, `## 测试`, `## Log`; `## 结果` optional); archive suffixes (`-done`/`-drop`, `-drop` ≠ negative decision); suggestion routing |
+| `docs/agents/domain.md` | `assets/templates/project/agents-domain.md` | read CONTEXT.md + `docs/adr/` first; continue silently when missing; glossary vocabulary; ADR-conflict flagging |
+| `docs/agents/workflow.md` | `references/workflow.md` | roles & write permissions; what to read; authority & escalation; align-before-build; granularity; `## 步骤` + resume; gap→issue; PRD-impact trigger; change protocol; scope convergence; wrap-up; boundaries; test-rules pointer |
+| `docs/agents/testing.md` | `references/testing.md` | three test activities; SPEC / completion-criteria traceability; scratch path + cleanup; regression default; assertions; mocks / fixtures; defense layering; L0–L3; `## 测试` slots |
+| `docs/agents/metadata.yml` | `assets/templates/project/metadata.yml` | `skill` + `version` (= the version the tree satisfies) + optional `updated`; stamp advances only after a verified run |
+| `docs/adr/README.md` | `references/adr.md` | lifecycle (edit + Log, delete → tombstone stub, no renumber); catalog table; reference sweep over both notations; no `Considered Options` by default |
+| `docs/product/{00-README,01-requirements,02-architecture}.md` | `references/prd.md` | PRD banner; three chapters; PRD-layer links only; detail ceiling; no status markers |
+| `docs/toc.yml` | `references/prd.md` (TOC contract) | `title` / `version` / `date` / `abstract`; section ids `overview` / `requirements` / `architecture` / `appendix`; appendix ids `glossary` / `spec` / `current` / `adr`; every path exists; `modules: auto` |
+| module `00-README.md` | `references/prd.md` | module PRD content; backlink to the product PRD; no doc map / dependencies |
+| module `00-index.md` | `references/prd.md` | doc map, dependencies, interface ownership, CAP↔FR traceability; unpublished; links to architecture, TOC, module PRD |
+| `docs/current/00-README.md` | `references/current.md` | purpose; PRD-cover backlink (`../product/00-README.md`); selected baseline; module index; reading order; as-built only |
+| `CONTEXT.md` | `references/terminology.md` | glossary structure (term blocks with `_Avoid_`) |
+| `docs/issues/` tree | — | leaf directories exist (`.gitkeep` may be checked) |
+
+Extras are informational, never a diff.
+
+- `docs/agents/deps/`: leaf files exist (`grilling.md`, `domain-modeling.md`, `tdd.md`, `doc-opt.md`, `boundaries.md`).
 
 ### Report format
 

@@ -2,7 +2,7 @@
 
 Default profile; projects may override in their materialized copies.
 
-Publication is an **optional, user-triggered** capability provided outside this profile by the first-party `docs-html-view` skill. This profile only fixes the **document contract** publication relies on: what is published, how links are written, and that sources are never rewritten. It never installs, builds, renders, or activates anything, and init creates no publication artifact.
+Publication is an **optional, user-triggered** capability provided by the first-party `docs-html-view` skill. This profile fixes only the **document contract** it relies on: what is published, how links are written, and that sources are never rewritten. It never installs, builds, or activates anything; init creates no publication artifact.
 
 ## Publishable multi-page PRD
 
@@ -30,15 +30,15 @@ There is no full-site mode and no profile switch: every build is a PRD publicati
 ## Link authoring
 
 - **PRD core links**: PRD-layer only — same-file anchors, product chapter ↔ module PRD, and module PRD ↔ module PRD. No external links (`http` / `https` / `mailto`), no links to SPEC, Current, or ADR, and no status markers.
-- **SPEC / Current → ADR**: a **descriptive phrase + a stable path link** to the ADR file, e.g. `支持 [离线使用](../../adr/0003-offline.md)`. The description is written independently and stands on its own; the ADR's rationale is **not** transcluded or summarized. No requirement must carry an ADR, and the profile never infers ADR links automatically.
+- **SPEC / Current → ADR**: a descriptive phrase + a stable path link to the ADR file, e.g. `支持 [离线使用](../../adr/0003-offline.md)`. The form and never-transclude rules live in `adr.md`.
 - The native `ADR-XXXX` citation notation is unchanged; ADR deletion / semantic edit sweeps **both** notations (`adr.md`).
 - Because the PRD core must not link out, its section pages have no external targets to resolve; only internal anchors matter. Cross-layer navigation is provided by the TOC and the appendices.
 
 ## Sources are never rewritten
 
-- The Markdown sources stay the single source of truth and remain human-readable on their own; the renderer is **read-only** toward them — no normalization, no move, no rewrite.
+- Sources stay the single source of truth and stay readable on their own; the renderer is **read-only** — no normalization, no move, no rewrite.
 - Out-of-scope or dangling references are **reported**, never fixed in the source.
-- "Nothing to publish" is a **failure**, not a silent success; the renderer never bootstraps the docs workflow on its own.
+- "Nothing to publish" is a **failure**; the renderer never bootstraps the workflow.
 
 ## Output
 
@@ -47,6 +47,6 @@ There is no full-site mode and no profile switch: every build is a PRD publicati
 
 ## Manual, opt-in
 
-- Publication is **user-triggered and manual**: no hook, no auto-build on doc edits, no change to the main init artifacts.
-- Install / init / first build only after explicit user consent obtained through the skill interaction; there is no custom orchestrator, manifest approval state machine, or background build.
-- To integrate, point the project at the `docs-html-view` skill explicitly; do not wire it into initialization.
+- **User-triggered and manual**: no hook, no auto-build on doc edits, no change to the init artifacts.
+- Install / init / first build only after explicit consent from the skill interaction; there is no orchestrator, approval state machine, or background build.
+- Integrate by pointing the project at `docs-html-view` explicitly; never wire it into initialization.

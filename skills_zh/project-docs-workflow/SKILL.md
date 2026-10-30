@@ -21,10 +21,7 @@ disable-model-invocation: true
 
 ## 角色
 
-- **用户**：意图、范围与批准；评审 PRD、SPEC 与 ADR。
-- **编排者（orchestrator）**：维护 PRD；与用户共同编写 SPEC；评审 PRD / SPEC diff；拥有 `docs/toc.yml`；触发发布；把编码工作交给 coder。
-- **编码 agent（coder）**：读 SPEC 实现；收尾时更新 Current 事实；可通过 issue 提议 SPEC 变更；不直接改 PRD、SPEC 或 TOC。
-- **单 agent 模式**：一个 agent 可同时担任编排者与 coder，但角色边界仍然适用。
+三种角色：**用户**（意图、范围与批准；评审 PRD / SPEC / ADR）、**编排者**（维护 PRD，与用户共同编写 SPEC，拥有 `docs/toc.yml`，触发发布）、**编码 agent**（读 SPEC 实现，收尾更新 Current，通过 issue 提议 SPEC 变更）。单 agent 可同时担任两者，但换帽子必须显式。写入权限见 `references/workflow.md`。
 
 ## 依赖解析（两级）
 
@@ -47,7 +44,7 @@ disable-model-invocation: true
 
 1. **先读 `docs/agents/metadata.yml`，再判定状态**（见下）。状态决定 init 可以写入、修复，还是只报告。
 2. **盘点**下方清单中的每个产物。将每项归类为*缺失*或*已存在*。每一行都有分类即完成。
-3. **按状态规则创建缺失**文件（按模板），并创建 issue 目录树。缺失时创建 `docs/current/00-README.md` 概览——不强制创建模块文件。缺失时创建 `docs/product/00-README.md`、`docs/product/01-requirements.md`、`docs/product/02-architecture.md` 与 `docs/toc.yml`——**不**强制创建模块文件，也绝不创建产品 `00-index.md`。
+3. **按状态规则创建缺失**产物（按模板），并创建 issue 目录树。不强制创建模块文件；绝不创建产品 `00-index.md`。
 4. **填充占位符**：只填充明显、可确定的*待填*占位符（例如由仓库/目录名得到项目名）；将剩余每个待填占位符列在报告的「下一步」下。**绝不猜 Current 基线**——未选定基线时，`选定 Current 基线（revision / release + 日期）` 是「下一步」的第一项。`<标题>` 这类格式记号是文档说明，不是占位符——跳过。
 5. **比较现有**文件与模板：归类为*已对齐*，或*有差异*并列出具体差异。
 6. **报告**：使用下方格式。
@@ -104,7 +101,7 @@ bootstrap 与迁移保留各自的同意选项——建立流程不得绕过它�
 - Issue 目录树：`bug/{human,agent,history}`、`feature/{human,agent,history}`、`chore/{human,agent,history}`、`suggestion/{human,agent}`；给每个叶子目录（其中没有文件的）加 `.gitkeep`。不要运行 `git init`。
 - 依赖兜底：init 将 `references/deps/*` 整目录复制到项目的 `docs/agents/deps/`（复制时内容不变），使目标项目即使未安装本 skill 也自足。项目之后可翻译或修改它们。
 - 测试准则：`docs/agents/testing.md`（源 `references/testing.md`）是**第一优先级、始终存在**——随 skill 分发，不适用「已安装 skill / 兜底」二分；`tdd` 只提供机制。缺失时 init 创建；项目可覆盖其默认值。其产出落在 issue 的 `## 测试`（执行 / 临时 / 落盘）。
-- 元数据：`docs/agents/metadata.yml` 携带 `skill`、`version`、`updated`，是符合性戳：版本相同 + 产物齐全即跳过。绝不手工把它改成「这棵树其实并不满足」的版本。
+- 元数据：`docs/agents/metadata.yml` 携带 `skill`、`version`、`updated`，是符合性戳：版本相同 + 产物齐全即跳过。绝不手工把它改成这棵树并不满足的版本。
 - Current 树：缺失时 init 创建 `docs/current/00-README.md` 概览；**不**强制创建模块文件——按需补充。Current 树与 PRD 平级，绝不嵌入 PRD。
 - PRD 树：缺失时 init 创建三个产品 PRD 章节（`00-README.md`、`01-requirements.md`、`02-architecture.md`）与 `docs/toc.yml`。它**不**强制创建模块文件，也绝不创建产品 `00-index.md`——该产物已退役。模块 `00-index.md` 是不发布的 agent 侧车，仅在模块存在时创建。
 - 领域术语表（例如 `docs/common/glossary.md`）**不**搭建；规则覆盖它们，项目按需创建。
@@ -120,25 +117,28 @@ bootstrap 与迁移保留各自的同意选项——建立流程不得绕过它�
 
 每次比较都忽略：provenance 行；已填占位符；索引 / 表格行；模块 / 术语 / 条目名称；语言；额外内容。
 
-各产物必需元素：
+各产物必需元素：对照「规则来源」——项目副本只要可识别地包含该来源中的每条规则即为已对齐。措辞、语言、顺序与额外内容均可不同。
 
-- `AGENTS.md` 区块：`## Agent skills` 标题 + 三个子章节（`### Issue tracker`、`### Domain docs`、`### Development workflow`）+ 流程子章节中指向 `docs/agents/testing.md` 的指针。
-- `docs/agents/issues.md`：目录契约；human/agent 责任；条目格式（`Status:` 行、`## 完成判据`、`## 步骤`、`## 测试`、`## Log`；`## 结果` 本身可选）；归档后缀（`-done`/`-drop`）；`-drop` 是工作状态归档，不是否定决策（已放弃条目不被删除或改写）；suggestion 路由。
-- `docs/agents/domain.md`：探索前读 CONTEXT.md + docs/adr；缺失则静默继续；术语表用词规则；ADR 冲突标注。
-- `docs/agents/workflow.md`：角色与写入权限（用户 / 编排者 / coder，单 agent 说明）；读什么（PRD 用于意图与场景，SPEC 用于实现事实，Current 用于现状，TOC 用于发布）；PRD / SPEC 权威与冲突升级；先对齐再实现；对话式对齐（不冻结）；弹性粒度建议（≈0.5 人天启发式）；issue `## 步骤` 跟踪 + 续接锚点；差距→issue 候选推导；四项 PRD 影响触发与一行 no-op 记录；PRD / SPEC / Current / ADR 变更协议；范围收敛默认偏好；收尾（coder 更新 Current 事实并提议 SPEC 变更；编排者评审，模块 / 附录变化时更新 TOC；`## 测试` 已填、scratch 测试已清理）；边界（deepwork / tdd / retro / grilling 调用 + 兜底指针；测试准则指针，优先于 `tdd`）；bootstrap / 迁移指针。
-- `docs/agents/testing.md`：三种测试行为（执行 / 临时 / 落盘）及其文书负担差异；落盘用例追溯 SPEC ID，无 SPEC 时追溯到 issue 完成判据并标 `待回写 SPEC`；临时测试写在声明的 scratch 路径（默认 `tmp/`，须 gitignore），收尾删除；bug 修复默认落盘回归用例，或在 `## 测试` 写明不落盘理由；只断言可观察行为（无私有方法、无调用次数 / 顺序）；上下文隔离与实现可见性声明；防御层级归属与 `疑似越权防御`；Mock / Fixture 边界（Fixture 不补全业务逻辑）；L0–L3 变更等级；`## 测试` 三槽位与交付门禁；`tdd` 从属于本准则。
-- `docs/agents/metadata.yml`：`skill` + `version`（可选 `updated`）；`version` 是这棵树建立或最后复查时的 skill 版本；只有在没有待定改写的运行之后才前移，版本不一致正是触发建立流程的信号。
-- `docs/adr/README.md`：生命周期规则（修改 + Log、删除→墓碑桩、编号不复用）；目录表存在；引用 sweep 同时覆盖 `ADR-XXXX` 与 `adr/<NNNN>-<slug>.md` 路径链接（任意相对前缀）；正文默认不含 `Considered Options`；默认不记录被拒备选（仅约束持久记录；讨论仍可探索备选）。
-- `docs/product/00-README.md`：PRD 横幅（`本文档描述产品目标与方案，不代表当前实现状态；实现细节见 SPEC，现状见 Current。`）；项目说明章节（一句话、项目说明、目标用户与问题、典型应用场景）；无外链、无状态标记、无验收判据。
-- `docs/product/01-requirements.md`：能力地图、关键行为、非目标、关键产品约束；FR ID 为纯文本；无验收判据或接口细节。
-- `docs/product/02-architecture.md`：架构总览 + 模块划分；链接到模块 PRD；无 SPEC 细节。
-- `docs/toc.yml`：`title` / `version` / `date` / `abstract`；必需章节 id `overview`、`requirements`、`architecture`、`appendix`；附录 id `glossary`、`spec`、`current`、`adr`；所有路径存在；`modules: auto`。
-- 模块 `00-README.md`：模块 PRD（提供什么、关键行为、边界、非目标）；回链产品 PRD；无文档地图 / 依赖。
-- 模块 `00-index.md`：文档地图、依赖、接口归属、CAP↔FR 追溯；不发布；链接到架构章节、TOC 与模块 PRD。
-- `docs/current/00-README.md`：目的；链接到 PRD 封面（`../product/00-README.md`）；树所描述的基线（revision/date）；模块 / 主题索引；阅读顺序；记录实际建成的能力 / 限制，而非任务日志、计划工作或进展；可选描述性 ADR 链接规则。
-- `CONTEXT.md`：术语表结构（含 `_Avoid_` 的术语块）。
-- `docs/issues/` 树：叶子目录存在（可检查 `.gitkeep`）；额外内容仅供参考。
-- `docs/agents/deps/`：叶子文件存在（`grilling.md`、`domain-modeling.md`、`tdd.md`、`doc-opt.md`、`boundaries.md`）；额外内容仅供参考。
+| 产物 | 规则来源 | 必需内容 |
+| :--- | :--- | :--- |
+| `AGENTS.md` 区块 | `assets/templates/project/agents-block.md` | `## Agent skills` 标题；三个子章节（Issue tracker / Domain docs / Development workflow）；指向 `docs/agents/testing.md` 的指针 |
+| `docs/agents/issues.md` | `references/issues.md` | 目录契约；责任划分；条目格式（`Status:`、`## 完成判据`、`## 步骤`、`## 测试`、`## Log`；`## 结果` 可选）；归档后缀（`-done`/`-drop`，`-drop` ≠ 否定决策）；suggestion 路由 |
+| `docs/agents/domain.md` | `assets/templates/project/agents-domain.md` | 先读 CONTEXT.md + `docs/adr/`；缺失静默继续；术语表用词；ADR 冲突标注 |
+| `docs/agents/workflow.md` | `references/workflow.md` | 角色与写入权限；读什么；权威与升级；先对齐再实现；粒度；`## 步骤` + 续接；差距→issue；PRD 影响触发；变更协议；范围收敛；收尾；边界；测试准则指针 |
+| `docs/agents/testing.md` | `references/testing.md` | 三种测试行为；SPEC / 完成判据追溯；scratch 路径与清理；回归默认；断言；Mock / Fixture；防御分层；L0–L3；`## 测试` 槽位 |
+| `docs/agents/metadata.yml` | `assets/templates/project/metadata.yml` | `skill` + `version`（= 这棵树满足的版本）+ 可选 `updated`；戳只在验证过的运行后前移 |
+| `docs/adr/README.md` | `references/adr.md` | 生命周期（修改 + Log、删除→墓碑桩、编号不复用）；目录表；两种写法的引用 sweep；默认不设 `Considered Options` |
+| `docs/product/{00-README,01-requirements,02-architecture}.md` | `references/prd.md` | PRD 横幅；三章；仅 PRD 层链接；细节上限；无状态标记 |
+| `docs/toc.yml` | `references/prd.md`（TOC 契约） | `title` / `version` / `date` / `abstract`；章节 id `overview` / `requirements` / `architecture` / `appendix`；附录 id `glossary` / `spec` / `current` / `adr`；所有路径存在；`modules: auto` |
+| 模块 `00-README.md` | `references/prd.md` | 模块 PRD 内容；回链产品 PRD；无文档地图 / 依赖 |
+| 模块 `00-index.md` | `references/prd.md` | 文档地图、依赖、接口归属、CAP↔FR 追溯；不发布；链接架构章节、TOC、模块 PRD |
+| `docs/current/00-README.md` | `references/current.md` | 目的；PRD 封面回链（`../product/00-README.md`）；选定基线；模块索引；阅读顺序；只记现状 |
+| `CONTEXT.md` | `references/terminology.md` | 术语表结构（含 `_Avoid_` 的术语块） |
+| `docs/issues/` 树 | — | 叶子目录存在（可检查 `.gitkeep`） |
+
+额外内容仅供参考，绝不算差异。
+
+- `docs/agents/deps/`：叶子文件存在（`grilling.md`、`domain-modeling.md`、`tdd.md`、`doc-opt.md`、`boundaries.md`）。
 
 ### 报告格式
 

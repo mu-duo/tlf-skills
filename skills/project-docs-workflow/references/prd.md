@@ -1,10 +1,10 @@
 # PRD, SPEC, Current, and ADR
 
-PRD = Product Requirements Document: the **macro product narrative** — what the product is for, who it serves, the typical scenarios, the high-level product requirements, and the architecture / module overview. It is the authority on **scope and intent**.
+PRD (Product Requirements Document) = the **macro product narrative** — purpose, users, typical scenarios, high-level requirements, architecture overview. Authority on **scope and intent**.
 
-SPEC = technical specification: the **normative implementation detail and fact standard** — functional requirements with acceptance criteria, interfaces, non-functional requirements, and optional mechanism design. It is the authority on **implementation details**.
+SPEC (technical specification) = the **implementation fact standard** — functional requirements with acceptance criteria, interfaces, NFRs, optional mechanism design. Authority on **implementation details**.
 
-Current = the **as-built snapshot** at a selected baseline. It is the only status source. ADR = a decision record with its rationale; a **peer** of these documents, not a layer. Issue = the work unit.
+Current = the **as-built snapshot** at a selected baseline; the only status source. ADR = a decision record with its rationale; a **peer**, not a layer. Issue = the work unit.
 
 ## Document model
 
@@ -15,8 +15,6 @@ Current = the **as-built snapshot** at a selected baseline. It is the only statu
 | **Current** | everyone | as-built snapshot at a selected baseline | actual status |
 | **ADR** | everyone | decision + rationale (peer) | why a decision was made |
 | **Issue** | orchestrator / coder | work unit | — |
-
-The PRD is the macro narrative of the SPEC; the SPEC serves the PRD's goals. Current is the only status source; an ADR is the only "why" source.
 
 ## Directory structure
 
@@ -52,8 +50,6 @@ CONTEXT.md                    # project root glossary source
 - `docs/prd/` is the v4/legacy layout. It is detected and offered for migration (`migration.md`); it is never rewritten during init.
 
 ## PRD contract
-
-The PRD is a macro narrative. It explains what the product is and should become, not how it is built.
 
 ### Product PRD (three chapters)
 
@@ -123,10 +119,10 @@ The orchestrator maintains the PRD with the user; humans review the PRD diff for
 
 ## Current & ADR boundaries
 
-- Current (`current.md`) records the as-built facts at a selected baseline. It may link to the PRD, SPEC, or ADR.
-- The PRD core must not link to Current. Current and the PRD are independent, user-readable trees; neither embeds the other.
-- ADR = decisions with rationale and trade-offs, a peer and an appendix. In the PRD, describe capabilities in plain language and do not link ADRs.
-- Outside the PRD core, an ADR link is a **descriptive phrase + a stable path link** (e.g. `支持[离线使用](../../adr/0003-offline.md)`). The description stands on its own; the ADR rationale is not transcluded or summarized. No requirement must carry an ADR, and links are never inferred automatically.
+- Current (`current.md`) records as-built facts at a selected baseline; it may link to the PRD, SPEC, or ADR.
+- The PRD core must not link to Current, SPEC, or ADR: Current and the PRD are independent trees; neither embeds the other.
+- ADR = decisions with rationale and trade-offs, a peer and an appendix.
+- Outside the PRD core, link an ADR by descriptive phrase + stable path (`支持[离线使用](../../adr/0003-offline.md)`); the form and never-transclude rules live in `adr.md`.
 
 ## Legacy & migration
 

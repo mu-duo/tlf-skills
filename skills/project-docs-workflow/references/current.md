@@ -1,15 +1,15 @@
 # Current-state docs
 
-Current = what the product **is now, as built**: actual capabilities, key behavior, and limits, each stated against a project-specified baseline. It is the as-built snapshot beside the PRD (macro product narrative) and the SPEC (implementation fact standard). A peer tree to the PRD (`prd.md`), not a section of it. Default profile; overridable in project copies. Current is in the publication scope, together with the PRD and SPEC appendices (`rendering.md`).
+Current = what the product **is now, as built**: capabilities, key behavior, and limits, stated against a project-specified baseline. A peer tree beside the PRD and SPEC (`prd.md`), not a section of either. Default profile; overridable in project copies. Published with the PRD and SPEC appendices (`rendering.md`).
 
-**The PRD is status-free; Current is the only status source.** The PRD narrates the target and carries no progress, status markers, or as-built claims. Anything about what actually works now is read here.
+**The PRD is status-free; Current is the only status source.** The PRD narrates the target and carries no progress, status markers, or as-built claims. What works now is read here.
 
 ## Structure
 
 - `docs/current/00-README.md` — overview + navigation: it declares the **selected baseline** and, centrally, the verification-confidence convention, then indexes module / topic docs. No per-module status roll-up is required; link out. It links to the PRD cover at `../product/00-README.md`.
 - Module docs — one per module as needed; each records actual capabilities, key behavior, and limits. Claims inherit the overview's baseline and confidence; a module doc overrides the baseline only when it genuinely differs.
 - Optional topic docs — cross-cutting areas (e.g. operations, data) added only when needed.
-- Layering is overview → module → optional topics. Add only what the project actually has; there is no fixed schema.
+- Layering is overview → module → optional topics. Add only what the project has; there is no fixed schema.
 
 The Current tree is **not numbered against the PRD**: modules may align by name, but there is no file/paragraph mirroring. Link PRD modules / FRs explicitly and many-to-many.
 
@@ -36,11 +36,10 @@ Do not record: task logs, todos, planned / future capabilities, per-issue progre
 
 ## Relationship to PRD / SPEC
 
-- PRD = macro target narrative; SPEC = implementation fact standard; Current = as-built. The PRD and Current are two independent, user-readable trees; neither embeds the other, and the PRD is not a fact source.
-- **Semantic / navigation / contract links** between the trees are expected — write ordinary relative Markdown links; there is no file/paragraph mirroring.
-- Current may link to the PRD, SPEC, or an ADR. The PRD must not link to Current (nor to the SPEC or ADR).
-- A Current doc may point at an ADR with a **descriptive phrase + a stable path link** (e.g. `支持[离线使用](../../adr/0003-offline.md)`); the description is written independently and the ADR's rationale is not transcluded. ADR links are optional, and the profile never infers them (see `rendering.md`).
-- Gap comparison reads the SPEC and Current and yields **candidate** tasks for the user to choose — not every difference is a missing feature. A difference may be drift, a quality gap, unverified behavior, or an outdated target. An already-met coarse goal can still be refined; do not invent gaps.
+- PRD = target narrative, SPEC = implementation facts, Current = as-built. The PRD and Current are independent trees: neither embeds the other, and the PRD is not a fact source. Relative Markdown links between them are expected — there is no file/paragraph mirroring.
+- Current may link to the PRD, SPEC, or ADR; the PRD must not link back to Current, SPEC, or ADR.
+- ADR links use a descriptive phrase + stable path (e.g. `支持[离线使用](../../adr/0003-offline.md)`); form and non-transclusion rules live in `adr.md`.
+- Gap comparison reads SPEC + Current and yields **candidate** tasks: a difference may be drift, quality, unverified behavior, or an outdated target. Never invent gaps.
 
 ## Adoption (existing projects)
 

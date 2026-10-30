@@ -23,20 +23,24 @@ disable-model-invocation: true
 
 三种角色：**用户**（意图、范围与批准；评审 PRD / SPEC / ADR）、**编排者**（维护 PRD，与用户共同编写 SPEC，拥有 `docs/toc.yml`，触发发布）、**编码 agent**（读 SPEC 实现，收尾更新 Current，通过 issue 提议 SPEC 变更）。单 agent 可同时担任两者，但换帽子必须显式。写入权限见 `references/workflow.md`。
 
-## 依赖解析（两级）
+## 内置依赖
 
-外部能力引用按两级解析：
+外部能力引用一律使用本 skill 随附的副本——**单层解析，不查已安装 skill**：
 
-1. **按名称调用已安装的 skill**——当用户安装了独立 skill 时（规范名称：`grilling`、`grill-with-docs`、`domain-modeling`、`tdd`、`deepwork`、`retro`、`improve-codebase-architecture`，以及第一方 `doc-opt`、`lite-task`）；已安装版本优先。`grill-me` 仅是 `grilling` 的入口别名。
-2. **内部兜底**——否则将随附的参考文档**作为指令执行**；**不要**把它们当作 skill 调用（并不存在对应 skill）。多数名称映射到 `references/deps/<name>.md`；别名映射如下：
-   - `grill-me` → `references/deps/grilling.md`（`grilling` 的入口别名，无独立流程）
-   - `grill-with-docs` → `references/deps/grilling.md` **+** `references/deps/domain-modeling.md`，交织进行（grilling 轮次 + 即时写入术语/ADR）
-   - `deepwork` / `retro` / `improve-codebase-architecture` → `references/deps/boundaries.md`
-   本包**不随附**任何独立依赖 skill；这些内部参考是始终可用的兜底。
+| 能力 | 内置来源 | 说明 |
+| :--- | :--- | :--- |
+| `grilling` | `references/deps/grilling.md` | `grill-me` 是入口别名，无独立流程 |
+| `grill-with-docs` | `references/deps/grilling.md` + `references/deps/domain-modeling.md` | 交织：访谈轮次 + 即时写入术语 / ADR |
+| `domain-modeling` | `references/deps/domain-modeling.md` | 术语与 ADR |
+| `tdd` | `references/deps/tdd.md` | 只提供机制；以 `testing.md` 为准 |
+| `deepwork` / `retro` / `improve-codebase-architecture` | `references/deps/boundaries.md` | 边界、复盘 |
+| `doc-opt` | `references/deps/doc-opt.md` | 文档润色；完整的 `doc-opt` skill 是可选的显式升级 |
 
-> **触发策略。** 遵循每个已安装 skill 的调用元数据；`grill-me` / `grill-with-docs` 等包装器可能仅允许用户调用。可选名称**不**意味着可用：若未安装，使用内部兜底——绝不调用缺失的 skill，也不要自主调用仅限用户调用的包装器。逐名称路由见 `references/workflow.md`。
+第一方兄弟 skill——`docs-html-view`、`docs-docx-view`、`lite-task`——是本包的其他 skill，安装后按名称调用，不属于依赖。
 
-规范措辞（模板使用同一行，仅将 deps 路径参数化）：调用 `<skill>`（未安装则按 `<deps 路径>/<file>.md` 执行）——skill 内部文档使用 `references/deps/<file>.md`，物化的项目文件使用 `docs/agents/deps/<file>.md`。
+绝不按名称调用外部 skill，即使它恰好已安装：内置副本才是本方案对齐的契约。别名只用于路由，不是独立流程。
+
+规范措辞：按 `<deps 路径>/<file>.md` 执行——skill 内部文档使用 `references/deps/<file>.md`，物化的项目文件使用 `docs/agents/deps/<file>.md`。
 
 ## Init 流程
 
@@ -99,7 +103,7 @@ bootstrap 与迁移保留各自的同意选项——建立流程不得绕过它�
 - 仅在缺失时创建 `AGENTS.md`——其全部内容就是本区块；只含本区块的文件是有意为之（项目会在其周围添加自己的说明）。若 `AGENTS.md` 已存在：已有 `## Agent skills` 标题 → 就地比较该区块（绝不编辑）；没有 → 在文件末尾追加该区块，中间空一行。只动 `AGENTS.md`，绝不碰 `CLAUDE.md`。
 - provenance 行紧跟在 `## Agent skills` 标题下，是有意保留的——不要删（它标识物化文件及其代次；当前代次 `v5`）。
 - Issue 目录树：`bug/{human,agent,history}`、`feature/{human,agent,history}`、`chore/{human,agent,history}`、`suggestion/{human,agent}`；给每个叶子目录（其中没有文件的）加 `.gitkeep`。不要运行 `git init`。
-- 依赖兜底：init 将 `references/deps/*` 整目录复制到项目的 `docs/agents/deps/`（复制时内容不变），使目标项目即使未安装本 skill 也自足。项目之后可翻译或修改它们。
+- 内置依赖：init 将 `references/deps/*` 整目录复制到项目的 `docs/agents/deps/`（复制时内容不变）；它们是每个依赖能力的运行时来源，目标项目无需任何外部 skill。项目之后可翻译或修改它们。
 - 测试准则：`docs/agents/testing.md`（源 `references/testing.md`）是**第一优先级、始终存在**——随 skill 分发，不适用「已安装 skill / 兜底」二分；`tdd` 只提供机制。缺失时 init 创建；项目可覆盖其默认值。其产出落在 issue 的 `## 测试`（执行 / 临时 / 落盘）。
 - 元数据：`docs/agents/metadata.yml` 携带 `skill`、`version`、`updated`，是符合性戳：版本相同 + 产物齐全即跳过。绝不手工把它改成这棵树并不满足的版本。
 - Current 树：缺失时 init 创建 `docs/current/00-README.md` 概览；**不**强制创建模块文件——按需补充。Current 树与 PRD 平级，绝不嵌入 PRD。
@@ -169,7 +173,7 @@ bootstrap 与迁移保留各自的同意选项——建立流程不得绕过它�
 - `references/migration.md`——v4 / 旧版 → v5 迁移：检测、提示选项、逐文件 diff、步骤、绝不自动改写。
 - `references/terminology.md`——`CONTEXT.md` 主术语表、领域术语表、使用规则。
 - `references/coexistence.md`——本方案与 `domain-modeling`、`grilling`、`deepwork`、`tdd`、`retro` 及第一方 `doc-opt` 的共存；其 docs/issues 约定如何取代旧 `.scratch` 式跟踪。
-- `references/deps/`——两级解析的内部兜底参考：`grilling` / `domain-modeling` / `tdd` / `doc-opt` / `boundaries`（`deepwork` / `retro` / `improve-codebase-architecture` 共用 `boundaries.md`）。
+- `references/deps/`——内置依赖文档，也是这些能力的唯一来源：`grilling` / `domain-modeling` / `tdd` / `doc-opt` / `boundaries`（`deepwork` / `retro` / `improve-codebase-architecture` 共用 `boundaries.md`）。
 - `references/issues.md`——issue 跟踪目录契约、条目格式、`suggestion` 路由。
 - `references/adr.md`——ADR 生命周期（修改 + Log、删除 → 墓碑桩、引用 sweep、目录索引）、正文形态。
 
@@ -177,5 +181,5 @@ bootstrap 与迁移保留各自的同意选项——建立流程不得绕过它�
 
 - `assets/templates/project/*`——init 物化的文件（中文）。它们带有 provenance 标记（当前代次：`v5`；`agents-block.md` 中位于 `## Agent skills` 标题正下方）——保留它；后续代次会更新标记，以便发现过期副本。
 - `assets/templates/project/toc.yml`——`docs/toc.yml` 发布源：必需章节 id、`modules: auto` 与附录集合。
-- `references/deps/*`——独立依赖 skill 缺失时使用的内部兜底参考。init 将整个目录原样复制到项目的 `docs/agents/deps/`；它们不是物化模板，不带 provenance 标记。
+- `references/deps/*`——内置依赖文档：每个能力的唯一来源（不查外部 skill）。init 将整个目录原样复制到项目的 `docs/agents/deps/`；它们不是物化模板，不带 provenance 标记。
 - `assets/templates/entries/*`——本 skill 在手时日常写作辅助（新建条目时复制骨架）。init **不**物化；规则文档本身自足；物化文档可机会性引用其路径。

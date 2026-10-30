@@ -4,43 +4,45 @@
 
 Single-context layouts. Multi-context (`CONTEXT-MAP.md`) is not covered by this profile.
 
+## Bundled capabilities
+
+Every dependency capability resolves to its copy under `references/deps/` (materialized as `docs/agents/deps/`). No external skill is invoked by name, even when one is installed — the bundled copy is the contract this profile is aligned with. External skills may still be installed for other projects; this profile ignores them.
+
 ## `domain-modeling`
 
-Active model-sharpening conversations. The base CONTEXT and ADR formats are compatible. Where both apply, **this profile's materialized rules govern project docs** — it is a superset of the base formats (ADR lifecycle v2 (in-place edit + Log, delete→tombstone stub, reference sweep, catalog-style README); issue routing). Do not fork or redefine the base formats beyond this house variant.
+Active model-sharpening conversations. The base CONTEXT and ADR formats are compatible. Where both apply, **this profile's materialized rules govern project docs** — a superset of the base formats (ADR lifecycle v2: in-place edit + Log, delete → tombstone stub, reference sweep, catalog-style README; issue routing). Do not fork the base formats beyond this house variant.
 
-Standalone skill optional; internal fallback `references/deps/domain-modeling.md`.
-
-> The package ships **no** standalone dependency skills: each referenced capability resolves by installed-skill name, otherwise by the internal fallback reference in `references/deps/`. Standalone names below may remain as optional upstream names.
+Bundled: `references/deps/domain-modeling.md`.
 
 ## `grill-with-docs`
 
 A wrapper: `grilling` + `domain-modeling`, **interleaved** — as each grilling round surfaces terms or decisions, they are written down immediately: a settled term goes into `CONTEXT.md`; a decision meeting the three ADR criteria (hard to reverse / surprising without context / real trade-off) is recorded as an ADR. `grill-me` is only an entry alias of `grilling` and has no separate flow.
 
-Standalone skills are optional; internal fallbacks `references/deps/grilling.md` + `references/deps/domain-modeling.md`.
+Bundled: `references/deps/grilling.md` + `references/deps/domain-modeling.md`.
 
 ## `deepwork`
 
 Large or high-risk multi-phase efforts run under `deepwork`. This profile's `workflow.md` is for routine single-issue development; the two are never stacked — pick one per effort.
 
-Standalone skill optional; internal fallback `references/deps/boundaries.md`.
+Bundled: `references/deps/boundaries.md`.
 
 ## `tdd`
 
 Nests inside the Details step of `workflow.md` (red → green loop). Seam confirmation is folded into the Plan alignment — no second gate.
 
-Mechanics only: the test rules (`docs/agents/testing.md`, source `references/testing.md`) always apply and take priority — including when the standalone `tdd` skill is installed.
+Mechanics only: the test rules (`docs/agents/testing.md`, source `references/testing.md`) always apply and take priority.
 
-Standalone skill optional; internal fallback `references/deps/tdd.md`.
+Bundled: `references/deps/tdd.md`.
 
 ## `retro`
 
 The workflow's fifth step 收尾回顾 is documentation sync only. Session / agent retrospectives belong to `retro`, not here.
 
-Standalone skill optional; internal fallback `references/deps/boundaries.md`.
+Bundled: `references/deps/boundaries.md`.
 
 ## `doc-opt`
 
-Post-hoc prose polishing of named files. Ships with the package as a full bonus skill (`skills/doc-opt`), plus the fallback doc `references/deps/doc-opt.md`. Chain it after authoring if desired; explicit invocation only.
+Post-hoc prose polishing of named files. Bundled: `references/deps/doc-opt.md`. The full first-party `doc-opt` skill is an optional explicit upgrade — it is never resolved automatically.
 
 ## Older `.scratch`-style trackers
 

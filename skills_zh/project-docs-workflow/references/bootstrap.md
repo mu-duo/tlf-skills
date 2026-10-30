@@ -23,7 +23,7 @@ init 检测到该状态，并在写入任何内容前**询问用户**。这不�
 
 ## 五个阶段
 
-1. **领域建模**——调用 `domain-modeling`（已安装则按名称；兜底 `references/deps/domain-modeling.md`）**一次**。产出或更新 `CONTEXT.md` 与 ADR。术语与决策由用户确认后才用于后续阶段。
+1. **领域建模**——按 `references/deps/domain-modeling.md` 执行**一次**。产出或更新 `CONTEXT.md` 与 ADR。术语与决策由用户确认后才用于后续阶段。
 2. **现状**——阅读代码、测试与配置。起草 `docs/current/` 作为实际建成快照：能力、限制、验证信心。向用户询问**选定基线**（revision / release + 日期）；绝不默认 `main` 或最新 release。
 3. **PRD 草稿**——起草产品三章：`00-README.md`（一句话、项目说明、目标用户 / 问题、典型应用场景）、`01-requirements.md`（能力地图、关键行为、非目标、约束）、`02-architecture.md`（架构总览、模块划分、模块 PRD 链接）。只为用户确认的模块起草模块 PRD。
 4. **SPEC 草稿**——依据代码与测试起草 `01-spec.md`（FR ID + 验收判据）、`02-interfaces.md`、`03-nfr.md`。**只有已确认项进入 SPEC。** 推断、模糊或待定项进入 bootstrap issue 清单——不得污染 SPEC。
@@ -34,7 +34,7 @@ init 检测到该状态，并在写入任何内容前**询问用户**。这不�
 - 五个阶段完成前，bootstrap 产出都是草稿。不要发布，也不要在评审前把它当作实现事实标准。
 - 绝不覆盖现有文件。展示 diff，由用户决定。
 - 创建**一个** `docs/issues/chore/agent/...` bootstrap issue 跟踪阶段与推断 / 待定项。它是 bootstrap 的验收清单。
-- 用户选择 Bootstrap 后，本 skill 可调用一次 `domain-modeling`。常规 init 或对齐期间不调用。
+- 用户选择 Bootstrap 后，按 `references/deps/domain-modeling.md` 执行一次。常规 init 或对齐期间不执行。
 
 ## 仅模板
 

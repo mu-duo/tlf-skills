@@ -31,7 +31,7 @@ The default shape for developing a single issue: align, build a thin slice, fill
 - **Align before building**: implementation starts only after the alignment is done and the plan / steps are written (align → plan & steps → build).
 - The orchestrator + user compose or align the SPEC; the coder implements it. If the scope or intent changes, update the PRD first.
 - Alignment is **conversational and soft**: no freeze, no ceremonial "aligned" record. Re-align proactively when needs change (feature-requirement drift).
-- On an ambiguous direction, invoke `grilling`（未安装则按 `references/deps/grilling.md` 执行）; `grill-me` is only an entry alias; `grill-with-docs` = `grilling` + `domain-modeling`（兜底 `references/deps/grilling.md` + `references/deps/domain-modeling.md`）.
+- On an ambiguous direction, run `references/deps/grilling.md`; `grill-me` is only an entry alias; `grill-with-docs` = `references/deps/grilling.md` + `references/deps/domain-modeling.md`, interleaved.
 - **Gap analysis** happens here, at Plan: read the SPEC target plus Current state, derive **candidate** tasks (module / FR, suggested type, slice, acceptance criteria), and let the user pick. Differences are candidates only — a difference may be drift, a quality gap, unverified behavior, or an outdated target, not necessarily a missing feature; do not invent gaps. No idle auto-creation of issues.
 - **Autonomy within scope**: once aligned, the agent implements autonomously inside the agreed scope, respecting ADRs, contracts, and security; high-cost, destructive, or hard-to-reverse decisions are confirmed with the user first.
 
@@ -67,9 +67,9 @@ Check these four items at wrap-up (and when planning a scope change). There is n
 
 1. **规划 / Plan** — the orchestrator + user confirm scope and align the SPEC; the coder refines acceptance criteria, sets the step checklist status, and writes a 1–2 sentence approach. Minimal output; no new sections. Gap analysis happens here, reading the SPEC target plus Current; the PRD serves as human orientation only.
 2. **骨架 / Skeleton** — a minimal runnable vertical slice (ignore output / formatting polish); leave one piece of run evidence and show it to the user — the first review point. Skippable for pure fixes (Log the reason); mandatory for features and structural work.
-3. **细节 / Details** — main-path implementation, detail completion, code quality. Any test work follows `docs/agents/testing.md` (run / temporary / persistent tiers; temporary tests are deleted before wrap-up); `tdd`（未安装则按 `references/deps/tdd.md` 执行）is an optional internal red → green loop, subordinate to those rules.
+3. **细节 / Details** — main-path implementation, detail completion, code quality. Any test work follows `docs/agents/testing.md` (run / temporary / persistent tiers; temporary tests are deleted before wrap-up); `tdd` (`references/deps/tdd.md`)is an optional internal red → green loop, subordinate to those rules.
 4. **异常 / Exceptions** — failure paths, boundaries, and stability after the main path; their tests follow the same test rules (defense-layer ownership, no weak assertions). Real development blockers are handled immediately and Logged, never queued for this step.
-5. **回顾 / Wrap-up review** (收尾回顾) — a lightweight docs-sync checklist at issue completion: the coder updates Current facts and proposes SPEC changes; the orchestrator reviews PRD / SPEC / Current and updates the TOC if modules or appendices changed; `adr` / `context` / `issues` / `agents` as needed. The issue's `## 测试` section is filled (execution evidence, temporary outcome, persistent trace) and scratch tests are gone. If nothing needs updating, one Log line. Doc sync only; session / agent retrospectives belong to `retro`（未安装则按 `references/deps/boundaries.md` 执行）.
+5. **回顾 / Wrap-up review** (收尾回顾) — a lightweight docs-sync checklist at issue completion: the coder updates Current facts and proposes SPEC changes; the orchestrator reviews PRD / SPEC / Current and updates the TOC if modules or appendices changed; `adr` / `context` / `issues` / `agents` as needed. The issue's `## 测试` section is filled (execution evidence, temporary outcome, persistent trace) and scratch tests are gone. If nothing needs updating, one Log line. Doc sync only; session / agent retrospectives belong to `retro` (`references/deps/boundaries.md`).
 
 ## Progress & resume
 
@@ -94,8 +94,8 @@ Check these four items at wrap-up (and when planning a scope change). There is n
 
 ## Boundaries
 
-- Large or high-risk multi-phase work → `deepwork`（未安装则按 `references/deps/boundaries.md` 执行）; never stack it with this flow.
-- `tdd`（未安装则按 `references/deps/tdd.md` 执行）nests inside Details; seam confirmation folds into the Plan alignment (no second gate). The test rules (`docs/agents/testing.md`, source `references/testing.md`) always apply and take priority over `tdd`.
-- `retro`（未安装则按 `references/deps/boundaries.md` 执行）owns session / agent retrospectives; the fifth step is docs sync only.
+- Large or high-risk multi-phase work → `references/deps/boundaries.md`; never stack it with this flow.
+- `tdd` (`references/deps/tdd.md`)nests inside Details; seam confirmation folds into the Plan alignment (no second gate). The test rules (`docs/agents/testing.md`, source `references/testing.md`) always apply and take priority over `tdd`.
+- `retro` (`references/deps/boundaries.md`)owns session / agent retrospectives; the fifth step is docs sync only.
 - Existing projects without product docs → consent-gated bootstrap (`bootstrap.md`). v4/older docs → migration (`migration.md`). Neither runs automatically inside this flow.
 - Docs HTML rendering is optional and manual (`rendering.md`); it never runs as part of this flow — no auto-build on doc edits. See `coexistence.md` for how this profile sits beside these skills.

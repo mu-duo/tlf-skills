@@ -16,6 +16,6 @@ Two layers. Default profile; overridable in project copies.
 
 - Read `CONTEXT.md` plus the relevant ADRs before exploring.
 - Use glossary vocabulary in every artifact (issue titles, refactor proposals, hypotheses, test names). Never drift to `_Avoid_` synonyms.
-- A novel concept is a signal: rethink whether you are inventing language the project does not use, or record the gap (hand it to `domain-modeling`, 未安装则按 `references/deps/domain-modeling.md` 执行).
-- If these files are missing, continue silently; creation happens when terms or decisions finalize, typically via `domain-modeling`（兜底 `references/deps/domain-modeling.md`）.
+- A novel concept is a signal: rethink whether you are inventing language the project does not use, or record the gap (record the gap via `references/deps/domain-modeling.md`).
+- If these files are missing, continue silently; creation happens when terms or decisions finalize, via `references/deps/domain-modeling.md`.
 - Flag ADR conflicts explicitly (`> _与 ADR-XXXX … 冲突，但…_`); never silently override.

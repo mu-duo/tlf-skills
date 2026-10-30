@@ -37,8 +37,8 @@ const MATT_DEP_NAMES = [
 
 // 第一方 skill：本包自带、随包版本分发的 skill（共六项）。这是一份**显式名单**——未列出的
 // 目录一律不是第一方，也不随包分发（未知包内目录仅提示忽略）。外部依赖（8 个上游名）不随包
-// 分发：默认保留已存在的独立安装，缺失时使用主 skill 内部回退文档（references/deps）；只有
-// --with-matt-skills 才通过 npx 安装/更新独立完整版。kind 与名单同源。
+// 分发：依赖能力全部内嵌在主 skill 的 references/deps 中，不查、不调用外部 skill；
+// --with-matt-skills 仅为兼容保留，其安装结果不被本 skill 使用。kind 与名单同源。
 const FIRST_PARTY_DEP_KINDS = {
   "doc-opt": "doc-opt",
   "docs-html-view": "docs-html-view",
@@ -107,15 +107,15 @@ function usage() {
       "行为可能与当前不同，这里只保证兼容、不承诺升级。",
       "普通安装只同步本包自带的第一方 skill（project-docs-workflow、doc-opt、docs-html-view、docs-docx-view、lite-task、repo-read-assistant）：",
       "缺失则安装；已由本包接管则用当前包内版本全量替换（会移除其中多余/过期文件）；",
-      "未接管条目、符号链接（含悬空）默认保留。外部依赖不再随包分发：默认保留已存在的独立安装，",
-      "缺失时使用主 skill 内部回退文档（references/deps），功能可用、无需独立目录。",
+      "未接管条目、符号链接（含悬空）默认保留。依赖全部内嵌：能力来自主 skill 的 references/deps/，",
+      "不安装、不更新、也不调用任何外部 skill。",
       "默认安装英文源 skills/；--zh 改为安装中文镜像 skills_zh/。两种语言的 skill 同名、互斥，",
       "同一目标一次只保留一种语言；再次运行另一种语言即可切换（仅 install 支持）。",
-      "可选：--with-matt-skills 通过 npx 安装/更新独立完整版（默认不安装、不复制）。源项目文档不受影响。",
+      "已弃用：--with-matt-skills 仅为兼容保留；依赖已内嵌，它安装的上游完整版不会被本 skill 使用。",
       "",
       "用法：",
       "  project-docs-workflow [install] [选项]   安装/同步包内第一方 skill（默认动作）",
-      "  project-docs-workflow check   [选项]     检查依赖 skill 的解析状态",
+      "  project-docs-workflow check   [选项]     检查内置依赖文档是否齐全",
       "  project-docs-workflow uninstall [选项]   依据安装清单卸载本包安装的 skill",
       "",
       "选项：",
@@ -123,14 +123,11 @@ function usage() {
       "  --zh           从中文镜像 skills_zh/ 安装第一方 skill（默认英文源 skills/）",
       "                 两种语言 skill 同名、互斥；再次运行另一种语言即可切换；仅 install 支持",
       "  --force        安装：覆盖并接管所有第一方 skill（含替换已存在的符号链接本身，不动其指向）；",
-      "                 不影响外部依赖；uninstall：非交互确认（非 TTY 下必须显式传入）",
+      "                 uninstall：非交互确认（非 TTY 下必须显式传入）",
       "  --dry-run      仅打印将执行的操作（与真实运行相同决策），不写入、不读 stdin、不调用上游",
-      "  --with-matt-skills",
-      "                 可选增强（显式授权）：通过 npx 安装缺失 + 更新已存在的外部依赖完整版。",
-      "                 仅当可证明目标是 codex 默认全局目录 ~/.agents/skills 时可用（不支持 --dir 别名），",
-      "                 需 Node >= 22.20；此 flag 下不询问。每项独立完成，非整套事务。",
-      "                 成功项记入清单（kind=upstream），之后 uninstall 会一并移除；本地改动可能被覆盖。",
-      "                 不加此 flag 时：不安装、不复制任何独立依赖；内部回退已可用。",
+      "  --with-matt-skills（已弃用）",
+      "                 依赖已内嵌，本 skill 不调用外部 skill。该选项仅为兼容保留：",
+      "                 仍会通过 npx 安装/更新上游完整版，但安装结果不会被本 skill 使用。",
       "  --matt-agent <name>",
       "                 上游使用的 agent（仅支持默认 codex；其它值无法证明目标，会拒绝）",
       "  -h, --help     显示本帮助",
@@ -140,8 +137,7 @@ function usage() {
       "  project-docs-workflow --zh                     # 安装中文镜像（默认 en；两种语言同名互斥）",
       "  project-docs-workflow --dir <path> --dry-run   # 预演到指定目录（不写入）",
       "  project-docs-workflow --force                  # 接管/替换所有第一方 skill",
-      "  project-docs-workflow --with-matt-skills       # 可选：安装缺失 + 更新已存在的完整版依赖",
-      "  project-docs-workflow check                    # 检查依赖解析状态（外部或内部回退）",
+      "  project-docs-workflow check                    # 检查内置依赖文档是否齐全",
       "  project-docs-workflow uninstall --dry-run      # 卸载预演",
       "  project-docs-workflow uninstall --force        # 非交互卸载（只删本包装的）",
     ].join("\n")
@@ -1096,7 +1092,7 @@ function runInstall(opts) {
 
   // 受支持外部依赖：先列出已存在/缺失集合，再决定是否/如何询问或调用上游。
   if (existingDeps.length > 0 || missingDeps.length > 0) {
-    console.log("外部依赖 skill（可选上游受支持集合；默认不随包分发）：");
+    console.log("外部 skill（可选上游；本 skill 不需要它们）：");
     if (existingDeps.length > 0) {
       console.log("  已存在：" + existingDeps.join("、"));
     }
@@ -1140,7 +1136,7 @@ function runInstall(opts) {
       );
     }
     if (missingDeps.length > 0) {
-      const fallbackNote = "未安装可选上游完整版/独立入口，内部回退（references/deps）已可用。";
+      const fallbackNote = "未安装可选上游完整版；内置依赖（references/deps）始终可用。";
       if (!targetCheck.ok) {
         console.log("  " + targetCheck.reason + "；" + fallbackNote);
       } else if (!nodeMeetsUpstream()) {
@@ -1315,30 +1311,25 @@ function runUninstall(opts) {
 }
 
 function runCheck(opts) {
-  const target = opts.target;
-  console.log("检查依赖 skill 解析状态（目标目录：" + target + "）：");
+  console.log("检查内置依赖（唯一来源：" + DEPS_DIR + "）：");
 
   let ok = true;
   for (const name of REF_NAMES) {
-    if (isFile(path.join(target, name, "SKILL.md"))) {
-      console.log("  " + name + "：独立 skill 已安装（存在 SKILL.md；不判定来源/是否完整版）");
-      continue;
-    }
     const fallbacks = REF_FALLBACKS[name] || [];
     // 组合能力要求「全部」引用文件都在；零引用不算可用。
     const missing = fallbacks.filter((file) => !isFile(path.join(DEPS_DIR, file)));
     if (fallbacks.length > 0 && missing.length === 0) {
       console.log(
-        "  " + name + "：内部回退可用（references/deps/" + fallbacks.join(" + ") + "）"
+        "  " + name + "：内置可用（references/deps/" + fallbacks.join(" + ") + "）"
       );
       continue;
     }
     ok = false;
     if (fallbacks.length === 0) {
-      console.log("  " + name + "：不可用（无外部 SKILL.md，且没有内部回退映射）");
+      console.log("  " + name + "：不可用（没有内置映射）");
     } else {
       console.log(
-        "  " + name + "：不可用（无外部 SKILL.md，且内部回退不完整；缺少：" +
+        "  " + name + "：不可用（内置副本不完整；缺少：" +
           missing.map((f) => "references/deps/" + f).join("、") +
           "）"
       );
@@ -1346,10 +1337,10 @@ function runCheck(opts) {
   }
 
   if (ok) {
-    console.log("全部依赖均可解析（外部安装或内部回退）。");
+    console.log("全部依赖均由内置副本提供，无需外部 skill。");
     process.exit(0);
   } else {
-    console.log("存在无法解析的依赖。");
+    console.log("内置依赖不完整。");
     process.exit(1);
   }
 }

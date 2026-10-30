@@ -23,7 +23,7 @@ Never start the bootstrap phases without an explicit choice.
 
 ## Five phases
 
-1. **Domain modeling** — invoke `domain-modeling` (installed by name; fallback `references/deps/domain-modeling.md`) **once**. Produce or update `CONTEXT.md` and ADRs. The user confirms terms and decisions before they are used downstream.
+1. **Domain modeling** — run `references/deps/domain-modeling.md` **once**. Produce or update `CONTEXT.md` and ADRs. The user confirms terms and decisions before they are used downstream.
 2. **As-built** — read the code, tests, and configuration. Draft `docs/current/` as an as-built snapshot: capabilities, limits, verification confidence. Ask the user for the **selected baseline** (revision / release + date); never default to `main` or the latest release.
 3. **PRD draft** — draft the product three chapters: `00-README.md` (one-liner, project description, target users / problems, typical scenarios), `01-requirements.md` (capability map, key behaviors, non-goals, constraints), `02-architecture.md` (architecture overview, module map, links to module PRDs). Draft module PRDs only for modules the user confirms.
 4. **SPEC draft** — draft `01-spec.md` (FR IDs + acceptance criteria), `02-interfaces.md`, `03-nfr.md` from the code and tests. **Only confirmed items enter the SPEC.** Inferred, ambiguous, or pending items go into the bootstrap issue checklist — they must not pollute the SPEC.
@@ -34,7 +34,7 @@ Never start the bootstrap phases without an explicit choice.
 - Bootstrap outputs are drafts until phase 5 completes. Do not publish them, and do not use them as the implementation fact standard before review.
 - Never overwrite existing files. Show diffs and let the user decide.
 - Create **one** `docs/issues/chore/agent/...` bootstrap issue to track the phases and the inferred / pending items. It is the acceptance checklist for the bootstrap.
-- The skill may invoke `domain-modeling` once after the user chooses Bootstrap. It does not invoke it during normal init or alignment.
+- After the user chooses Bootstrap, run `references/deps/domain-modeling.md` once. It does not run during normal init or alignment.
 
 ## Templates only
 

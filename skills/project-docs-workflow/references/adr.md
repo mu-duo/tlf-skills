@@ -58,4 +58,4 @@ Default: record accepted decisions, not rejected alternatives. Do not add a `## 
 
 ## Relationship to domain-modeling
 
-The base ADR format is compatible with the `domain-modeling` skill's ADR-FORMAT (未安装则按 `references/deps/domain-modeling.md` 执行). That skill forbids neither edits nor deletes and carries its own `proposed | accepted | deprecated | superseded` status words; this profile is a superset (reference sweep, tombstone stubs, catalog-style README), and the two coexist. The base format lists `Considered Options` as an optional section; this profile defaults to omitting it (see `## Negative decisions`). See `coexistence.md`.
+The base ADR format is compatible with the ADR-FORMAT in `references/deps/domain-modeling.md`. That base format forbids neither edits nor deletes and carries its own `proposed | accepted | deprecated | superseded` status words; this profile is a superset (reference sweep, tombstone stubs, catalog-style README), and the two coexist. The base format lists `Considered Options` as an optional section; this profile defaults to omitting it (see `## Negative decisions`). See `coexistence.md`.

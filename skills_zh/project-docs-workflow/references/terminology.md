@@ -16,6 +16,6 @@
 
 - 探索前先读 `CONTEXT.md` 及相关 ADR。
 - 在每个产物中使用术语表词汇（issue 标题、重构提案、假设、测试名）。绝不漂移到 `_Avoid_` 同义词。
-- 新概念是一个信号：重新思考你是在发明项目不使用的语言，还是记录这个缺口（交给 `domain-modeling`，未安装则按 `references/deps/domain-modeling.md` 执行）。
-- 若这些文件缺失，静默继续；术语或决策定案时再创建，通常通过 `domain-modeling`（兜底 `references/deps/domain-modeling.md`）。
+- 新概念是一个信号：重新思考你是在发明项目不使用的语言，还是记录这个缺口（按 `references/deps/domain-modeling.md` 记录这个缺口）。
+- 若这些文件缺失，静默继续；术语或决策定案时再创建，按 `references/deps/domain-modeling.md` 执行。
 - 显式标注 ADR 冲突（`> _与 ADR-XXXX … 冲突，但…_`）；绝不静默覆盖。

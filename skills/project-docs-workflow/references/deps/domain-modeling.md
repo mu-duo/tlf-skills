@@ -1,8 +1,8 @@
-# 回退：domain-modeling
+# 内置：domain-modeling
 
-> 当需要调用 `domain-modeling` 但环境未安装该 skill 时，按本文执行。
+> 本文件是该能力的唯一来源：按本文执行，不调用外部 skill。
 
-> 内部回退（精简版），裁剪自 [mattpocock/skills](https://github.com/mattpocock/skills) 的 domain-modeling（MIT License, Copyright (c) 2026 Matt Pocock）。若环境已安装同名完整 skill，请优先使用完整版。
+> 内置副本（精简版），裁剪自 [mattpocock/skills](https://github.com/mattpocock/skills) 的 domain-modeling（MIT License, Copyright (c) 2026 Matt Pocock）。
 
 主动构建并打磨项目的领域模型：挑战术语、构造边界场景、在术语与决策成型时立刻写下。**修改**模型才算本流程；只是为查词而读 `CONTEXT.md` 不算。
 

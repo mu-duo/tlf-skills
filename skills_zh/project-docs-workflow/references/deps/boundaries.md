@@ -1,8 +1,8 @@
-# 回退：边界类 skill（deepwork / retro / improve-codebase-architecture）
+# 内置：边界类能力（deepwork / retro / improve-codebase-architecture）
 
-> 内部回退（精简版），裁剪 / 改编自 [mattpocock/skills](https://github.com/mattpocock/skills) 的 deepwork / retro / improve-codebase-architecture（MIT License, Copyright (c) 2026 Matt Pocock）。若环境已安装对应完整 skill，请优先使用完整版。
+> 内置副本（精简版），裁剪 / 改编自 [mattpocock/skills](https://github.com/mattpocock/skills) 的 deepwork / retro / improve-codebase-architecture（MIT License, Copyright (c) 2026 Matt Pocock）。
 
-> 当某个边界类 skill 被引用但环境未安装时，按对应小节执行。
+> 本文件是边界类能力的唯一来源：按对应小节执行，不调用外部 skill。
 
 ## deepwork
 
@@ -24,8 +24,8 @@
 
 代码库架构改进的路线（找出「深化模块」的机会，把浅模块变深，提升可测试性与 AI 可导航性），建立在领域模型与共享架构词汇（module / interface / depth / seam / adapter / leverage / locality）之上。
 
-**无完整流程时**：本技能包不提供扫描与 HTML 报告流程；需要术语或 ADR 支持时，**转 `domain-modeling`**（未安装则见同目录 `domain-modeling.md`）。
+**范围**：本技能包不提供扫描与 HTML 报告流程；需要术语或 ADR 支持时，按同目录 `domain-modeling.md` 执行。
 
 ## doc-opt
 
-`doc-opt` 随包附带于 `skills/doc-opt`（完整版）；环境未安装时可参考同目录 `doc-opt.md` 的最小回退。
+`doc-opt` 的默认来源是同目录 `doc-opt.md`；完整版随包提供于 `skills/doc-opt`，仅在用户显式要求时使用。

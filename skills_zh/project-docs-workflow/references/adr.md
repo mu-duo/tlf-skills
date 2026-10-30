@@ -58,4 +58,4 @@ H1 标题 → 决策 + 理由 + 权衡（`代价：…`）→ 可选的 `## Log`
 
 ## 与 domain-modeling 的关系
 
-基础 ADR 格式与 `domain-modeling` skill 的 ADR-FORMAT 兼容（未安装则按 `references/deps/domain-modeling.md` 执行）。该 skill 既不禁止修改也不禁止删除，并带有自己的 `proposed | accepted | deprecated | superseded` 状态词；本方案是其超集（引用核查、墓碑桩、目录式 README），两者共存。基础格式把 `Considered Options` 列为可选章节；本方案默认省略（见 `## 否定决策`）。见 `coexistence.md`。
+基础 ADR 格式与 `references/deps/domain-modeling.md` 中的 ADR-FORMAT 兼容。该基础格式既不禁止修改也不禁止删除，并带有自己的 `proposed | accepted | deprecated | superseded` 状态词；本方案是其超集（引用核查、墓碑桩、目录式 README），两者共存。基础格式把 `Considered Options` 列为可选章节；本方案默认省略（见 `## 否定决策`）。见 `coexistence.md`。

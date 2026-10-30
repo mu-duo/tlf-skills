@@ -23,20 +23,24 @@ Run it manually, once per project — on adoption, or again after the skill's te
 
 Three roles: **user** (intent, scope, approval; reviews PRD / SPEC / ADRs), **orchestrator** (maintains the PRD, composes the SPEC with the user, owns `docs/toc.yml`, triggers publication), **coder agent** (reads the SPEC, implements, updates Current at wrap-up, proposes SPEC changes through an issue). A single agent may play both, switching hats explicitly. Write permissions: `references/workflow.md`.
 
-## 依赖解析（两级）
+## Bundled dependencies
 
-External capability references resolve in two levels:
+External capability references resolve to the copies bundled with this skill — **one level, no installed-skill lookup**:
 
-1. **Invoke the installed skill by name** — when the user has the standalone skill installed (canonical names: `grilling`, `grill-with-docs`, `domain-modeling`, `tdd`, `deepwork`, `retro`, `improve-codebase-architecture`, plus the first-party `doc-opt` and `lite-task`); the installed version wins. `grill-me` is only an entry alias of `grilling`.
-2. **Internal fallback** — otherwise **execute** the bundled reference(s) as instructions; do **not** invoke them as skills (there are none). Most names map to `references/deps/<name>.md`; the aliases map explicitly:
-   - `grill-me` → `references/deps/grilling.md` (entry alias of `grilling`, no separate flow)
-   - `grill-with-docs` → `references/deps/grilling.md` **+** `references/deps/domain-modeling.md`, interleaved (grilling rounds + immediate term/ADR writes)
-   - `deepwork` / `retro` / `improve-codebase-architecture` → `references/deps/boundaries.md`
-   The package ships **no** standalone dependency skills; these internal references are the always-available fallback.
+| Capability | Bundled source | Notes |
+| :--- | :--- | :--- |
+| `grilling` | `references/deps/grilling.md` | `grill-me` is an entry alias, no separate flow |
+| `grill-with-docs` | `references/deps/grilling.md` + `references/deps/domain-modeling.md` | interleaved: rounds + immediate term/ADR writes |
+| `domain-modeling` | `references/deps/domain-modeling.md` | terms and ADRs |
+| `tdd` | `references/deps/tdd.md` | mechanics only; `testing.md` governs |
+| `deepwork` / `retro` / `improve-codebase-architecture` | `references/deps/boundaries.md` | boundaries, retrospectives |
+| `doc-opt` | `references/deps/doc-opt.md` | prose polish; the full first-party `doc-opt` skill is an optional explicit upgrade |
 
-> **Trigger policy.** Follow each installed skill's invocation metadata; wrappers such as `grill-me` / `grill-with-docs` may be user-invoked only. An optional name does **not** imply availability: if it is not installed, use the internal fallback — never invoke a missing skill or autonomously invoke a user-only wrapper. Per-name routing lives in `references/workflow.md`.
+First-party siblings — `docs-html-view`, `docs-docx-view`, `lite-task` — are separate skills of this package, invoked by name when installed; they are not dependency skills.
 
-Canonical wording (templates use the same line with the deps path parameterized): 调用 `<skill>`（未安装则按 `<deps 路径>/<file>.md` 执行）— skill-internal docs use `references/deps/<file>.md`, materialized project files use `docs/agents/deps/<file>.md`.
+Never invoke an external skill by name, even when one happens to be installed: the bundled copy is the contract this profile is aligned with. Aliases are routing only, never separate flows.
+
+Canonical wording: 按 `<deps 路径>/<file>.md` 执行 — skill-internal docs use `references/deps/<file>.md`, materialized project files use `docs/agents/deps/<file>.md`.
 
 ## Init procedure
 
@@ -99,7 +103,7 @@ Bootstrap and migration keep their own consent options — the establishment pro
 - Create `AGENTS.md` only if missing — its whole content is this block; a file containing only this section is intentional (projects add their own guidance around it). If `AGENTS.md` exists: heading `## Agent skills` present → compare the block in place (never edit); absent → append the block at end of file, separated by one blank line. Only `AGENTS.md` is touched, never `CLAUDE.md`.
 - The provenance line sits immediately under the `## Agent skills` heading and is intentional — keep it (it identifies materialized files and their generation; current generation `v5`).
 - Issue tree: `bug/{human,agent,history}`, `feature/{human,agent,history}`, `chore/{human,agent,history}`, `suggestion/{human,agent}`; add a `.gitkeep` to each leaf directory (one containing no files). Do not run `git init`.
-- Dep fallbacks: init copies `references/deps/*` into the project's `docs/agents/deps/` as a whole-directory copy (content unchanged at copy time), so target projects are self-sufficient even without this skill installed. Projects may translate or edit them afterwards.
+- Bundled dependencies: init copies `references/deps/*` into the project's `docs/agents/deps/` as a whole-directory copy (content unchanged at copy time); they are the runtime source for every dependency capability, so target projects never need an external skill. Projects may translate or edit them afterwards.
 - Test rules: `docs/agents/testing.md` (source `references/testing.md`) is **first priority and always present** — it ships with the skill, so no installed-skill / fallback split applies; `tdd` contributes mechanics only. Init creates it when missing; projects may override its defaults. The issue's `## 测试` section (execution / temporary / persistent) is the evidence it produces.
 - Metadata: `docs/agents/metadata.yml` carries `skill`, `version`, and `updated`. It is the conformance stamp: equal version + complete artifacts = skip. Never hand-bump it past the version whose rules the tree satisfies.
 - Current tree: init creates the `docs/current/00-README.md` overview when missing; it does **not** force module files — add them as modules need describing. The Current tree is peer to the PRD, never embedded in it.
@@ -169,7 +173,7 @@ Rules carry the detail; read the one you need.
 - `references/migration.md` — v4/older → v5 migration: detection, prompt options, per-file diffs, steps, never auto-rewrite.
 - `references/terminology.md` — `CONTEXT.md` primary glossary, domain glossary, usage rules.
 - `references/coexistence.md` — how this profile sits beside `domain-modeling`, `grilling`, `deepwork`, `tdd`, `retro`, and the first-party `doc-opt`; and how its docs/issues conventions supersede older `.scratch`-style trackers.
-- `references/deps/` — internal fallback references for the two-level resolution: `grilling` / `domain-modeling` / `tdd` / `doc-opt` / `boundaries` (`deepwork` / `retro` / `improve-codebase-architecture` share `boundaries.md`).
+- `references/deps/` — the bundled dependency docs, and the only source for these capabilities: `grilling` / `domain-modeling` / `tdd` / `doc-opt` / `boundaries` (`deepwork` / `retro` / `improve-codebase-architecture` share `boundaries.md`).
 - `references/issues.md` — issue tracker directory contract, entry format, `suggestion` routing.
 - `references/adr.md` — ADR lifecycle (edit + Log, delete → tombstone stub, reference sweep, catalog index), body shape.
 
@@ -177,5 +181,5 @@ Rules carry the detail; read the one you need.
 
 - `assets/templates/project/*` — the files init materializes (Chinese). They carry the provenance marker (current generation: `v5`; in `agents-block.md` it sits just under the `## Agent skills` heading) — keep it; future generations update the marker so stale copies are detectable.
 - `assets/templates/project/toc.yml` — the `docs/toc.yml` publication source: required section ids, `modules: auto`, and the appendix set.
-- `references/deps/*` — internal fallback references used when a standalone dependency skill is absent. init copies the whole directory as-is into the project's `docs/agents/deps/`; they are not materialized templates and carry no provenance marker.
+- `references/deps/*` — the bundled dependency docs: the single source for every capability (no installed-skill lookup). init copies the whole directory as-is into the project's `docs/agents/deps/`; they are not materialized templates and carry no provenance marker.
 - `assets/templates/entries/*` — day-to-day authoring aids used when this skill is at hand (copy the skeleton when creating a new entry). NOT materialized by init; the rule docs are self-sufficient without them; materialized docs may reference their path opportunistically.

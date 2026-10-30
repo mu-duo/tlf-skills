@@ -34,7 +34,7 @@
 - 对齐范围内 agent 自主实现（遵守 ADR / 契约 / 安全）；高成本、破坏性或难以回退的决定先与用户确认。
 - 对话确认即可：不冻结、不设仪式行。
 - 需求变化时主动重对齐，并更新 issue 内的计划与完成判据。
-- 方向有歧义 → 调用 `grilling`（未安装则按 `docs/agents/deps/grilling.md` 执行）；`grill-me` 仅入口别名。
+- 方向有歧义 → 按 `docs/agents/deps/grilling.md` 执行对齐访谈；`grill-me` 仅入口别名。
 - 不要吞并超出对齐范围的工作。
 
 ## 变更协议
@@ -78,7 +78,7 @@
 
 ### 细节
 
-主路径实现、细节打磨与代码质量。任何测试工作按 `testing.md` 执行（执行 / 临时 / 落盘三层；临时测试收尾删除）；`tdd` 可作内部红 → 绿循环（可选；未安装则按 `docs/agents/deps/tdd.md` 执行），从属于测试准则。
+主路径实现、细节打磨与代码质量。任何测试工作按 `testing.md` 执行（执行 / 临时 / 落盘三层；临时测试收尾删除）；`tdd`（`docs/agents/deps/tdd.md`）可作内部红 → 绿循环，从属于测试准则。
 
 ### 异常
 
@@ -93,7 +93,7 @@ issue 完成时做一次轻量的文档同步清单（coder 更新 Current 事�
 - **Current 检查**：确认变更已包含在选定基线内；是则就地更新 `docs/current/` 对应文件（只改事实，不插入指向 issue 的自链接或任务历史），否则在 issue 记待同步项；编排者 review Current diff。
 - 其余：`adr`、`context`、`issues`、`agents` 按需更新；issue 的 `## 测试` 已填（执行证据 / 临时结论 / 落盘追溯），scratch 测试已清理；全无更新时一行 Log 即可。
 
-仅做文档同步；会话复盘属于 `retro`（未安装则按 `docs/agents/deps/boundaries.md` 执行）。
+仅做文档同步；会话复盘见 `docs/agents/deps/boundaries.md`。
 
 ## 进度与续接
 
@@ -108,9 +108,9 @@ issue 完成时做一次轻量的文档同步清单（coder 更新 Current 事�
 
 ## 边界
 
-- 高风险 / 大规模多阶段 → `deepwork`（未安装则按 `docs/agents/deps/boundaries.md` 执行），不叠加。
-- `tdd` 可作细节内循环（seam 确认并入规划对齐；未安装则按 `docs/agents/deps/tdd.md` 执行）；测试准则（`testing.md`）始终生效并优先。
-- `grilling` 为对齐访谈（`grill-me` 仅入口别名；未安装则按 `docs/agents/deps/grilling.md` 执行）。
+- 高风险 / 大规模多阶段 → 按 `docs/agents/deps/boundaries.md` 执行，不叠加。
+- `tdd` 机制见 `docs/agents/deps/tdd.md`（可作细节内循环；seam 确认并入规划对齐）；测试准则（`testing.md`）始终生效并优先。
+- `grilling` 为对齐访谈（`grill-me` 仅入口别名），按 `docs/agents/deps/grilling.md` 执行。
 - 没有产品文档的既有项目 → 需用户同意的 bootstrap；旧版文档 → 迁移。两者都不会自动插入本流程。
 
 ## 相关
@@ -122,5 +122,5 @@ issue 完成时做一次轻量的文档同步清单（coder 更新 Current 事�
 - 架构与模块划分：`../product/02-architecture.md`
 - 发布目录源：`../toc.yml`
 - 现状文档集（Current）：`../current/00-README.md`
-- 依赖兜底文档（外部技能未安装时）：`docs/agents/deps/`
+- 内置依赖文档（能力的唯一来源）：`docs/agents/deps/`
 - 文档 HTML 发布（可选、手动）：独立技能 `docs-html-view`；本流程不自动安装 / 构建 / 渲染。

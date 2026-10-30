@@ -31,7 +31,7 @@
 - **先对齐再实现**：只有对齐完成、计划 / 步骤写好后，才开始实现（对齐 → 计划与步骤 → 实现）。
 - 编排者 + 用户编写或对齐 SPEC；coder 按 SPEC 实现。范围或意图变化时，先更新 PRD。
 - 对齐是**对话式、软的**：不冻结，不设仪式化的「已对齐」记录。需求变化时主动重新对齐（功能需求漂移）。
-- 方向有歧义时，调用 `grilling`（未安装则按 `references/deps/grilling.md` 执行）；`grill-me` 仅入口别名；`grill-with-docs` = `grilling` + `domain-modeling`（兜底 `references/deps/grilling.md` + `references/deps/domain-modeling.md`）。
+- 方向有歧义时，按 `references/deps/grilling.md` 执行；`grill-me` 仅入口别名；`grill-with-docs` = `references/deps/grilling.md` + `references/deps/domain-modeling.md` 交织进行。
 - **差距分析**在此处（规划）完成：读 SPEC 目标与 Current 现状，推导**候选**任务（模块 / FR、建议类型、切片、验收判据），由用户挑选。差异只是候选——可能是漂移、质量缺口、未验证行为或目标过时，不一定是缺失功能；不要凭空造差距。不空闲自动创建 issue。
 - **范围内自主**：对齐后，agent 在约定范围内自主实现，遵守 ADR、契约与安全；高成本、破坏性或难以回退的决策先与用户确认。
 
@@ -67,9 +67,9 @@
 
 1. **规划 / Plan**——编排者 + 用户确认范围并对齐 SPEC；coder 细化验收判据、更新步骤清单状态，并写 1–2 句方案。产出最小；不新开章节。差距分析在此完成，读 SPEC 目标与 Current；PRD 只作人类理解参考。
 2. **骨架 / Skeleton**——最小可运行的垂直切片（忽略输出 / 格式打磨）；留一条运行证据并展示给用户——首个 review 点。纯修复可跳过（Log 原因）；feature 与结构性工作必做。
-3. **细节 / Details**——主路径实现、细节补全、代码质量。任何测试工作按 `docs/agents/testing.md` 执行（执行 / 临时 / 落盘三层；临时测试在收尾前删除）；`tdd`（未安装则按 `references/deps/tdd.md` 执行）是可选的内部红 → 绿循环，从属于该准则。
+3. **细节 / Details**——主路径实现、细节补全、代码质量。任何测试工作按 `docs/agents/testing.md` 执行（执行 / 临时 / 落盘三层；临时测试在收尾前删除）；`tdd`（`references/deps/tdd.md`）是可选的内部红 → 绿循环，从属于该准则。
 4. **异常 / Exceptions**——主路径之后的失败路径、边界与稳定性；其测试同样按测试准则执行（防御层级归属、禁止弱断言）。真实开发阻塞立即处理并记 Log，绝不排队到这一步。
-5. **回顾 / Wrap-up review**（收尾回顾）——issue 完成时的轻量文档同步清单：coder 更新 Current 事实并提议 SPEC 变更；编排者评审 PRD / SPEC / Current，模块或附录变化时更新 TOC；`adr` / `context` / `issues` / `agents` 按需更新。issue 的 `## 测试` 已填（执行证据、临时结论、落盘追溯），scratch 测试已清理。无需更新则一行 Log。仅做文档同步；会话 / agent 复盘属于 `retro`（未安装则按 `references/deps/boundaries.md` 执行）。
+5. **回顾 / Wrap-up review**（收尾回顾）——issue 完成时的轻量文档同步清单：coder 更新 Current 事实并提议 SPEC 变更；编排者评审 PRD / SPEC / Current，模块或附录变化时更新 TOC；`adr` / `context` / `issues` / `agents` 按需更新。issue 的 `## 测试` 已填（执行证据、临时结论、落盘追溯），scratch 测试已清理。无需更新则一行 Log。仅做文档同步；会话 / agent 复盘属于 `retro`（`references/deps/boundaries.md`）。
 
 ## 进度与续接
 
@@ -94,8 +94,8 @@
 
 ## 边界
 
-- 大规模或高风险多阶段工作 → `deepwork`（未安装则按 `references/deps/boundaries.md` 执行）；绝不与本流程叠加。
-- `tdd`（未安装则按 `references/deps/tdd.md` 执行）嵌在细节内；seam 确认并入规划对齐（不设第二道门）。测试准则（`docs/agents/testing.md`，源 `references/testing.md`）始终生效且优先于 `tdd`。
-- `retro`（未安装则按 `references/deps/boundaries.md` 执行）拥有会话 / agent 复盘；第五步只做文档同步。
+- 大规模或高风险多阶段工作 → `references/deps/boundaries.md`；绝不与本流程叠加。
+- `tdd`（`references/deps/tdd.md`）嵌在细节内；seam 确认并入规划对齐（不设第二道门）。测试准则（`docs/agents/testing.md`，源 `references/testing.md`）始终生效且优先于 `tdd`。
+- `retro`（`references/deps/boundaries.md`）拥有会话 / agent 复盘；第五步只做文档同步。
 - 没有产品文档的现有项目 → 需用户同意的 bootstrap（`bootstrap.md`）。v4 / 旧版文档 → 迁移（`migration.md`）。二者都不会在本流程中自动运行。
 - 文档 HTML 发布是可选手动能力（`rendering.md`）；绝不在本流程中运行——文档编辑不自动构建。本方案与这些 skill 的共存见 `coexistence.md`。

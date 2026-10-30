@@ -17,6 +17,9 @@
     "NOTICE",
     "README.md"
   ],
+  "scripts": {
+    "check": "node scripts/check-skills-zh.js && node scripts/check-docs-contract.js"
+  },
   "engines": {
     "node": ">=18"
   }

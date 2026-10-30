@@ -65,14 +65,14 @@
 1. 从 `skills/` 复制完整目录树到 `skills_zh/`。
 2. 翻译有变化的英文 Markdown 正文与 YAML 接口值；`name`、frontmatter 键、`policy` 保持不变。
 3. 保持逐字节复制清单中的文件与英文源完全一致。
-4. 运行 `node scripts/check-skills-zh.js`，修复报告中的问题；该校验只读，不会自动修改文件。
+4. 运行 `npm run check`（或分别运行 `node scripts/check-skills-zh.js`、`node scripts/check-docs-contract.js`），修复报告中的问题；两项校验都只读，不会自动修改文件。
 5. 更新本文档中的源基线提交和日期。
 
 ## 复核策略
 
 - 六个 skill 的 `SKILL.md` 与本文档 `README.md` 做完整复核。
 - `references/**` 等其余 Markdown（包括 `EXAMPLES.md`）做抽样复核。
-- 逐字节复制的文件由 `scripts/check-skills-zh.js` 做机械校验，避免人工遗漏。
+- 逐字节复制的文件与产物契约由 `scripts/check-skills-zh.js`、`scripts/check-docs-contract.js` 做机械校验，避免人工遗漏。
 
 ## 许可证与归属
 

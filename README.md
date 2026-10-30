@@ -157,7 +157,7 @@ skill 会检查并创建缺少的内容，包括：
 - **同名互斥**：同一目标目录一次只应安装一种语言。默认安装英文源 `skills/`；`--zh` 安装中文镜像 `skills_zh/`，并会把本包接管的同名第一方 skill 替换为中文版本。再运行不带 `--zh` 的安装即切回英文。`--zh` 仅适用于 install；`check` 与 `uninstall` 与语言无关。
 - **手工快照，不自动同步**：中文镜像基于英文源 `v5.6`（2026-10-30）翻译，不随英文源后续修改自动同步；英文源更新后需要重新翻译与审校。内容以英文源为准，发现不一致时应修正中文镜像。
 - **审校策略**：6 个 `SKILL.md` 与 `skills_zh/README.md` 经人工审校，references / EXAMPLES / technical 抽样复核后合入；不以未审校的机器翻译作为最终版本，涉及命令、路径、边界条件与技术术语的段落需对照英文源复核。
-- **一致性检查**：可运行 `node scripts/check-skills-zh.js` 检查中文镜像的结构与名称等一致性。
+- **一致性检查**：`npm run check` 一次跑两项只读校验——`scripts/check-skills-zh.js` 校验中文镜像的结构与名称一致性；`scripts/check-docs-contract.js` 校验产物清单 ↔ 模板 ↔ references 的覆盖关系，并把模板物化到临时目录做链接 / TOC / 指针 / 版本基线检查（有 Python + PyYAML 时额外跑一次发布干跑，缺依赖则 SKIP）。
 - **与 `--with-matt-skills` 的关系**：8 个外部依赖来自上游，只有英文；`--zh` 只影响本包第一方 skill 的来源。组合使用时请写成 `--zh --with-matt-skills`；若只运行默认（不带 `--zh`）的安装，会把第一方 skill 切回英文。
 
 ## English summary

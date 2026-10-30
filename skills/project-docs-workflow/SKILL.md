@@ -16,7 +16,7 @@ Run it manually, once per project — on adoption, or again after the skill's te
 - **Materialized**: init copies rules into the target project. Those copies are the runtime source agents read; the skill does not auto-load.
 - **Overrides are legitimate**: projects edit their copies to fit local reality. Init reports the diff, it does not enforce or revert.
 - **Language**: templates default to Chinese; for non-Chinese projects, translate the materialized copies, including `docs/agents/deps/*` — overrides are legitimate. "Copied unchanged" constrains init's copy step, not later project edits.
-- **Never overwrite**: existing content is compared, never rewritten (one additive exception: the missing `AGENTS.md` block — see checklist).
+- **Never overwrite**: existing content is compared, never rewritten (two additive exceptions: the missing `AGENTS.md` block, and the `version` line in `docs/agents/metadata.yml`, which advances only after a verified run).
 - **Maintenance**: project docs are agent-maintained by default. Humans steer, review the PRD / SPEC / ADR, and may edit style directly. Factual corrections go through the agent.
 
 ## Roles
@@ -45,7 +45,7 @@ Canonical wording (templates use the same line with the deps path parameterized)
 
 Run from the target project root (`cwd`).
 
-1. **Detect the state** (below) before touching anything. The state decides whether init may write, prompt for migration, or prompt for bootstrap.
+1. **Read `docs/agents/metadata.yml`, then classify the state** (below) before touching anything. The state decides whether init may write, repair, or only report.
 2. **Inventory** every artifact in the checklist. Classify each as *missing* or *existing*. Done when every row has a classification.
 3. **Create missing** files from their template, per the state rules, and create the issue directory tree. Create the `docs/current/00-README.md` overview when missing — do not force module files. Create `docs/product/00-README.md`, `docs/product/01-requirements.md`, `docs/product/02-architecture.md`, and `docs/toc.yml` when missing — do **not** force module files, and never create a product `00-index.md`.
 4. **Fill placeholders**: fill only obvious, determinable *fill-in* placeholders (e.g. project name from the repo/directory name); list every remaining fill-in placeholder under `Next:` in the report. **Never guess the Current baseline** — if it is unset, `选定 Current 基线（revision / release + 日期）` is the first `Next:` item. Format notation such as `<标题>` is documentation, not a placeholder — skip it.
@@ -54,20 +54,30 @@ Run from the target project root (`cwd`).
 
 ### State detection
 
-Classify the project before init writes anything:
+Read `docs/agents/metadata.yml` **first** — it records the skill version this tree was built or last verified against.
 
-1. **v5 (aligned or partial)** — `docs/product/` exists (for example `docs/product/00-README.md`). Treat it as v5: no migration or bootstrap prompt; run the normal inventory / alignment report and create only missing checklist files (including the three PRD chapters and `docs/toc.yml` when missing). Never rewrite. A partial v5 tree is **not** a bootstrap case.
-2. **v4/older docs** — `docs/prd/`, `docs/pdr/`, a v3/v4 provenance line, or the old PFD / layered structure (product `00-index.md`, L1/L2/L3 terms). **Prompt**:
-   - **migrate now** → show the plan plus per-file diffs, ask for confirmation, then execute (`references/migration.md`);
-   - **show the plan only** → print the plan and diffs, write nothing;
-   - **later** → create one `docs/issues/chore/agent/...` migration issue, write nothing else;
-   - **skip** → no writes at all (not even non-product artifacts); report only.
-   Never auto-rewrite, move, or delete. Without an explicit choice, write nothing.
-3. **no docs + source code** — no `docs/product/`, but the repo has source code (or only `CONTEXT.md` / ADRs). **Prompt** the legacy bootstrap (`references/bootstrap.md`):
-   - **Bootstrap** → five phases: domain modeling, as-built, PRD draft, SPEC draft, user review;
-   - **templates only** → create the v5 empty skeleton; no modeling;
-   - **skip** → no writes.
-4. **empty/new repo** — scaffold v5: create the checklist artifacts from their templates.
+| State | Condition | Action |
+| :--- | :--- | :--- |
+| **skip** | `version` equals the current skill version and every checklist artifact exists | write nothing; one-line report |
+| **skip + repair** | version matches but artifacts are missing | additive repair only (create the missing files); stamp unchanged |
+| **behind** | `version` is lower than the current skill version | run the establishment procedure |
+| **ahead** | `version` is higher than the current skill version | write nothing; report "upgrade the skill, or keep as-is" |
+| **unknown** | the file is missing or unparsable | run the establishment procedure |
+
+Conformance is **structural**: a version match plus artifact presence. Rule drift is reported, never enforced — project overrides are legitimate.
+
+#### Establishment procedure (behind / unknown)
+
+1. **Inventory** the checklist; classify every artifact as missing or existing.
+2. **Read what is readable** — this picks the repair input, not the state:
+   - source code only → bootstrap (`references/bootstrap.md`: five phases, drafts reviewed before they become facts);
+   - existing docs → align, or migrate when `docs/prd/`, `docs/pdr/`, a v3/v4 provenance line, or the old layered structure is present (`references/migration.md`);
+   - neither → scaffold from the templates.
+3. **Plan** every write as either **add** (create missing files — automatic) or **rewrite** (an existing file whose required rules are missing or contradicted — always shown as a per-file diff).
+4. **Execute**: additions automatically; rewrites only after the user confirms. When the user pre-authorizes ("直接执行" / execute directly), print the plan plus the diff summary and execute without asking again. Nothing is ever moved or deleted without that confirmation.
+5. **Stamp last**: write `docs/agents/metadata.yml` only when no rewrite is left pending. Declined rewrites keep the old stamp, so the next run reports `behind` again instead of claiming conformance.
+
+Bootstrap and migration keep their own consent options — the establishment procedure never bypasses them.
 
 ### Artifact checklist
 
@@ -78,6 +88,7 @@ Classify the project before init writes anything:
 | `docs/agents/domain.md` | `assets/templates/project/agents-domain.md` |
 | `docs/agents/workflow.md` | `assets/templates/project/agents-workflow.md` |
 | `docs/agents/testing.md` | `assets/templates/project/agents-testing.md` |
+| `docs/agents/metadata.yml` | `assets/templates/project/metadata.yml` |
 | `docs/agents/deps/` | `references/deps/*`（整目录复制，不改内容） |
 | `docs/issues/` directory tree | none — create dirs (below) |
 | `docs/adr/README.md` | `assets/templates/project/adr-readme.md` |
@@ -93,6 +104,7 @@ Classify the project before init writes anything:
 - Issue tree: `bug/{human,agent,history}`, `feature/{human,agent,history}`, `chore/{human,agent,history}`, `suggestion/{human,agent}`; add a `.gitkeep` to each leaf directory (one containing no files). Do not run `git init`.
 - Dep fallbacks: init copies `references/deps/*` into the project's `docs/agents/deps/` as a whole-directory copy (content unchanged at copy time), so target projects are self-sufficient even without this skill installed. Projects may translate or edit them afterwards.
 - Test rules: `docs/agents/testing.md` (source `references/testing.md`) is **first priority and always present** — it ships with the skill, so no installed-skill / fallback split applies; `tdd` contributes mechanics only. Init creates it when missing; projects may override its defaults. The issue's `## 测试` section (execution / temporary / persistent) is the evidence it produces.
+- Metadata: `docs/agents/metadata.yml` carries `skill`, `version`, and `updated`. It is the conformance stamp: equal version + complete artifacts = skip. Never hand-bump it to a version whose rules the tree does not actually satisfy.
 - Current tree: init creates the `docs/current/00-README.md` overview when missing; it does **not** force module files — add them as modules need describing. The Current tree is peer to the PRD, never embedded in it.
 - PRD tree: init creates the three product PRD chapters (`00-README.md`, `01-requirements.md`, `02-architecture.md`) and `docs/toc.yml` when missing. It does **not** force module files, and it never creates a product `00-index.md` — that artifact is retired. Module `00-index.md` is an unpublished agent sidecar created only when a module exists.
 - Domain glossaries (e.g. `docs/common/glossary.md`) are **not** scaffolded; the rules cover them and projects create them on demand.
@@ -115,6 +127,7 @@ Required elements per artifact:
 - `docs/agents/domain.md`: read CONTEXT.md + docs/adr before exploring; silently continue if missing; glossary vocabulary rule; ADR-conflict flagging.
 - `docs/agents/workflow.md`: roles and write permissions (user / orchestrator / coder, single-agent note); what to read (PRD for intent & scenarios, SPEC for implementation facts, Current for as-built, TOC for publication); PRD / SPEC authority and conflict escalation; align-before-build ordering; conversational alignment (no freeze); elastic granularity suggestion (≈0.5 人天 heuristic); issue `## 步骤` tracking + resume anchor; gap→issue candidate derivation; the four-item PRD-impact trigger with one-line no-op logging; PRD / SPEC / Current / ADR change protocol; scope-convergence default; wrap-up (coder updates Current facts and proposes SPEC changes; orchestrator reviews and updates the TOC if modules/appendices changed; `## 测试` filled and scratch tests gone); boundaries (deepwork / tdd / retro / grilling 调用 + 兜底指针; test-rules pointer, which takes priority over `tdd`); bootstrap / migration pointers.
 - `docs/agents/testing.md`: three test activities (run / temporary / persistent) and the paperwork split between them; persistent cases trace to a SPEC ID or, with no SPEC, to the issue's completion criteria marked `pending SPEC write-back`; temporary tests live in the declared scratch path (default `tmp/`, gitignored) and are deleted before wrap-up; bug fixes land a regression case by default or record the reason in `## 测试`; behavior-level assertions only (no private methods, no call counts / order); context isolation and implementation-visibility declaration; defense-layer ownership and `suspected out-of-scope defense`; mock / fixture boundaries (no fixture completing business logic); L0–L3 change levels; the `## 测试` three slots and the delivery gate; `tdd` subordinate to these rules.
+- `docs/agents/metadata.yml`: `skill` + `version` (+ `updated`); `version` is the skill version the tree was built or last verified against; it advances only after a run with no rewrite pending, and a version mismatch is what triggers the establishment procedure.
 - `docs/adr/README.md`: lifecycle rules (edit+Log, delete→tombstone stub, no renumber); catalog table present; reference sweep covers both `ADR-XXXX` and `adr/<NNNN>-<slug>.md` path links (any relative prefix); body defaults to no `Considered Options`; rejected alternatives are not recorded by default (durable records only; discussions may explore alternatives).
 - `docs/product/00-README.md`: PRD banner (`本文档描述产品目标与方案，不代表当前实现状态；实现细节见 SPEC，现状见 Current。`); project description sections (one-liner, project description, target users / problems, typical scenarios); no external links, no status markers, no acceptance criteria.
 - `docs/product/01-requirements.md`: capability map, key behaviors, non-goals, shape constraints; FR IDs plain text; no acceptance criteria or interface detail.
@@ -133,11 +146,12 @@ Write the report in the project's documentation language (default: Chinese, matc
 
 ```
 ## Init report
-- State: v5 aligned/partial｜v4/older docs｜no docs + source｜empty/new
+- State: skip｜skip+repair｜behind｜ahead｜unknown
+- Repair: none｜additive｜scaffold｜bootstrap｜migrate｜align
 - Created: …
 - Aligned: …
 - Diff: one bullet per file: `- <file>: <missing or contradicted rule>`（仅供参考，不自动改；multi-file → multiple bullets）
-- Migration/bootstrap decision: none｜migrate now｜plan only｜later (<issue path>)｜skip (migration)｜bootstrap｜templates only｜skip (bootstrap)
+- Metadata: <old> → <new>（updated）｜<old>（kept — N rewrites pending）
 - Legacy drift: detected v4/older paths and the offered action — informational only; never moved or rewritten without user authorization.
 - Next: remaining placeholders plus a one-line "do this first"; when the Current baseline is unset, `选定 Current 基线` comes first.
 ```

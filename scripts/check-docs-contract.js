@@ -490,6 +490,23 @@ category("simulated scaffold", () => {
       }
     }
 
+    // Check E3: the metadata stamp is materialized and matches the package version.
+    checked += 1;
+    const metaPath = path.join(scaffold, "docs", "agents", "metadata.yml");
+    if (!fs.existsSync(metaPath)) {
+      fail("scaffold is missing docs/agents/metadata.yml");
+    } else {
+      const meta = readText(metaPath).match(/^version:\s*(\S+)\s*$/m);
+      const pkgVersion = JSON.parse(readText(path.join(ROOT, "package.json"))).version;
+      if (!meta) {
+        fail("scaffold docs/agents/metadata.yml has no version: line");
+      } else if (meta[1] !== pkgVersion) {
+        fail(
+          `scaffold metadata.yml version ${meta[1]} does not match package.json ${pkgVersion}`
+        );
+      }
+    }
+
     // Check F: published TOC dry run (optional; degrades to SKIP).
     const python = spawnSync("python3", ["-c", "import yaml"], {
       encoding: "utf8",
@@ -575,6 +592,55 @@ category("version + mirror baseline", () => {
     if (occurrences < 2) {
       fail(
         `README.md must contain ${token} in both the Chinese and English mirror snapshot lines (found ${occurrences})`
+      );
+    }
+  }
+
+  return checked;
+});
+
+// --- metadata contract -----------------------------------------------------
+
+category("metadata contract", () => {
+  let checked = 0;
+  const templatePath = path.join(TEMPLATE_DIR, "metadata.yml");
+  if (!fs.existsSync(templatePath)) {
+    fail("missing assets/templates/project/metadata.yml");
+    return 0;
+  }
+  const pkgVersion = String(
+    JSON.parse(readText(path.join(ROOT, "package.json"))).version || ""
+  );
+  const template = readText(templatePath);
+
+  checked += 1;
+  const skill = template.match(/^skill:\s*(\S+)\s*$/m);
+  if (!skill || skill[1] !== "project-docs-workflow") {
+    fail("metadata.yml must declare skill: project-docs-workflow");
+  }
+
+  checked += 1;
+  const version = template.match(/^version:\s*(\S+)\s*$/m);
+  if (!version) {
+    fail("metadata.yml has no version: line");
+  } else if (version[1] !== pkgVersion) {
+    fail(
+      `metadata.yml version ${version[1]} does not match package.json ${pkgVersion}`
+    );
+  }
+
+  checked += 1;
+  if (!skillText.includes("docs/agents/metadata.yml")) {
+    fail("SKILL.md does not reference docs/agents/metadata.yml");
+  }
+
+  const provenance = `project-docs-workflow v${pkgVersion.split(".")[0]}`;
+  for (const rel of sorted(walk(TEMPLATE_DIR).map(toPosix))) {
+    checked += 1;
+    const head = readText(path.join(TEMPLATE_DIR, rel)).split("\n").slice(0, 5).join("\n");
+    if (!head.includes(provenance)) {
+      fail(
+        `template provenance generation is not "${provenance}": assets/templates/project/${rel}`
       );
     }
   }

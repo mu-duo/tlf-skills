@@ -16,7 +16,7 @@ disable-model-invocation: true
 - **物化**：init 把规则复制到目标项目。这些副本是 agent 在运行时读取的源；本 skill 不会自动加载。
 - **允许覆盖**：项目可按本地实际情况修改副本。init 只报告差异，不强制执行也不回退。
 - **语言**：模板默认中文；非中文项目可翻译物化副本（含 `docs/agents/deps/*`）——覆盖是正当的。「内容不变」约束的是 init 的复制动作，不约束项目后续编辑。
-- **绝不覆盖**：现有内容只做比较，绝不改写（唯一的追加例外：缺失的 `AGENTS.md` 区块——见清单）。
+- **绝不覆盖**：现有内容只做比较，绝不改写（两处加法例外：缺失的 `AGENTS.md` 区块；以及 `docs/agents/metadata.yml` 的 `version` 行，仅在一次已验证的运行后前移）。
 - **维护**：项目文档默认由 agent 维护。人类掌舵、评审 PRD / SPEC / ADR，并可直接修改文风。事实性修正走 agent。
 
 ## 角色
@@ -45,7 +45,7 @@ disable-model-invocation: true
 
 在目标项目根目录（`cwd`）运行。
 
-1. **先检测状态**（见下）。状态决定 init 是否可以写入、是否提示迁移或提示 bootstrap。
+1. **先读 `docs/agents/metadata.yml`，再判定状态**（见下）。状态决定 init 可以写入、修复，还是只报告。
 2. **盘点**下方清单中的每个产物。将每项归类为*缺失*或*已存在*。每一行都有分类即完成。
 3. **按状态规则创建缺失**文件（按模板），并创建 issue 目录树。缺失时创建 `docs/current/00-README.md` 概览——不强制创建模块文件。缺失时创建 `docs/product/00-README.md`、`docs/product/01-requirements.md`、`docs/product/02-architecture.md` 与 `docs/toc.yml`——**不**强制创建模块文件，也绝不创建产品 `00-index.md`。
 4. **填充占位符**：只填充明显、可确定的*待填*占位符（例如由仓库/目录名得到项目名）；将剩余每个待填占位符列在报告的「下一步」下。**绝不猜 Current 基线**——未选定基线时，`选定 Current 基线（revision / release + 日期）` 是「下一步」的第一项。`<标题>` 这类格式记号是文档说明，不是占位符——跳过。
@@ -54,20 +54,30 @@ disable-model-invocation: true
 
 ### 状态检测
 
-在 init 写入任何内容之前先分类：
+**先读 `docs/agents/metadata.yml`**——它记录这棵树是按哪个 skill 版本建立或最后复查的。
 
-1. **v5（已对齐或部分完成）**——`docs/product/` 存在（例如 `docs/product/00-README.md`）。按 v5 处理：不提示迁移或 bootstrap；执行常规盘点 / 对齐报告，只创建清单中缺失的文件（包括缺失的三章 PRD 与 `docs/toc.yml`）。绝不改写。部分完成的 v5 树**不属于** bootstrap。
-2. **v4 / 旧版文档**——`docs/prd/`、`docs/pdr/`、v3/v4 provenance 行，或旧 PFD / 分层结构（产品 `00-index.md`、L1/L2/L3 术语）。**提示**：
-   - **立即迁移** → 展示计划与逐文件 diff，请求确认后执行（`references/migration.md`）；
-   - **只看计划** → 打印计划与 diff，不写入；
-   - **稍后** → 创建一个 `docs/issues/chore/agent/...` 迁移 issue，其余不写；
-   - **跳过** → 完全不写（连非产品产物也不写）；仅报告。
-   绝不自动改写、移动或删除。没有明确选择时不写入。
-3. **无文档 + 有源码**——没有 `docs/product/`，但仓库有源码（或只有 `CONTEXT.md` / ADR）。**提示**遗留 bootstrap（`references/bootstrap.md`）：
-   - **Bootstrap** → 五个阶段：领域建模、现状、PRD 草稿、SPEC 草稿、用户评审；
-   - **仅模板** → 创建 v5 空骨架；不做建模；
-   - **跳过** → 不写入。
-4. **空 / 新仓库**——按模板搭建 v5。
+| 状态 | 条件 | 动作 |
+| :--- | :--- | :--- |
+| **skip** | `version` 等于当前 skill 版本，且清单产物齐全 | 零写入；一行报告 |
+| **skip + 修复** | 版本相同但产物缺失 | 只做加法补齐（创建缺失文件）；戳不变 |
+| **behind** | `version` 低于当前 skill 版本 | 走建立流程 |
+| **ahead** | `version` 高于当前 skill 版本 | 零写入；报告「请升级 skill，或保持现状」 |
+| **unknown** | 文件缺失或无法解析 | 走建立流程 |
+
+符合性是**结构性**的：版本相同 + 产物齐全。规则差异只报告、不强制执行——项目覆盖是正当的。
+
+#### 建立流程（behind / unknown）
+
+1. **盘点**清单，把每个产物归类为缺失或已存在。
+2. **看能读到什么**——这决定修复输入，不决定状态：
+   - 只有源码 → bootstrap（`references/bootstrap.md`：五阶段，草稿经评审才成为事实）；
+   - 已有文档 → 对齐；存在 `docs/prd/`、`docs/pdr/`、v3/v4 provenance 行或旧分层结构时走迁移（`references/migration.md`）；
+   - 两者都没有 → 按模板搭建。
+3. **计划**每笔写入：**加法**（创建缺失文件——自动执行）或**改写**（现有文件缺少必需规则或与之矛盾——始终以逐文件 diff 呈现）。
+4. **执行**：加法自动；改写必须经用户确认。用户预授权「直接执行」时，先打印计划与 diff 摘要，随后不再逐项询问。未经确认绝不移动或删除任何内容。
+5. **最后写戳**：只有在没有待定改写时才写入 `docs/agents/metadata.yml`。被拒绝的改写保留旧戳，下次运行仍报 `behind`，而不是声称已对齐。
+
+bootstrap 与迁移保留各自的同意选项——建立流程不得绕过它们。
 
 ### 产物清单
 
@@ -78,6 +88,7 @@ disable-model-invocation: true
 | `docs/agents/domain.md` | `assets/templates/project/agents-domain.md` |
 | `docs/agents/workflow.md` | `assets/templates/project/agents-workflow.md` |
 | `docs/agents/testing.md` | `assets/templates/project/agents-testing.md` |
+| `docs/agents/metadata.yml` | `assets/templates/project/metadata.yml` |
 | `docs/agents/deps/` | `references/deps/*`（整目录复制，不改内容） |
 | `docs/issues/` 目录树 | 无——创建目录（见下） |
 | `docs/adr/README.md` | `assets/templates/project/adr-readme.md` |
@@ -93,6 +104,7 @@ disable-model-invocation: true
 - Issue 目录树：`bug/{human,agent,history}`、`feature/{human,agent,history}`、`chore/{human,agent,history}`、`suggestion/{human,agent}`；给每个叶子目录（其中没有文件的）加 `.gitkeep`。不要运行 `git init`。
 - 依赖兜底：init 将 `references/deps/*` 整目录复制到项目的 `docs/agents/deps/`（复制时内容不变），使目标项目即使未安装本 skill 也自足。项目之后可翻译或修改它们。
 - 测试准则：`docs/agents/testing.md`（源 `references/testing.md`）是**第一优先级、始终存在**——随 skill 分发，不适用「已安装 skill / 兜底」二分；`tdd` 只提供机制。缺失时 init 创建；项目可覆盖其默认值。其产出落在 issue 的 `## 测试`（执行 / 临时 / 落盘）。
+- 元数据：`docs/agents/metadata.yml` 携带 `skill`、`version`、`updated`，是符合性戳：版本相同 + 产物齐全即跳过。绝不手工把它改成「这棵树其实并不满足」的版本。
 - Current 树：缺失时 init 创建 `docs/current/00-README.md` 概览；**不**强制创建模块文件——按需补充。Current 树与 PRD 平级，绝不嵌入 PRD。
 - PRD 树：缺失时 init 创建三个产品 PRD 章节（`00-README.md`、`01-requirements.md`、`02-architecture.md`）与 `docs/toc.yml`。它**不**强制创建模块文件，也绝不创建产品 `00-index.md`——该产物已退役。模块 `00-index.md` 是不发布的 agent 侧车，仅在模块存在时创建。
 - 领域术语表（例如 `docs/common/glossary.md`）**不**搭建；规则覆盖它们，项目按需创建。
@@ -115,6 +127,7 @@ disable-model-invocation: true
 - `docs/agents/domain.md`：探索前读 CONTEXT.md + docs/adr；缺失则静默继续；术语表用词规则；ADR 冲突标注。
 - `docs/agents/workflow.md`：角色与写入权限（用户 / 编排者 / coder，单 agent 说明）；读什么（PRD 用于意图与场景，SPEC 用于实现事实，Current 用于现状，TOC 用于发布）；PRD / SPEC 权威与冲突升级；先对齐再实现；对话式对齐（不冻结）；弹性粒度建议（≈0.5 人天启发式）；issue `## 步骤` 跟踪 + 续接锚点；差距→issue 候选推导；四项 PRD 影响触发与一行 no-op 记录；PRD / SPEC / Current / ADR 变更协议；范围收敛默认偏好；收尾（coder 更新 Current 事实并提议 SPEC 变更；编排者评审，模块 / 附录变化时更新 TOC；`## 测试` 已填、scratch 测试已清理）；边界（deepwork / tdd / retro / grilling 调用 + 兜底指针；测试准则指针，优先于 `tdd`）；bootstrap / 迁移指针。
 - `docs/agents/testing.md`：三种测试行为（执行 / 临时 / 落盘）及其文书负担差异；落盘用例追溯 SPEC ID，无 SPEC 时追溯到 issue 完成判据并标 `待回写 SPEC`；临时测试写在声明的 scratch 路径（默认 `tmp/`，须 gitignore），收尾删除；bug 修复默认落盘回归用例，或在 `## 测试` 写明不落盘理由；只断言可观察行为（无私有方法、无调用次数 / 顺序）；上下文隔离与实现可见性声明；防御层级归属与 `疑似越权防御`；Mock / Fixture 边界（Fixture 不补全业务逻辑）；L0–L3 变更等级；`## 测试` 三槽位与交付门禁；`tdd` 从属于本准则。
+- `docs/agents/metadata.yml`：`skill` + `version`（可选 `updated`）；`version` 是这棵树建立或最后复查时的 skill 版本；只有在没有待定改写的运行之后才前移，版本不一致正是触发建立流程的信号。
 - `docs/adr/README.md`：生命周期规则（修改 + Log、删除→墓碑桩、编号不复用）；目录表存在；引用 sweep 同时覆盖 `ADR-XXXX` 与 `adr/<NNNN>-<slug>.md` 路径链接（任意相对前缀）；正文默认不含 `Considered Options`；默认不记录被拒备选（仅约束持久记录；讨论仍可探索备选）。
 - `docs/product/00-README.md`：PRD 横幅（`本文档描述产品目标与方案，不代表当前实现状态；实现细节见 SPEC，现状见 Current。`）；项目说明章节（一句话、项目说明、目标用户与问题、典型应用场景）；无外链、无状态标记、无验收判据。
 - `docs/product/01-requirements.md`：能力地图、关键行为、非目标、关键产品约束；FR ID 为纯文本；无验收判据或接口细节。
@@ -133,11 +146,12 @@ disable-model-invocation: true
 
 ```
 ## Init report
-- State: v5 aligned/partial｜v4/older docs｜no docs + source｜empty/new
+- State: skip｜skip + 修复｜behind｜ahead｜unknown
+- Repair: none｜additive｜scaffold｜bootstrap｜migrate｜align
 - Created: …
 - Aligned: …
 - Diff: 每个文件一条：`- <file>: <missing or contradicted rule>`（仅供参考，不自动改；多文件 → 多条）
-- Migration/bootstrap decision: none｜migrate now｜plan only｜later (<issue path>)｜skip (migration)｜bootstrap｜templates only｜skip (bootstrap)
+- Metadata: <旧> → <新>（updated）｜<旧>（kept — N 项改写待确认）
 - Legacy drift: 检测到的 v4 / 旧版路径及提供的动作——仅供参考；未经用户授权绝不移动或改写。
 - Next: 剩余占位符，外加一句「先做这个」；Current 基线未选定时，`选定 Current 基线` 排第一。
 ```

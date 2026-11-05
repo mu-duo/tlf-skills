@@ -1,0 +1,1249 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<!--
+  guide-shell.html | 离线单文件教程外壳（project-docs-workflow guide）
+  ==================================================================
+
+  INJECTION CONTRACT（构建时由零依赖 Node 生成器替换）
+
+  四种占位标记，均以双花括号书写。为免本注释自身被替换，下文中花括号
+  之间加了空格；生成器里请写成连续的 双花括号 + 大写名称 + 双花括号。
+
+    1) 标题占位      { {TITLE} }
+       纯文本。用于 <title> 与页面 h1。
+       生成器应从正文剥离源 Markdown 的一级标题，由外壳渲染 h1，避免重复。
+
+    2) 目录占位      { {TOC} }
+       以一条 HTML 注释的形式独占一行（注释分隔符 + 占位）。
+       整行替换为 <ul>…</ul>，由正文 h2 生成，每项形如：
+         <ul><li><a href="#slug">1. 一分钟定位</a></li>…</ul>
+       每个 href 必须指向正文中对应 h2 的 id（同一 slug）。
+       保留 <ul> 作为根节点；嵌套 <ul> 可选，外壳已适配。
+       nav 外壳、details 折叠结构与“目录”标题由本文件提供。
+
+    3) 正文占位      { {CONTENT} }
+       以一条 HTML 注释的形式独占一行（注释分隔符 + 占位）。
+       整行替换为渲染后的正文（h2 / h3 / p / table / ul / ol / pre / figure）。
+       正文每个 h2 需要唯一的 id（TOC 高亮与锚点跳转依赖它）。
+       正文不要包含 h1，也不要再包 <main> 或 <article>。
+
+    4) 版本占位      { {VERSION} }
+       如 v5.12。仅出现在页脚，最终文本为：
+         project-docs-workflow v5.12 · 生成自 guide/README.md
+
+  其它约定
+  - 输出必须字节稳定：本文件不含时间戳、随机值或构建环境信息。
+  - 全部样式与脚本内联：无外部字体、外部样式表、外链脚本或远程资源。
+  - 生成器可原样插入包含 <figure class="fig"> 的 HTML；外壳只负责样式。
+
+  设计要点
+  - 断点：1024px（桌面侧栏 / 移动折叠目录）、719px（字号与内边距）、
+    639px（表格改为横向滚动）。
+  - 浅色 + 深色由 prefers-color-scheme 切换，打印另有独立样式。
+  - 目录高亮：IntersectionObserver 触发，按标题与视口顶部参考线的位置计算。
+-->
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="color-scheme" content="light dark">
+<meta name="description" content="project-docs-workflow 使用教程：10 分钟了解文档分层、五步流程与 init 实操。">
+<title>project-docs-workflow 使用教程</title>
+<style>
+/* ============================================================
+   Tokens
+   ============================================================ */
+:root {
+  --sans: -apple-system, "Segoe UI", "PingFang SC", "Noto Sans CJK SC", "Microsoft YaHei", sans-serif;
+  --mono: ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas, "Liberation Mono", "Courier New", monospace;
+
+  --bg: #faf8f4;
+  --surface: #ffffff;
+  --surface-sunk: #f4f0e8;
+  --fg: #201e1a;
+  --fg-soft: #3b3833;
+  --muted: #6d685e;
+  --faint: #9a948a;
+  --border: #e3ddd1;
+  --border-soft: #ece7dc;
+  --accent: #9c3f26;
+  --accent-soft: #c86a4c;
+  --focus: #9c3f26;
+
+  --code-bg: #f1ece1;
+  --code-border: #e6dfd1;
+  --th-bg: #f2ede3;
+  --mark: #f4e3c8;
+
+  --fig-bg: #f6f2e9;
+  --fig-box: #ece5d7;
+  --fig-border: #d6cdbb;
+
+  --measure: 70ch;
+  --radius: 10px;
+  --pad: 32px;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --bg: #131311;
+    --surface: #1b1a18;
+    --surface-sunk: #201f1c;
+    --fg: #e9e4da;
+    --fg-soft: #cfc9be;
+    --muted: #a39c90;
+    --faint: #757066;
+    --border: #302d28;
+    --border-soft: #272420;
+    --accent: #e08a6d;
+    --accent-soft: #b96a50;
+    --focus: #f0a184;
+
+    --code-bg: #201e1b;
+    --code-border: #2c2925;
+    --th-bg: #23211d;
+    --mark: #4a3a22;
+
+    --fig-bg: #1b1a17;
+    --fig-box: #2a2723;
+    --fig-border: #443e37;
+  }
+}
+
+/* ============================================================
+   Base
+   ============================================================ */
+*, *::before, *::after { box-sizing: border-box; }
+
+html {
+  background: var(--bg);
+  color-scheme: light dark;
+  -webkit-text-size-adjust: 100%;
+  text-size-adjust: 100%;
+  scroll-behavior: smooth;
+}
+
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--fg);
+  font-family: var(--sans);
+  font-size: 17px;
+  line-height: 1.78;
+  font-kerning: normal;
+  font-feature-settings: "kern" 1;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  overflow-wrap: break-word;
+}
+
+::selection { background: var(--mark); color: var(--fg); }
+
+:focus-visible {
+  outline: 2px solid var(--focus);
+  outline-offset: 3px;
+  border-radius: 3px;
+}
+
+/* Skip-link target: the jump itself is the feedback; a page-wide ring is noise. */
+#main:focus,
+#main:focus-visible { outline: 0; }
+
+a { color: var(--accent); text-decoration: none; }
+a:hover { text-decoration: underline; text-underline-offset: 3px; text-decoration-thickness: 1px; }
+
+/* Skip link */
+.skip-link {
+  position: absolute;
+  top: 10px;
+  left: 12px;
+  z-index: 200;
+  padding: 10px 16px;
+  background: var(--surface);
+  color: var(--fg);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  font-size: 14px;
+  font-weight: 600;
+  box-shadow: 0 10px 30px -12px rgba(0, 0, 0, .35);
+  transform: translateY(-160%);
+  transition: transform .16s ease;
+}
+.skip-link:focus-visible { transform: translateY(0); }
+
+/* ============================================================
+   Shell layout
+   ============================================================ */
+.shell {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 0 var(--pad);
+}
+
+.column {
+  min-width: 0;
+}
+
+.page-head,
+.article,
+.page-foot {
+  max-width: var(--measure);
+  margin-left: auto;
+  margin-right: auto;
+}
+
+/* --- Page header --- */
+.page-head {
+  padding: 76px 0 8px;
+}
+
+.eyebrow {
+  margin: 0 0 18px;
+  font-family: var(--mono);
+  font-size: 11.5px;
+  letter-spacing: .16em;
+  text-transform: uppercase;
+  color: var(--faint);
+}
+.eyebrow .sep { color: var(--border); padding: 0 .4em; }
+
+.page-title {
+  margin: 0;
+  font-size: clamp(1.85rem, 4.3vw, 2.4rem);
+  line-height: 1.24;
+  font-weight: 700;
+  letter-spacing: -0.005em;
+  color: var(--fg);
+}
+
+.page-meta {
+  margin: 18px 0 0;
+  font-size: 13.5px;
+  color: var(--muted);
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.page-meta::before {
+  content: "";
+  display: block;
+  width: 26px;
+  height: 2px;
+  background: var(--accent);
+  flex: none;
+}
+
+/* ============================================================
+   Sidebar / TOC
+   ============================================================ */
+.sidebar {
+  position: sticky;
+  top: 0;
+  align-self: start;
+  z-index: 40;
+}
+
+.toc-title {
+  margin: 0 0 16px;
+  padding-left: 1px;
+  font-family: var(--mono);
+  font-size: 11px;
+  letter-spacing: .18em;
+  text-transform: uppercase;
+  color: var(--faint);
+}
+
+.toc-details { margin: 0; }
+.toc-summary { display: none; }
+
+.toc ul,
+.toc ol {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  border-left: 1px solid var(--border);
+}
+.toc li { margin: 0; }
+
+.toc li a {
+  display: block;
+  padding: 7px 10px 7px 15px;
+  margin-left: -1px;
+  border-left: 2px solid transparent;
+  color: var(--muted);
+  font-size: 13.5px;
+  line-height: 1.5;
+  text-decoration: none;
+  transition: color .16s ease, border-color .16s ease;
+}
+.toc li a:hover { color: var(--fg); background: transparent; }
+.toc li a.is-active {
+  color: var(--fg);
+  border-left-color: var(--accent);
+  font-weight: 600;
+}
+.toc li a.is-active:hover { text-decoration: none; }
+
+/* Nested lists (optional) */
+.toc ul ul,
+.toc ul ol,
+.toc ol ul,
+.toc ol ol { margin: 2px 0 6px; border-left-color: var(--border-soft); }
+.toc ul ul a,
+.toc ul ol a,
+.toc ol ul a,
+.toc ol ol a { font-size: 12.5px; padding-top: 5px; padding-bottom: 5px; }
+
+/* ============================================================
+   Article
+   ============================================================ */
+.article {
+  padding: 40px 0 0;
+  font-size: 1.0625rem;
+  line-height: 1.78;
+  color: var(--fg-soft);
+}
+
+.article > :not(.fig) { max-width: 100%; }
+
+.article p {
+  margin: 0 0 1.08em;
+}
+
+.article > p:first-of-type {
+  font-size: 1.12em;
+  line-height: 1.72;
+  color: var(--fg);
+  margin-bottom: 1.4em;
+}
+
+.article strong { font-weight: 650; color: var(--fg); }
+.article em { font-style: italic; }
+
+/* Headings */
+.article h2,
+.article h3,
+.article h4 {
+  color: var(--fg);
+  font-weight: 650;
+  line-height: 1.4;
+  scroll-margin-top: 24px;
+}
+
+.article h2 {
+  position: relative;
+  margin: 4.5em 0 1.1em;
+  padding-top: 1.35em;
+  font-size: 1.5rem;
+  letter-spacing: .002em;
+  border-top: 1px solid var(--border);
+}
+.article h2::before {
+  content: "";
+  position: absolute;
+  top: -1px;
+  left: 0;
+  width: 30px;
+  height: 2px;
+  background: var(--accent);
+}
+.article h2:first-child { margin-top: 1.6em; }
+
+.article h3 {
+  margin: 2.4em 0 .7em;
+  font-size: 1.09rem;
+  font-weight: 650;
+  letter-spacing: .01em;
+}
+
+.article h4 {
+  margin: 2em 0 .5em;
+  font-size: 1rem;
+  color: var(--fg-soft);
+}
+
+.article h2 + p,
+.article h3 + p,
+.article h2 + ul,
+.article h3 + ul,
+.article h2 + ol,
+.article h3 + ol { margin-top: 0; }
+
+/* Lists */
+.article ul,
+.article ol {
+  margin: 0 0 1.15em;
+  padding-left: 1.45em;
+}
+.article li { margin: .32em 0; padding-left: .15em; }
+.article li::marker { color: var(--faint); }
+.article ol > li::marker {
+  font-variant-numeric: tabular-nums;
+  font-size: .92em;
+  color: var(--muted);
+}
+.article li > ul,
+.article li > ol { margin: .35em 0 .45em; }
+.article li > p { margin-bottom: .5em; }
+
+/* Inline code */
+.article code,
+.article kbd,
+.article samp {
+  font-family: var(--mono);
+  font-size: .86em;
+  background: var(--code-bg);
+  border: 1px solid var(--code-border);
+  border-radius: 5px;
+  padding: .1em .34em;
+  color: var(--fg);
+  white-space: break-spaces;
+}
+
+/* Code blocks */
+.article pre {
+  margin: 1.6em 0;
+  padding: 1.05em 1.2em;
+  background: var(--code-bg);
+  border: 1px solid var(--code-border);
+  border-radius: var(--radius);
+  overflow-x: auto;
+  font-size: 13.5px;
+  line-height: 1.72;
+  tab-size: 2;
+  color: var(--fg);
+}
+.article pre code {
+  display: block;
+  background: none;
+  border: 0;
+  padding: 0;
+  font-size: inherit;
+  color: inherit;
+  white-space: pre;
+}
+
+/* Blockquote (not used by current guide, styled for safety) */
+.article blockquote {
+  margin: 1.6em 0;
+  padding: .2em 0 .2em 1.15em;
+  border-left: 2px solid var(--accent-soft);
+  color: var(--muted);
+}
+
+/* Tables — real table layout at comfortable widths; below 640px the table
+   itself becomes the horizontal scroll container (no wrapper needed). */
+.article table {
+  display: table;
+  width: 100%;
+  max-width: 100%;
+  margin: 1.5em 0;
+  border-collapse: collapse;
+  border-top: 1px solid var(--border);
+  border-bottom: 1px solid var(--border);
+  font-size: .93em;
+  line-height: 1.62;
+  color: var(--fg-soft);
+}
+.article thead th {
+  background: var(--th-bg);
+  color: var(--fg);
+  font-weight: 600;
+  text-align: left;
+  white-space: nowrap;
+}
+.article th,
+.article td {
+  padding: .62em .85em;
+  border-bottom: 1px solid var(--border-soft);
+  text-align: left;
+  vertical-align: top;
+}
+.article th:first-child,
+.article td:first-child { padding-left: .7em; }
+.article th:last-child,
+.article td:last-child { padding-right: .7em; }
+.article tbody tr:last-child th,
+.article tbody tr:last-child td { border-bottom: 0; }
+.article tbody { background: transparent; }
+
+/* Keep reference tables calm: inline code reads as a tint, not a chip. */
+.article th code,
+.article td code {
+  background: var(--surface-sunk);
+  border-color: transparent;
+  padding: .04em .3em;
+}
+
+/* Figures */
+.article .fig {
+  position: relative;
+  width: min(720px, calc(100% + 2rem));
+  margin: 2.4em 0 2.1em;
+  margin-left: 50%;
+  transform: translateX(-50%);
+  padding: 1.1rem 1.1rem .95rem;
+  background: var(--fig-bg);
+  border: 1px solid var(--border-soft);
+  border-radius: var(--radius);
+  overflow-x: auto;
+  overflow-y: hidden;
+}
+.article .fig svg {
+  width: 100%;
+  min-width: 650px;
+  height: auto;
+  display: block;
+}
+.article .fig .box {
+  fill: var(--fig-box);
+  stroke: var(--fig-border);
+  stroke-width: 1;
+}
+.article .fig .label {
+  fill: var(--fg);
+  font-size: 16px;
+}
+.article .fig .muted {
+  fill: var(--muted);
+  font-size: 12.5px;
+}
+.article .fig .edge {
+  stroke: var(--muted);
+  stroke-width: 1.5;
+  fill: none;
+}
+.article .fig .dashed { stroke-dasharray: 5 4; }
+.article .fig .arrowhead { fill: var(--muted); }
+.article .fig text { font-family: inherit; }
+
+.article .fig figcaption {
+  position: sticky;
+  left: 0;
+  width: 100%;
+  margin-top: .85rem;
+  font-size: 13px;
+  line-height: 1.65;
+  color: var(--muted);
+}
+
+/* Safety for any stray media */
+.article img,
+.article video { max-width: 100%; height: auto; }
+
+.article hr {
+  border: 0;
+  border-top: 1px solid var(--border);
+  margin: 3em 0;
+}
+
+/* ============================================================
+   Footer
+   ============================================================ */
+.page-foot {
+  margin-top: 5rem;
+  padding: 2rem 0 4.5rem;
+  border-top: 1px solid var(--border);
+  font-size: 13px;
+  color: var(--muted);
+}
+.page-foot p { margin: 0; }
+.page-foot .ver {
+  font-family: var(--mono);
+  font-size: .95em;
+  color: var(--fg-soft);
+}
+
+/* ============================================================
+   Mobile: TOC becomes sticky collapsible header (<1024px)
+   ============================================================ */
+@media screen and (max-width: 1023px) {
+  :root { --pad: 24px; }
+
+  .sidebar {
+    position: sticky;
+    top: 0;
+    z-index: 40;
+    margin: 0 calc(-1 * var(--pad));
+    background: var(--bg);
+    border-bottom: 1px solid var(--border);
+  }
+
+  .toc-title { display: none; }
+
+  .toc-details { position: relative; }
+
+  .toc-summary {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    height: 52px;
+    padding: 0 var(--pad);
+    cursor: pointer;
+    list-style: none;
+    user-select: none;
+    -webkit-tap-highlight-color: transparent;
+  }
+  .toc-summary::-webkit-details-marker { display: none; }
+  .toc-summary:focus-visible { outline-offset: -3px; border-radius: 0; }
+
+  .toc-summary .label {
+    font-family: var(--mono);
+    font-size: 11px;
+    letter-spacing: .18em;
+    text-transform: uppercase;
+    color: var(--muted);
+    flex: none;
+  }
+
+  .toc-current {
+    flex: 1 1 auto;
+    min-width: 0;
+    text-align: right;
+    font-size: 12.5px;
+    color: var(--muted);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  .chev {
+    flex: none;
+    width: 7px;
+    height: 7px;
+    margin-right: 2px;
+    border-right: 1.5px solid var(--muted);
+    border-bottom: 1.5px solid var(--muted);
+    transform: rotate(45deg) translate(-1px, -1px);
+    transition: transform .18s ease;
+  }
+  .toc-details[open] .chev { transform: rotate(-135deg) translate(-1px, -1px); }
+
+  .toc-body {
+    position: absolute;
+    top: 100%;
+    left: 0;
+    right: 0;
+    max-height: 68vh;
+    overflow-y: auto;
+    padding: 10px var(--pad) 22px;
+    background: var(--surface);
+    border-bottom: 1px solid var(--border);
+    box-shadow: 0 24px 40px -28px rgba(0, 0, 0, .45);
+    overscroll-behavior: contain;
+  }
+
+  /* Avoid a flash of the open panel before the script runs (progressive
+     enhancement only; without JS the panel simply stays expanded). */
+  html.js .toc-details:not([data-ready]) .toc-body { display: none; }
+
+  /* No-JS fallback: an expanded list that pushes content instead of an
+     overlay, so the page stays readable. */
+  html:not(.js) .toc-body {
+    position: static;
+    max-height: none;
+    box-shadow: none;
+    border-bottom: 0;
+  }
+
+  .toc ul,
+  .toc ol { border-left: 0; }
+  .toc li a {
+    padding: 11px 0 11px 14px;
+    font-size: 15px;
+    border-left-width: 2px;
+  }
+  .toc li a.is-active { background: var(--surface-sunk); }
+
+  .page-head { padding-top: 44px; }
+  .article { padding-top: 34px; }
+  .article h2 { scroll-margin-top: 76px; font-size: 1.34rem; margin-top: 3.6em; }
+  .article h3 { scroll-margin-top: 76px; }
+  .article .fig {
+    width: calc(100% + 1rem);
+    padding: .8rem .8rem .7rem;
+  }
+  .article .fig figcaption { font-size: 12.5px; }
+  .page-foot { margin-top: 3.5rem; }
+}
+
+@media screen and (max-width: 719px) {
+  :root { --pad: 20px; }
+  body { font-size: 16.5px; }
+  .page-head { padding-top: 34px; }
+  .page-title { font-size: 1.85rem; }
+  .eyebrow { margin-bottom: 14px; }
+  .page-meta { margin-top: 14px; font-size: 13px; }
+  .article { font-size: 1rem; }
+  .article > p:first-of-type { font-size: 1.06em; }
+  .article h2 { font-size: 1.24rem; }
+  .article pre { font-size: 12.5px; padding: .95em 1em; }
+  .article .fig { margin-top: 2em; }
+  /* Figures are wider than the phone column and scroll horizontally. */
+  .article .fig figcaption::after {
+    content: "（图形可左右滑动）";
+    color: var(--faint);
+  }
+}
+
+/* Narrow phones: tables scroll inside their own box. Cell min-width keeps
+   columns readable instead of letting every column collapse into 3–4
+   characters per line; the table box itself is the scroll container. */
+@media screen and (max-width: 639px) {
+  .article table {
+    display: block;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+  .article th,
+  .article td { min-width: 7em; }
+}
+
+/* Desktop grid */
+@media screen and (min-width: 1024px) {
+  .shell {
+    display: grid;
+    grid-template-columns: 240px minmax(0, 1fr);
+    column-gap: 8px;
+  }
+  .sidebar {
+    padding: 88px 30px 48px 0;
+    max-height: 100vh;
+    overflow-y: auto;
+    overscroll-behavior: contain;
+  }
+  .column { display: flex; flex-direction: column; }
+  .page-head { width: 100%; padding-top: 84px; }
+  .article { width: 100%; }
+  .page-foot { width: 100%; }
+  .toc-details > .toc-body { display: block; }
+}
+
+/* Wide screens: keep the reading column optically centered */
+@media screen and (min-width: 1200px) {
+  :root { --pad: 40px; }
+}
+
+/* ============================================================
+   Motion preferences
+   ============================================================ */
+@media (prefers-reduced-motion: reduce) {
+  html { scroll-behavior: auto; }
+  *, *::before, *::after {
+    transition-duration: .01ms !important;
+    animation-duration: .01ms !important;
+    animation-iteration-count: 1 !important;
+  }
+}
+
+/* ============================================================
+   Print
+   ============================================================ */
+@media print {
+  @page { margin: 18mm 16mm; }
+
+  :root {
+    --bg: #fff;
+    --surface: #fff;
+    --fg: #000;
+    --fg-soft: #111;
+    --muted: #333;
+    --faint: #444;
+    --border: #c8c8c8;
+    --border-soft: #ddd;
+    --accent: #000;
+    --th-bg: #f0f0f0;
+    --fig-bg: #fff;
+    --fig-box: #f4f4f4;
+    --fig-border: #bbb;
+    --code-bg: #f5f5f5;
+    --code-border: #ddd;
+  }
+
+  html, body {
+    background: #fff !important;
+    color: #000;
+    font-size: 10.5pt;
+    line-height: 1.65;
+  }
+
+  .skip-link,
+  .sidebar,
+  .toc,
+  .toc-details { display: none !important; }
+
+  .shell {
+    display: block;
+    max-width: none;
+    padding: 0;
+  }
+  .column { display: block; }
+
+  .page-head,
+  .article,
+  .page-foot {
+    max-width: none;
+    width: auto;
+    margin: 0;
+  }
+  .page-head { padding: 0 0 6pt; }
+  .page-title { font-size: 22pt; }
+  .page-meta { margin-top: 8pt; }
+  .eyebrow { margin-bottom: 8pt; color: #444; }
+
+  .article { padding-top: 18pt; color: #111; }
+  .article p { orphans: 3; widows: 3; }
+
+  .article h2,
+  .article h3,
+  .article h4 {
+    break-after: avoid-page;
+    page-break-after: avoid;
+    color: #000;
+  }
+  .article h2 {
+    margin-top: 22pt;
+    font-size: 15pt;
+    border-top-color: #bbb;
+  }
+  .article h2::before { background: #000; }
+  .article h3 { font-size: 11.5pt; }
+
+  .article a {
+    color: #000;
+    text-decoration: none;
+  }
+  /* 仅外链打印 URL；本页链接全部为内部锚点，不输出。 */
+  .article a[href^="http"]::after {
+    content: " (" attr(href) ")";
+    font-size: 9pt;
+    color: #444;
+    word-break: break-all;
+  }
+
+  .article .fig {
+    width: 100% !important;
+    margin: 14pt 0 !important;
+    margin-left: 0 !important;
+    transform: none !important;
+    overflow: visible !important;
+    background: #fff;
+    border: 1px solid #ccc;
+    break-inside: avoid;
+    page-break-inside: avoid;
+  }
+  .article .fig svg { min-width: 0 !important; width: 100% !important; }
+  .article .fig figcaption { position: static; color: #333; }
+
+  .article table {
+    display: table;
+    width: 100%;
+    overflow: visible;
+    font-size: 9pt;
+    break-inside: avoid;
+    page-break-inside: avoid;
+  }
+  .article thead th { background: #eee !important; print-color-adjust: exact; -webkit-print-color-adjust: exact; }
+  .article tr,
+  .article td,
+  .article th { break-inside: avoid; page-break-inside: avoid; }
+
+  .article pre {
+    background: #f6f6f6;
+    border: 1px solid #ddd;
+    white-space: pre-wrap;
+    word-break: break-word;
+    font-size: 9pt;
+    break-inside: avoid;
+    page-break-inside: avoid;
+  }
+  .article pre code { white-space: pre-wrap; }
+  .article code { background: #f2f2f2; border-color: #ddd; }
+
+  .article blockquote { border-left-color: #999; color: #333; }
+
+  .page-foot {
+    margin-top: 24pt;
+    padding: 10pt 0 0;
+    border-top-color: #bbb;
+    color: #333;
+  }
+}
+</style>
+<script>document.documentElement.classList.add('js');</script>
+</head>
+<body>
+
+<a class="skip-link" href="#main">跳到正文</a>
+
+<div class="shell">
+  <aside class="sidebar">
+    <nav class="toc" aria-label="目录">
+      <p class="toc-title">目录</p>
+      <details class="toc-details" open>
+        <summary class="toc-summary">
+          <span class="label">目录</span>
+          <span class="toc-current" data-toc-current></span>
+          <span class="chev" aria-hidden="true"></span>
+        </summary>
+        <div class="toc-body">
+          <ul class="toc-list"><li><a href="#sec-1">1. 一分钟定位</a></li><li><a href="#sec-2">2. 它治什么病</a></li><li><a href="#sec-3">3. 文档地图</a></li><li><a href="#sec-4">4. 五步流程</a></li><li><a href="#sec-5">5. init 实操</a></li><li><a href="#sec-6">6. 其他 skill 与延伸阅读</a></li></ul>
+        </div>
+      </details>
+    </nav>
+  </aside>
+
+  <div class="column">
+    <header class="page-head">
+      <p class="eyebrow">Guide<span class="sep">/</span>中文</p>
+      <h1 class="page-title">project-docs-workflow 使用教程</h1>
+      <p class="page-meta">6 节 · 约 10 分钟</p>
+    </header>
+
+    <main id="main" tabindex="-1">
+      <article class="article">
+        <p>一份 10 分钟的预览：它解决什么问题、由哪些文档组成、日常怎么走，以及第一次初始化会发生什么。规则细节以 <code>references/</code> 为准，本文不重复命令表。</p>
+
+<h2 id="sec-1">1. 一分钟定位</h2>
+
+<p><strong>它是什么</strong>：一套把「产品意图、实现目标、当前事实、决策记录」分层存档，并以 issue 为单位、按五步推进的文档工作流。skill 只提供规则与模板；初始化后，规则被复制进你的项目，由项目自己的文档接管运行时。</p>
+
+<p><strong>适合</strong>：中大型功能、长期维护、多人或多 agent 协作、害怕文档与代码脱节的项目。</p>
+
+<p><strong>不适合</strong>：一次性脚本、纯原型、只有几个文件且不打算长期演进的小工具。</p>
+
+<p><strong>30 秒上手</strong></p>
+
+<ol>
+<li><code>npx @tanlinfeng/project-docs-workflow@latest install</code>（中文镜像加 <code>--zh</code>）。</li>
+<li>在项目根对 agent 说：<code>用 project-docs-workflow 初始化文档系统</code>。该 skill 禁止模型自动调用，必须点名。</li>
+<li>打开 <code>AGENTS.md</code> 与 <code>docs/agents/</code>，按报告里的 <code>Next:</code> 逐项补齐。</li>
+</ol>
+
+<h2 id="sec-2">2. 它治什么病</h2>
+
+<p>文档腐烂通常不是&quot;没人写&quot;，而是<strong>写错了层</strong>：</p>
+
+<ul>
+<li>代码变了文档没变——因为只记了事实，没有记目标。</li>
+<li>PRD 变成变更日志——因为把历史和设计混在一起。</li>
+<li>同一个问题反复讨论——因为决策没有落地成可查的记录。</li>
+</ul>
+
+<p>解法是分层，并且让每层有明确的维护者：</p>
+
+<table>
+<thead>
+<tr><th>层</th><th>回答的问题</th><th>位置</th><th>谁维护</th></tr>
+</thead>
+<tbody>
+<tr><td>意图</td><td>为谁、解决什么</td><td><code>docs/product/</code></td><td>orchestrator</td></tr>
+<tr><td>目标</td><td>具体怎么做、接口与约束</td><td>SPEC</td><td>orchestrator + user</td></tr>
+<tr><td>事实</td><td>现在实际跑成什么样</td><td><code>docs/current/</code></td><td>coder（收尾时更新）</td></tr>
+<tr><td>决策</td><td>为什么这样选</td><td><code>docs/adr/</code></td><td>任何角色，需评审</td></tr>
+<tr><td>工作单元</td><td>这一次做什么</td><td><code>docs/issues/</code></td><td>coder</td></tr>
+</tbody>
+</table>
+
+<p>关键不是&quot;写得多&quot;，而是<strong>每层只写它该写的</strong>：PRD 不写实现，Current 不写历史，ADR 不写步骤。</p>
+
+<h2 id="sec-3">3. 文档地图</h2>
+
+<figure class="fig">
+<svg viewBox="0 0 760 300" role="img" aria-label="文档分层与流向示意">
+  <defs>
+    <marker id="guide-arrow-1" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M0,0 L10,5 L0,10 z" class="arrowhead"/>
+    </marker>
+  </defs>
+  <rect class="box" x="20" y="30" width="200" height="72" rx="10"/>
+  <text class="label" x="120" y="62" text-anchor="middle">PRD · 意图与范围</text>
+  <text class="muted" x="120" y="84" text-anchor="middle">docs/product/</text>
+  <rect class="box" x="280" y="30" width="200" height="72" rx="10"/>
+  <text class="label" x="380" y="62" text-anchor="middle">SPEC · 目标与接口</text>
+  <text class="muted" x="380" y="84" text-anchor="middle">01-spec / 02-interfaces</text>
+  <rect class="box" x="540" y="30" width="200" height="72" rx="10"/>
+  <text class="label" x="640" y="62" text-anchor="middle">Current · 当前事实</text>
+  <text class="muted" x="640" y="84" text-anchor="middle">docs/current/</text>
+  <line class="edge" x1="220" y1="66" x2="280" y2="66" marker-end="url(#guide-arrow-1)"/>
+  <line class="edge" x1="480" y1="66" x2="540" y2="66" marker-end="url(#guide-arrow-1)"/>
+  <rect class="box" x="280" y="180" width="200" height="64" rx="10"/>
+  <text class="label" x="380" y="208" text-anchor="middle">ADR · 决策与理由</text>
+  <text class="muted" x="380" y="228" text-anchor="middle">docs/adr/</text>
+  <line class="edge dashed" x1="380" y1="180" x2="380" y2="102" marker-end="url(#guide-arrow-1)"/>
+  <text class="muted" x="392" y="148">约束</text>
+  <rect class="box" x="20" y="180" width="200" height="64" rx="10"/>
+  <text class="label" x="120" y="208" text-anchor="middle">issue · 工作单元</text>
+  <text class="muted" x="120" y="228" text-anchor="middle">docs/issues/</text>
+  <line class="edge" x1="120" y1="180" x2="120" y2="102" marker-end="url(#guide-arrow-1)"/>
+  <text class="muted" x="132" y="148">驱动</text>
+  <rect class="box" x="540" y="180" width="200" height="64" rx="10"/>
+  <text class="label" x="640" y="208" text-anchor="middle">toc.yml · 发布清单</text>
+  <text class="muted" x="640" y="228" text-anchor="middle">docs/toc.yml</text>
+  <line class="edge dashed" x1="640" y1="180" x2="640" y2="102" marker-end="url(#guide-arrow-1)"/>
+  <text class="muted" x="652" y="148">发布范围</text>
+</svg>
+<figcaption>文档按“意图 → 目标 → 事实”分层：ADR 约束设计，issue 驱动一次工作，toc 决定对外发布什么。</figcaption>
+</figure>
+
+<p>日常阅读顺序：先看 PRD 定范围，再读 SPEC 找实现口径，用 Current 确认现状，最后查 ADR 看有没有已定约束。四者冲突时：实现细节以 SPEC 为准，范围与意图以 PRD 为准。</p>
+
+<h2 id="sec-4">4. 五步流程</h2>
+
+<figure class="fig">
+<svg viewBox="0 0 760 150" role="img" aria-label="五步开发流程">
+  <defs>
+    <marker id="guide-arrow-2" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M0,0 L10,5 L0,10 z" class="arrowhead"/>
+    </marker>
+  </defs>
+  <text class="muted" x="380" y="26" text-anchor="middle">硬规则：对齐先于实现；未确认范围不进入实现</text>
+  <rect class="box" x="20" y="50" width="128" height="64" rx="10"/>
+  <text class="label" x="84" y="78" text-anchor="middle">1 · 规划</text>
+  <text class="muted figure-note" x="84" y="98" text-anchor="middle">对齐 → 方案</text>
+  <rect class="box" x="168" y="50" width="128" height="64" rx="10"/>
+  <text class="label" x="232" y="78" text-anchor="middle">2 · 骨架</text>
+  <text class="muted figure-note" x="232" y="98" text-anchor="middle">可运行纵切</text>
+  <rect class="box" x="316" y="50" width="128" height="64" rx="10"/>
+  <text class="label" x="380" y="78" text-anchor="middle">3 · 细节</text>
+  <text class="muted figure-note" x="380" y="98" text-anchor="middle">主路径完成</text>
+  <rect class="box" x="464" y="50" width="128" height="64" rx="10"/>
+  <text class="label" x="528" y="78" text-anchor="middle">4 · 异常</text>
+  <text class="muted figure-note" x="528" y="98" text-anchor="middle">失败与边界</text>
+  <rect class="box" x="612" y="50" width="128" height="64" rx="10"/>
+  <text class="label" x="676" y="78" text-anchor="middle">5 · 回顾</text>
+  <text class="muted figure-note" x="676" y="98" text-anchor="middle">文档同步</text>
+  <line class="edge" x1="148" y1="82" x2="168" y2="82" marker-end="url(#guide-arrow-2)"/>
+  <line class="edge" x1="296" y1="82" x2="316" y2="82" marker-end="url(#guide-arrow-2)"/>
+  <line class="edge" x1="444" y1="82" x2="464" y2="82" marker-end="url(#guide-arrow-2)"/>
+  <line class="edge" x1="592" y1="82" x2="612" y2="82" marker-end="url(#guide-arrow-2)"/>
+</svg>
+<figcaption>一轮 issue 的推荐节奏：骨架是第一个评审点，回顾只做文档同步。</figcaption>
+</figure>
+
+<table>
+<thead>
+<tr><th>步骤</th><th>谁做</th><th>产出</th><th>门禁</th></tr>
+</thead>
+<tbody>
+<tr><td>规划</td><td>orchestrator + user 对齐 SPEC；coder 写验收与 1–2 句方案</td><td>issue 的 <code>## 步骤</code> + 方案</td><td>未对齐不开工</td></tr>
+<tr><td>骨架</td><td>coder</td><td>最小可运行纵切 + 一次运行证据</td><td>给用户看第一眼</td></tr>
+<tr><td>细节</td><td>coder</td><td>主路径实现与代码质量</td><td>测试遵循 <code>testing.md</code></td></tr>
+<tr><td>异常</td><td>coder</td><td>失败路径、边界与稳定性</td><td>同上，不写弱断言</td></tr>
+<tr><td>回顾</td><td>coder 更新 Current 并提议 SPEC；orchestrator 复核</td><td>文档同步 + <code>## 测试</code> 证据</td><td>文档未同步不算完成</td></tr>
+</tbody>
+</table>
+
+<p>三个角色：<strong>user</strong> 负责意图、范围与批准；<strong>orchestrator</strong> 维护 PRD、与 user 共同编写 SPEC、拥有 <code>toc.yml</code>；<strong>coder</strong> 读 SPEC 实现、收尾更新 Current，SPEC 变更只能经 issue 提议。单 agent 时允许一人分饰，但换角色要显式说明，边界不合并。</p>
+
+<p>骨架对纯修复可跳过，但要在 Log 写明理由；功能与结构性工作不可跳过。</p>
+
+<h2 id="sec-5">5. init 实操</h2>
+
+<p>init 由你点名触发。它会先读 <code>docs/agents/metadata.yml</code> 判定状态：版本相同且产物齐全则<strong>零写入</strong>；版本相同但缺文件只做加法；版本落后走建立流程；版本超前只提示。</p>
+
+<p>初始化会补齐这些东西：</p>
+
+<table>
+<thead>
+<tr><th>分组</th><th>产物</th></tr>
+</thead>
+<tbody>
+<tr><td>规则层</td><td><code>docs/agents/{workflow,issues,testing,domain}.md</code>、<code>metadata.yml</code>、<code>deps/</code></td></tr>
+<tr><td>产品层</td><td><code>docs/product/{00-README,01-requirements,02-architecture}.md</code></td></tr>
+<tr><td>事实层</td><td><code>docs/current/00-README.md</code></td></tr>
+<tr><td>决策层</td><td><code>docs/adr/README.md</code></td></tr>
+<tr><td>索引与入口</td><td><code>docs/toc.yml</code>、<code>CONTEXT.md</code>、<code>AGENTS.md</code> 的 <code>## Agent skills</code> 块</td></tr>
+<tr><td>工作单元</td><td><code>docs/issues/</code> 目录树</td></tr>
+</tbody>
+</table>
+
+<p>覆盖口径只有一条：<strong>缺失自动创建；已存在的文件只报告差异，改写或移动必须先给出逐文件 diff 并获得确认</strong>。项目对模板的本地修改是合法的，init 不会强制回滚。</p>
+
+<p>报告字段固定，值是示意：</p>
+
+<pre><code>## Init report
+- State: unknown
+- Repair: scaffold
+- Created: AGENTS.md, docs/agents/*, docs/product/*, docs/current/00-README.md
+- Aligned: （无）
+- Diff: （无）
+- Metadata: — → 5.12.0（updated）
+- Legacy drift: （无）
+- Next: 选定 Current 基线 → 填写 01-requirements</code></pre>
+
+<p>第一次使用建议只做三件事：选定 Current 基线（revision 或 release + 日期）、把 <code>01-requirements.md</code> 的占位换成真实场景、按模块是否成形再拆模块 PRD 与 <code>00-index.md</code>。不要急着补全所有文档——规则要求&quot;未确定的设计保持缺席&quot;，缺席表示未定，而不是禁止。</p>
+
+<h2 id="sec-6">6. 其他 skill 与延伸阅读</h2>
+
+<p>同一包里还有五个可选 skill，按需使用，不装也不影响主流程：</p>
+
+<table>
+<thead>
+<tr><th>skill</th><th>何时用</th><th>别用它做</th></tr>
+</thead>
+<tbody>
+<tr><td><code>doc-opt</code></td><td>就地收紧 Markdown 文风与去冗余（默认 L2），必要时补 Mermaid/SVG 图</td><td>替代规则源；扫全仓库</td></tr>
+<tr><td><code>docs-html-view</code></td><td>把 PRD/SPEC/Current/ADR 发布成多页 Sphinx 站点</td><td>渲染任意 Markdown；它不产出单文件 HTML</td></tr>
+<tr><td><code>docs-docx-view</code></td><td>评审或交付时导出 Word</td><td>当作日常编辑源</td></tr>
+<tr><td><code>lite-task</code></td><td>小范围、低风险的轻量流程</td><td>跨系统或高风险改动</td></tr>
+<tr><td><code>repo-read-assistant</code></td><td>接手陌生仓库，产出 <code>docs/teach/</code></td><td>替代项目自身文档</td></tr>
+</tbody>
+</table>
+
+<p>想读细节时按需取用：</p>
+
+<ul>
+<li><code>../references/workflow.md</code> — 五步、角色、变更协议、完成判据。</li>
+<li><code>../references/prd.md</code> — PRD / SPEC / TOC 契约与边界。</li>
+<li><code>../references/current.md</code> — Current 的同步语义与基线。</li>
+<li><code>../references/issues.md</code> — issue 目录契约与条目格式。</li>
+<li><code>../references/adr.md</code> — ADR 生命周期与索引。</li>
+<li><code>../references/testing.md</code> — 测试规则（优先级高于 <code>tdd</code>）。</li>
+<li><code>../references/bootstrap.md</code> 与 <code>../references/migration.md</code> — 无文档项目与旧版迁移。</li>
+<li><code>../references/rendering.md</code> — 可选的 PRD 发布。</li>
+</ul>
+
+<p>安装位置：<code>~/.agents/skills/project-docs-workflow/</code>；本文与 HTML 版都在其 <code>guide/</code> 下。</p>
+      </article>
+    </main>
+
+    <footer class="page-foot">
+      <p>project-docs-workflow <span class="ver">v5.12</span> · 生成自 guide/README.md</p>
+    </footer>
+  </div>
+</div>
+
+<script>
+(function () {
+  "use strict";
+
+  var desktop = window.matchMedia("(min-width: 1024px)");
+  var details = document.querySelector(".toc-details");
+  var currentLabel = document.querySelector("[data-toc-current]");
+  var links = Array.prototype.slice.call(document.querySelectorAll('.toc a[href^="#"]'));
+
+  /* ---- Mobile collapsible TOC ------------------------------------- */
+  function syncPanelLayout() {
+    if (!details) return;
+    details.open = desktop.matches;
+    if (!details.hasAttribute("data-ready")) {
+      details.setAttribute("data-ready", "");
+    }
+  }
+  syncPanelLayout();
+  if (desktop.addEventListener) {
+    desktop.addEventListener("change", syncPanelLayout);
+  } else if (desktop.addListener) {
+    desktop.addListener(syncPanelLayout);
+  }
+
+  /* ---- Current section via IntersectionObserver ------------------- */
+  var headings = Array.prototype.slice
+    .call(document.querySelectorAll(".article h2[id]"))
+    .filter(function (h) { return h.id; });
+
+  if (!headings.length) {
+    // Fall back to whatever the TOC points at.
+    links.forEach(function (a) {
+      var el = document.getElementById(decodeURIComponent(a.getAttribute("href").slice(1)));
+      if (el && headings.indexOf(el) === -1) headings.push(el);
+    });
+  }
+
+  var byId = {};
+  links.forEach(function (a) {
+    var id = decodeURIComponent(a.getAttribute("href").slice(1));
+    (byId[id] || (byId[id] = [])).push(a);
+  });
+
+  var activeId = null;
+
+  function setActive(id) {
+    if (!id || id === activeId) return;
+    activeId = id;
+
+    links.forEach(function (a) {
+      var on = decodeURIComponent(a.getAttribute("href").slice(1)) === id;
+      a.classList.toggle("is-active", on);
+      if (on) a.setAttribute("aria-current", "true");
+      else a.removeAttribute("aria-current");
+    });
+
+    if (currentLabel) {
+      var first = byId[id] && byId[id][0];
+      currentLabel.textContent = first ? first.textContent.trim() : "";
+    }
+  }
+
+  // 标题顶部越过参考线（含移动端吸顶栏）即视为当前小节。
+  function pickCurrent() {
+    if (!headings.length) return;
+    var line = desktop.matches ? 32 : 76;
+    var found = headings[0].id;
+    for (var i = 0; i < headings.length; i++) {
+      if (headings[i].getBoundingClientRect().top - line <= 1) {
+        found = headings[i].id;
+      } else {
+        break;
+      }
+    }
+    if (window.innerHeight + window.pageYOffset >= document.documentElement.scrollHeight - 4) {
+      found = headings[headings.length - 1].id;
+    }
+    setActive(found);
+  }
+
+  var ticking = false;
+  function schedule() {
+    if (ticking) return;
+    ticking = true;
+    window.requestAnimationFrame(function () {
+      ticking = false;
+      pickCurrent();
+    });
+  }
+
+  if (window.IntersectionObserver && headings.length) {
+    var io = new IntersectionObserver(schedule, {
+      root: null,
+      rootMargin: "-76px 0px -68% 0px",
+      threshold: [0, 1]
+    });
+    headings.forEach(function (h) { io.observe(h); });
+    window.addEventListener("scroll", schedule, { passive: true });
+    window.addEventListener("resize", schedule);
+  }
+
+  /* ---- Link interactions ------------------------------------------ */
+  links.forEach(function (a) {
+    a.addEventListener("click", function () {
+      var id = decodeURIComponent(a.getAttribute("href").slice(1));
+      setActive(id);
+      if (!desktop.matches && details) details.open = false;
+    });
+  });
+
+  // Esc closes the mobile TOC panel and returns focus to its summary.
+  document.addEventListener("keydown", function (e) {
+    if (e.key === "Escape" && details && details.open && !desktop.matches) {
+      details.open = false;
+      var summary = details.querySelector("summary");
+      if (summary) summary.focus();
+    }
+  });
+
+  /* ---- Initial state ---------------------------------------------- */
+  window.addEventListener("load", function () {
+    // 等布局与字体稳定后再定位一次
+    window.requestAnimationFrame(pickCurrent);
+    if (window.location.hash) {
+      var id = decodeURIComponent(window.location.hash.slice(1));
+      if (id) setActive(id);
+    }
+  });
+  window.requestAnimationFrame(pickCurrent);
+})();
+</script>
+</body>
+</html>

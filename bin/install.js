@@ -4,6 +4,7 @@
 const fs = require("fs");
 const os = require("os");
 const path = require("path");
+const { pathToFileURL } = require("url");
 
 const PKG_ROOT = path.join(__dirname, "..");
 const SKILLS_DIR = path.join(PKG_ROOT, "skills");
@@ -350,7 +351,7 @@ function installFirstParty(name, target, opts, prevEntries, record, sourceRoot) 
       console.log("  ✓ 已安装 " + name + " → " + dest);
     }
     record(name, { kind: kindFor(name), lang: opts.lang, action: "installed" });
-    return;
+    return "installed";
   }
 
   // 第一方符号链接：默认永远保留（即使清单记为本包安装）。--force 才替换链接本身。
@@ -363,7 +364,7 @@ function installFirstParty(name, target, opts, prevEntries, record, sourceRoot) 
         "（如需替换链接本身、不动其指向，请加 --force）"
     );
     record(name, { kind: kindFor(name), action: "skipped" });
-    return;
+    return "skipped";
   }
 
   // 现有条目但未被本包接管（清单缺失/损坏/未知/skipped）：默认保留并提示 --force。
@@ -374,7 +375,7 @@ function installFirstParty(name, target, opts, prevEntries, record, sourceRoot) 
         "（如需覆盖并接管，请加 --force）"
     );
     record(name, { kind: kindFor(name), action: "skipped" });
-    return;
+    return "skipped";
   }
 
   const action = opts.force ? "forced" : prev && prev.action === "forced" ? "forced" : "installed";
@@ -392,11 +393,12 @@ function installFirstParty(name, target, opts, prevEntries, record, sourceRoot) 
   if (opts.dryRun) {
     console.log("  [dry-run] 将替换 " + name + " → " + dest + (symlink ? "（仅链接本身）" : ""));
     record(name, { kind: kindFor(name), lang: opts.lang, action });
-    return;
+    return action;
   }
   replaceFirstPartyDir(name, dest, sourceRoot);
   console.log("  ✓ 已" + (owned && !opts.force ? "更新" : "接管") + " " + name + " → " + dest);
   record(name, { kind: kindFor(name), lang: opts.lang, action });
+  return action;
 }
 
 function existsAt(p) {
@@ -564,6 +566,31 @@ function removeManifest(target) {
   }
 }
 
+// 安装完成后提示离线教程的位置。缺失指南时静默跳过，绝不让提示影响安装结果。
+function printGuideHint(target, opts, mainAction) {
+  const guideDir = path.join(target, MAIN_SKILL, "guide");
+  const indexFile = path.join(guideDir, "index.html");
+  const readmeFile = path.join(guideDir, "README.md");
+  const predicted = mainAction === "installed" || mainAction === "forced";
+
+  if (opts.dryRun) {
+    if (!predicted) {
+      return;
+    }
+    console.log("📖 使用教程（安装后）：" + pathToFileURL(indexFile).href);
+    console.log("   源文件（安装后）：" + readmeFile);
+    return;
+  }
+
+  if (!isFile(indexFile)) {
+    return;
+  }
+  console.log("📖 使用教程：" + pathToFileURL(indexFile).href);
+  if (isFile(readmeFile)) {
+    console.log("   源文件：" + readmeFile);
+  }
+}
+
 function runInstall(opts) {
   const sourceRoot = opts.lang === "zh" ? SKILLS_ZH_DIR : SKILLS_DIR;
   const dirs = listSkillDirs(sourceRoot);
@@ -625,11 +652,15 @@ function runInstall(opts) {
   // 全量替换为当前源；未接管或符号链接默认保留（--force 才接管/替换链接本身）。
   console.log("第一方 skill（同步包内版本）：");
   const firstParty = FIRST_PARTY_NAMES.filter((name) => dirs.indexOf(name) !== -1);
+  let mainAction = null;
   if (firstParty.length === 0) {
     console.log("  （本包未提供第一方 skill）");
   }
   for (const name of firstParty) {
-    installFirstParty(name, target, opts, prevEntries, record, sourceRoot);
+    const action = installFirstParty(name, target, opts, prevEntries, record, sourceRoot);
+    if (name === MAIN_SKILL) {
+      mainAction = action;
+    }
   }
 
   // 包内非第一方目录：不再随包分发，也不做 firstparty 推断；仅提示忽略（不复制、不安装）。
@@ -639,10 +670,12 @@ function runInstall(opts) {
   }
 
   if (opts.dryRun) {
+    printGuideHint(target, opts, mainAction);
     console.log("dry-run 完成，未写入任何文件。");
   } else {
     const merged = mergeEntries(prevEntries, freshEntries);
     writeManifest(target, merged);
+    printGuideHint(target, opts, mainAction);
   }
   if (!opts.dryRun) {
     console.log("安装完成。");

@@ -1,6 +1,6 @@
 {
   "name": "@tanlinfeng/project-docs-workflow",
-  "version": "5.11.0",
+  "version": "5.12.0",
   "publishConfig": {
     "access": "public"
   },
@@ -18,7 +18,8 @@
     "README.md"
   ],
   "scripts": {
-    "check": "node scripts/check-skills-zh.js && node scripts/check-docs-contract.js"
+    "check": "node scripts/check-skills-zh.js && node scripts/check-docs-contract.js && node scripts/check-guide.js",
+    "build:guide": "node scripts/build-guide.js"
   },
   "engines": {
     "node": ">=18"

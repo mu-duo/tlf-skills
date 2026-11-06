@@ -1,0 +1,29 @@
+# Template: <root>/index.yml
+# One row per domain. This is the only file at the library root; every domain lives in its own directory.
+# A CACHE, not a source of truth: each row is rendered from <domain>/graph.yml at wrap-up and must be
+# regenerated rather than hand-edited when it disagrees with the graph.
+# Copy once, then append a row at `start` and refresh the row after every sitting.
+# Replace every <...>. The slug is stable after creation; renaming it breaks every path underneath.
+
+version: 1
+root: /abs/path/to/library        # confirmed with the user before the first write; always absolute
+owner: <human name>
+updated: <YYYY-MM-DD>
+domains:
+  - slug: control-theory         # kebab-case, stable
+    display_name: Control Theory
+    tier: 2                      # 1-4; changed only by an exam
+    tier_name: Beginner          # Novice | Beginner | Practitioner | Adept
+    last_session: 2026-10-31     # YYYY-MM-DD, or null if never studied
+    due_reviews: 3               # count of concepts whose next_review is today or earlier
+    next: transfer-function      # concept id to teach or review next, or null
+  - slug: <kebab-case>
+    display_name: <human name>
+    tier: <1-4>
+    tier_name: <Novice|Beginner|Practitioner|Adept>
+    last_session: <YYYY-MM-DD|null>
+    due_reviews: <int>
+    next: <concept id|null>
+
+# `updated` is the date of the last write to any domain, not the last session.
+# Do not paste concept lists or evidence here; this file only answers which fields exist and where you were.

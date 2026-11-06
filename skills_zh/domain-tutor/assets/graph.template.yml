@@ -1,0 +1,108 @@
+# 模板：<root>/<domain>/graph.yml
+# 在 `start` 时复制到 <root>/<domain>/graph.yml。本文件是状态的唯一事实来源。
+# 仅供机器读取：不放散文，不做教学。替换所有 <...>。
+# 每次坐后原地更新；永远不要把状态分叉进 README.md 或会话笔记。
+
+version: 1
+domain: <kebab-case>              # 创建后稳定；与目录名一致
+display_name: <human name>
+language: <BCP-47 或纯名称>  # 概念页书写所用语言，例如 zh-CN
+updated: <YYYY-MM-DD>
+tier_current: 2                   # 学习者已晋升到的层级（1-4）；只由闯关考改变
+
+# 层级由前置闭包计算得出，而不是为了平衡图谱而挑选：
+#   tier(c) = 1 若 c 没有前置，否则 min(4, max(tier(p)) + 1)。
+# 处于第 n 层的概念意味着它依赖的每个概念都落在第 1..n 层。层级是领域的阶段，
+# 不是学习者当前的等级。
+tiers:
+  - id: 1
+    name: Novice
+    display_name: "<本地化名称>"
+    milestone: "能说出回路的各个部分，并说明反馈起什么作用"
+    typical_mistakes: ["把负反馈与回路本身混为一谈", "把传感器放在执行器之后"]
+    self_test: "反馈回路比较的是什么？它拿这个差值做什么？"
+    gate:
+      min_level: L2
+      max_calibration_error: 0.3
+    concepts: [feedback-loop]
+  - id: 2
+    name: Beginner
+    display_name: "<本地化名称>"
+    milestone: "能为一个新的增益复现一个已解算例"
+    typical_mistakes: ["不检查输入类型就把数字代进 G(s)"]
+    self_test: "给定一个对象和一个控制器，闭环传递函数是什么？"
+    gate:
+      min_level: L2
+      max_calibration_error: 0.3
+    concepts: [transfer-function]
+  - id: 3
+    name: Practitioner
+    display_name: "<本地化名称>"
+    milestone: "<什么能证明此层级已完成>"
+    typical_mistakes: ["<误解>"]
+    self_test: "<进入此层级前的一个问题>"
+    gate:
+      min_level: L2
+      max_calibration_error: 0.3
+    concepts: [<concept-id>]
+  - id: 4
+    name: Adept
+    display_name: "<本地化名称>"
+    milestone: "<什么能证明此层级已完成>"
+    typical_mistakes: ["<误解>"]
+    self_test: "<进入此层级前的一个问题>"
+    gate:
+      min_level: L2
+      max_calibration_error: 0.3
+    concepts: [<concept-id>]
+
+# 边类型：prerequisite（要掌握 `to`，先掌握 `from`）|
+# composes（from 由 to 组成；整体 -> 部分）| contrasts（替代项或易混淆项）|
+# applies（from 应用于 to 之内）。只有 `prerequisite` 影响层级计算。
+# 学习者必须知道的每种关系一条边。同一对概念可以承载不止一种关系。
+edges:
+  - from: feedback-loop
+    to: transfer-function
+    type: prerequisite
+  - from: transfer-function
+    to: feedback-loop
+    type: applies
+
+# next_review：概念尚无记录证据时为 null。之后，是下一次复习到期的日期，
+# 由评分后的等级按间隔表设定（L0/L1 1 天，L2 3 天，L3 7 天，L4 21 天）。
+# 有记录证据却为 null，视为立即到期。复习失败降一个等级，并把间隔重置为新等级的值。
+# `level` 取 L0-L4；`confidence` 是学习者 0-1 的自评，在评分前询问；
+# `accuracy` 是实测的 0-1（最近三次观察的均值）。
+# 证据引文带日期且逐字。`sources` 存放 sources.md 中的 id 或简短引用。
+# 当论断可溯源到已检索来源的章节/URL 层级时，`verified` 记为 verified，
+# 否则记为 inferred。记录观察，绝不下"已掌握"这类判词。
+concepts:
+  - id: feedback-loop
+    canonical: 反馈回路
+    aliases: [闭环, 回路]
+    one_line: "测量输出，与参考值比较，差值驱动输入。"
+    tier: 1
+    level: L2
+    confidence: 0.6
+    accuracy: 0.7
+    evidence:
+      - "2026-10-28: '测得的输出从设定值中减去，误差再经过控制器'"
+    misconceptions: []
+    next_review: 2026-11-04
+    sources: [s1]
+    verified: verified
+  - id: transfer-function
+    canonical: 传递函数
+    aliases: [对象传递函数, G(s)]
+    one_line: "拉普拉斯域中输出与输入之比，仅在零初始条件下成立。"
+    tier: 2
+    level: L1
+    confidence: 0.4
+    accuracy: 0.5
+    evidence:
+      - "2026-10-31: '它是拉普拉斯变换后输出比输入'——比值对了，但说不出为什么初始条件要置零"
+    misconceptions:
+      - "认为它适用于任何输入，包括带储能正在运行的系统"
+    next_review: null
+    sources: [s2]
+    verified: inferred

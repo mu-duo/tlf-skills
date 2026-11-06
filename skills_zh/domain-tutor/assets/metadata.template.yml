@@ -1,0 +1,8 @@
+# 模板：<root>/<domain>/metadata.yml
+# 四行，每个领域复制一次。用于幂等恢复：如果 skill/version 不一致，
+# 在向学习库写入任何内容之前先重读该 skill。
+# 只在 skill 版本戳变化时更新 `version` 和 `updated`，不要每次会话都改。
+
+skill: domain-tutor
+version: 1
+updated: <YYYY-MM-DD>

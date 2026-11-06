@@ -1,0 +1,29 @@
+# 模板：<root>/index.yml
+# 每个领域一行。这是学习库根目录下唯一的文件；每个领域各占一个目录。
+# 这是缓存，不是事实来源：每一行都在收尾时由 <domain>/graph.yml 渲染而来；与图谱冲突时
+# 必须重新生成，而不是手改。
+# 复制一次，然后在 `start` 时追加一行，并在每次坐后刷新该行。
+# 替换所有 <...>。slug 创建后保持稳定；改名会破坏其下所有路径。
+
+version: 1
+root: /abs/path/to/library        # 首次写入前与用户确认；始终使用绝对路径
+owner: <human name>
+updated: <YYYY-MM-DD>
+domains:
+  - slug: control-theory         # kebab-case，稳定
+    display_name: 控制理论
+    tier: 2                      # 1-4；只由闯关考改变
+    tier_name: Beginner          # Novice | Beginner | Practitioner | Adept
+    last_session: 2026-10-31     # YYYY-MM-DD；从未学习则为 null
+    due_reviews: 3               # next_review 为今天或更早的概念数
+    next: transfer-function      # 接下来要教或复习的概念 id；或 null
+  - slug: <kebab-case>
+    display_name: <human name>
+    tier: <1-4>
+    tier_name: <Novice|Beginner|Practitioner|Adept>
+    last_session: <YYYY-MM-DD|null>
+    due_reviews: <int>
+    next: <concept id|null>
+
+# `updated` 是任一领域最后一次写入的日期，不是最后一次会话的日期。
+# 不要把概念列表或证据粘贴到这里；本文件只回答有哪些字段、以及你上次停在哪里。

@@ -1,0 +1,5 @@
+interface:
+  display_name: "Domain Tutor"
+  short_description: "Build and resume a four-tier learning library for any field of study"
+policy:
+  allow_implicit_invocation: false

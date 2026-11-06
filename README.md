@@ -52,7 +52,7 @@ skill 会检查并创建缺少的内容，包括：
 
 ## 安装与更新语义
 
-普通安装（默认动作）对**第一方 skill**（`project-docs-workflow`、`doc-opt`、`docs-html-view`、`docs-docx-view`、`lite-task`、`repo-read-assistant`）执行**全目录同步**：
+普通安装（默认动作）对**第一方 skill**（`project-docs-workflow`、`doc-opt`、`docs-html-view`、`docs-docx-view`、`lite-task`、`repo-read-assistant`、`domain-tutor`）执行**全目录同步**：
 
 - 若上一份**有效清单**确认该路径由本包安装（`installed` / `forced`、本地），安装会用源包内容覆盖该目录——**可能覆盖你对本地文件所做的修改**。第一方受管安装目录是可整体替换的分发副本。
 - 若某第一方路径无法被有效清单确认为包内安装（手工复制、清单记为 `skipped`、清单缺失、清单损坏 / 不可解析、符号链接），默认**保留**不动；只有显式 `--force` 才替换该第一方条目。替换的是该路径本身，符号链接指向的 referent 不被改动。
@@ -151,14 +151,24 @@ skill 会检查并创建缺少的内容，包括：
 
 和本包其他可选 skill 一样，安装器会随包一起分发它，但**安装时不会运行它**，项目文档初始化时也不会启用它；它只在用户手动调用时工作。具体接口与流程以该 skill 的 `SKILL.md` 为准（安装后位于 `<skills 根目录>/repo-read-assistant/SKILL.md`），README 不再重复其接口。
 
+## domain-tutor（可选：领域学习与掌握度追踪）
+
+本包附带一个第一方 skill `domain-tutor`（第一方 skill）。它面向**独立于任何项目地学习一个知识领域**的场景：把领域整理成带前置依赖边的概念图谱，划分为四个掌握层级，逐概念一页地教学，基于证据评分，安排间隔复习，并压缩成一页速查表。
+
+- **只写学习库**：所有产物落在用户指定、并由用户在其中启动 agent 的根目录下——`index.yml` 与 `<domain>/`（含 `README.md`、`graph.yml`、`spine.md`、`sources.md`、`concepts/*.md`、`cheatsheet.md`、`sessions/`）；它不搜索文件系统，也不写入该根目录以外的位置。
+- **不碰项目**：学习对象是领域本身，与具体代码库或项目无关；即便根目录位于项目内，也只写确认过的学习库，不修改任何项目文档或源码。
+- **硬规则**：不编造引用；每条结论都标记为 `verified`（可追溯到实际获取的来源）或 `inferred`（模型知识、类比或综合）；没有考试就不能提升层级；处理一个领域时绝不读取另一个领域的文件。
+
+和本包其他可选 skill 一样，安装器会随包一起分发它，但**安装时不会运行它**，项目文档初始化时也不会启用它；它只在用户手动调用时工作。具体接口与流程以该 skill 的 `SKILL.md` 为准（安装后位于 `<skills 根目录>/domain-tutor/SKILL.md`），README 不再重复其接口。
+
 ## 中文镜像（--zh）
 
-`skills_zh/` 是随包分发的中文镜像，用于让中文使用者以相同的 skill 名称工作。它完整覆盖六个第一方 skill：`project-docs-workflow`、`doc-opt`、`docs-html-view`、`docs-docx-view`、`lite-task`、`repo-read-assistant`；目录名与 frontmatter `name` 均与英文源完全一致。
+`skills_zh/` 是随包分发的中文镜像，用于让中文使用者以相同的 skill 名称工作。它完整覆盖七个第一方 skill：`project-docs-workflow`、`doc-opt`、`docs-html-view`、`docs-docx-view`、`lite-task`、`repo-read-assistant`、`domain-tutor`；目录名与 frontmatter `name` 均与英文源完全一致。
 
 - **同名互斥**：同一目标目录一次只应安装一种语言。默认安装英文源 `skills/`；`--zh` 安装中文镜像 `skills_zh/`，并会把本包接管的同名第一方 skill 替换为中文版本。再运行不带 `--zh` 的安装即切回英文。`--zh` 仅适用于 install；`check` 与 `uninstall` 与语言无关。
 - **手工快照，不自动同步**：中文镜像基于英文源 `v5.12`（2026-10-30）翻译，不随英文源后续修改自动同步；英文源更新后需要重新翻译与审校。内容以英文源为准，发现不一致时应修正中文镜像。
-- **审校策略**：6 个 `SKILL.md` 与 `skills_zh/README.md` 经人工审校，references / EXAMPLES / technical 抽样复核后合入；不以未审校的机器翻译作为最终版本，涉及命令、路径、边界条件与技术术语的段落需对照英文源复核。
-- **一致性检查**：`npm run check` 一次跑两项只读校验——`scripts/check-skills-zh.js` 校验中文镜像的结构与名称一致性；`scripts/check-docs-contract.js` 校验产物清单 ↔ 模板 ↔ references 的覆盖关系，并把模板物化到临时目录做链接 / TOC / 指针 / 版本基线检查（有 Python + PyYAML 时额外跑一次发布干跑，缺依赖则 SKIP）。
+- **审校策略**：7 个 `SKILL.md` 与 `skills_zh/README.md` 经人工审校，references / EXAMPLES / technical 抽样复核后合入；不以未审校的机器翻译作为最终版本，涉及命令、路径、边界条件与技术术语的段落需对照英文源复核。
+- **一致性检查**：`npm run check` 一次跑四项只读校验——`scripts/check-skills-zh.js` 校验中文镜像的结构与名称一致性；`scripts/check-docs-contract.js` 校验产物清单 ↔ 模板 ↔ references 的覆盖关系，并把模板物化到临时目录做链接 / TOC / 指针 / 版本基线检查（有 Python + PyYAML 时额外跑一次发布干跑，缺依赖则 SKIP）；`scripts/check-guide.js` 校验离线教程 `guide/README.md` 与 `guide/index.html` 的产物一致性、外链禁用、锚点与大纲；`scripts/check-domain-tutor.js` 校验 `domain-tutor` 的产物树 ↔ 模板 ↔ references、六个模式、字数上限与安装器接线。
 - **内置依赖与语言**：`--zh` 只影响本包第一方 skill 的来源，内置依赖文档随对应语言的 skill 目录一起安装。
 
 ## English summary
@@ -167,9 +177,9 @@ skill 会检查并创建缺少的内容，包括：
 
 PRD, SPEC, and Current form one document system with ADRs as peers. The PRD (`docs/product/00-README.md` cover and typical scenarios, `01-requirements.md`, `02-architecture.md`, plus each module's `00-README.md`) is the macro product narrative and owns scope and intent. The SPEC (`01-spec.md`, `02-interfaces.md`, `03-nfr.md`, `design/`) is the implementation fact standard — functional requirements with acceptance criteria, interfaces, and NFRs — and owns implementation details. `docs/current/` is the as-built snapshot and the only status source; an ADR records a decision and its rationale. On implementation-detail conflicts the SPEC wins, on scope/intent conflicts the PRD wins, and a conflict is escalated to the orchestrator/user rather than silently resolved. Roles are user (intent, scope, approval), orchestrator (maintains the PRD, composes the SPEC, owns `docs/toc.yml`, triggers publication), and coder agent (implements from the SPEC, updates Current facts at wrap-up, proposes SPEC changes through an issue). `docs/toc.yml` is the publication source consumed by `docs-html-view`. Product `00-index.md` is retired; only the unpublished module `00-index.md` sidecar remains. Existing projects are never rewritten: init detects legacy layouts (such as `docs/prd/`) and offers migration, and the legacy bootstrap is consent-gated and produces drafts.
 
-An ordinary install full-directory-syncs the first-party skills (`project-docs-workflow`, `doc-opt`, `docs-html-view`, `docs-docx-view`, `lite-task`, `repo-read-assistant`) when a valid manifest confirms the package installed them, so it may overwrite local edits; a first-party path not confirmed as package-owned is preserved unless `--force` replaces that entry. Dependencies are fully embedded in the main skill (`references/deps/*`): the installer installs, updates, and invokes no external skill, and unrelated directories already in the target are left untouched. A manifest file that is itself a symlink is always refused (even with `--force`), unlike a first-party skill path that is a symlink; per-skill replacement failures restore the old content or retain a backup and report the path, so this is not an all-skills transaction. The installer supports custom directories, dry runs, dependency checks, and manifest-based uninstall. Uninstall removes recorded package-owned paths by name, not by content hash, and records no local-edit fingerprints; review the manifest or use a dry run before deleting anything. See the advanced details below for optional upstream dependencies and manifest behavior.
+An ordinary install full-directory-syncs the first-party skills (`project-docs-workflow`, `doc-opt`, `docs-html-view`, `docs-docx-view`, `lite-task`, `repo-read-assistant`, `domain-tutor`) when a valid manifest confirms the package installed them, so it may overwrite local edits; a first-party path not confirmed as package-owned is preserved unless `--force` replaces that entry. Dependencies are fully embedded in the main skill (`references/deps/*`): the installer installs, updates, and invokes no external skill, and unrelated directories already in the target are left untouched. A manifest file that is itself a symlink is always refused (even with `--force`), unlike a first-party skill path that is a symlink; per-skill replacement failures restore the old content or retain a backup and report the path, so this is not an all-skills transaction. The installer supports custom directories, dry runs, dependency checks, and manifest-based uninstall. Uninstall removes recorded package-owned paths by name, not by content hash, and records no local-edit fingerprints; review the manifest or use a dry run before deleting anything. See the advanced details below for optional upstream dependencies and manifest behavior.
 
-The package also ships `skills_zh/`, a manually reviewed Chinese mirror of the six first-party skills with identical directory and skill names. Installs default to the English tree (`skills/`); pass `--zh` to install the Chinese mirror. The two variants are mutually exclusive: running the other language switches the package-owned same-named first-party skills, and the manifest records the choice in the `lang` field of each package-owned first-party entry. `--zh` is install-only; `check` and `uninstall` are language-agnostic. The mirror is a snapshot of `v5.12` (2026-10-30) and is not auto-synced; use `node scripts/check-skills-zh.js` to check it.
+The package also ships `skills_zh/`, a manually reviewed Chinese mirror of the seven first-party skills with identical directory and skill names. Installs default to the English tree (`skills/`); pass `--zh` to install the Chinese mirror. The two variants are mutually exclusive: running the other language switches the package-owned same-named first-party skills, and the manifest records the choice in the `lang` field of each package-owned first-party entry. `--zh` is install-only; `check` and `uninstall` are language-agnostic. The mirror is a snapshot of `v5.12` (2026-10-30) and is not auto-synced; use `node scripts/check-skills-zh.js` to check it.
 
 The package also ships a first-party `docs-html-view` skill (manual invocation only; distributed but not run at install). It builds one publishable multi-page PRD from `docs/toc.yml`: a cover, the three core PRD chapters, the module PRDs, and four appendix groups (glossary, SPEC, Current, ADR). Rendering uses standard Sphinx, MyST, and the stock RTD theme, with `scripts/gen_prd.py` generating the cover and conditional section landing pages plus `_manifest.json` / `_meta.json`, and `scripts/check_prd.py` validating the TOC, manifest, PRD-layer links, glossary freshness, built anchors, template-provenance stripping, and unlisted pages (PyYAML is pinned in `requirements.txt`). Only TOC-listed documents are built — module `00-index.md` sidecars and default-unlisted `design/` files never enter the output — and the root `CONTEXT.md` becomes the generated glossary. Output lands in `docs/docsHtmlView/build/html`; the generated root `index.html` redirects to the cover. Packaging, hosting, and delivery are outside the skill and remain the user's decision. There is one TOC-driven publication: no profiles, full-site build, or product-narrative-only build, and no single-file HTML. After approval of packages, environment, and files, first-time setup uses `sphinx-quickstart`; `gen_prd.py` then seeds `docs/docsHtmlView/build.sh` / `build.bat` only when missing (user-owned, editable, never overwritten), and later repeated builds use those helpers, which are build-only wrappers around the same `sphinx-build` and do not regenerate, validate, or install anything. `make html` and `sphinx-build` remain fallbacks; there is no auto-build, watcher, browser, server, or deployment, and source docs are never rewritten. `check` does not cover the skill.
 
@@ -178,6 +188,8 @@ The package also ships a first-party `docs-docx-view` skill (manual invocation o
 The package also ships a first-party `lite-task` skill: a lightweight development workflow for small, low-risk tasks (or when the user explicitly opts in). It keeps the same five steps as `project-docs-workflow` (功能同步 / 骨架 / 实现 / 异常 / 回顾) but drops its documentation obligations — no forced issue, PRD, Current, or ADR bookkeeping, generally code only. Escalate to `project-docs-workflow` when the task grows (contract change, cross-module impact, or a durable decision).
 
 The package also ships a first-party `repo-read-assistant` skill (manual invocation only; distributed but not run at install). It onboards a new engineer onto an unfamiliar repository through prediction-first tutoring: the learner predicts behavior before the code is revealed, so understanding is checked rather than merely narrated. It writes only under `docs/teach/`, treats the repository as read-only (build/test execution is allowed, but no source edits), and persists a per-user mastery profile so later sessions can focus on concepts that still need reinforcement. As with the other optional first-party skills, installation distributes it but does not run it or enable it during project-document initialization; invoke it manually. See its `SKILL.md` for the full interface.
+
+The package also ships a first-party `domain-tutor` skill (manual invocation only; distributed but not run at install). It tutors a person through a field of knowledge independent of any project: a concept graph with prerequisite edges, four mastery tiers, one concept per page, evidence-based grading, spaced review, and a one-page cheat sheet, all kept in a learning library under a root directory the user chooses and starts the agent in (`index.yml` plus `<domain>/` with `README.md`, `graph.yml`, `spine.md`, `sources.md`, `concepts/*.md`, `cheatsheet.md`, and `sessions/`), never touching the project. Its hard rules: no fabricated citations, every claim marked `verified` or `inferred`, no tier promotion without an exam, and never reading another domain's files. As with the other optional first-party skills, installation distributes it but does not run it or enable it during project-document initialization; invoke it manually. See its `SKILL.md` for the full interface.
 
 <details>
 <summary>高级细节</summary>
@@ -204,13 +216,13 @@ The package also ships a first-party `repo-read-assistant` skill (manual invocat
 }
 ```
 
-`kind` 可为 `main`、`doc-opt`、`docs-html-view`、`docs-docx-view`、`lite-task`、`repo-read-assistant`；历史清单里还可能出现 `lite`（早期版本曾复制独立轻量 skill）——安装时一律保留，用户主动运行 `uninstall` 时仍按历史归属处理（升级时不会静默清除用户目录；清理 / 迁移仅在用户显式授权时进行）。`action` 可为 `installed`、`forced` 或 `skipped`。由本包安装（`installed` / `forced`）的第一方条目还记录 `lang`（`en` / `zh`）；`skipped` 条目不带 `lang`。卸载按记录的路径/名称操作：`skipped` 以及未知状态的条目保留。
+`kind` 可为 `main`、`doc-opt`、`docs-html-view`、`docs-docx-view`、`lite-task`、`repo-read-assistant`、`domain-tutor`；历史清单里还可能出现 `lite`（早期版本曾复制独立轻量 skill）——安装时一律保留，用户主动运行 `uninstall` 时仍按历史归属处理（升级时不会静默清除用户目录；清理 / 迁移仅在用户显式授权时进行）。`action` 可为 `installed`、`forced` 或 `skipped`。由本包安装（`installed` / `forced`）的第一方条目还记录 `lang`（`en` / `zh`）；`skipped` 条目不带 `lang`。卸载按记录的路径/名称操作：`skipped` 以及未知状态的条目保留。
 
 ### 依赖解析与来源
 
 `check` 只校验主 skill 内置的 `references/deps/*.md` 是否齐全——这是依赖能力的唯一来源，不需要任何外部 skill。它不是主 skill 安装检查，也不是项目初始化检查。
 
-`references/deps/*` 全部为本包自研内容。`doc-opt`、`docs-html-view`、`docs-docx-view`、`lite-task` 与 `repo-read-assistant` 是本包附带的第一方 skill。
+`references/deps/*` 全部为本包自研内容。`doc-opt`、`docs-html-view`、`docs-docx-view`、`lite-task`、`repo-read-assistant` 与 `domain-tutor` 是本包附带的第一方 skill。
 
 </details>
 

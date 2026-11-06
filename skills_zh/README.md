@@ -48,7 +48,7 @@
 
 ## 范围与映射
 
-本镜像包含六个第一方 skill，目录名和 `name` 均与英文版相同：
+本镜像包含七个第一方 skill，目录名和 `name` 均与英文版相同：
 
 | Skill | 目录 | frontmatter `name` |
 | --- | --- | --- |
@@ -58,6 +58,7 @@
 | docs-docx-view | `docs-docx-view/` | `docs-docx-view` |
 | lite-task | `lite-task/` | `lite-task` |
 | repo-read-assistant | `repo-read-assistant/` | `repo-read-assistant` |
+| domain-tutor | `domain-tutor/` | `domain-tutor` |
 
 ## 更新清单
 
@@ -69,7 +70,7 @@
 
 ## 复核策略
 
-- 六个 skill 的 `SKILL.md` 与本文档 `README.md` 做完整复核。
+- 七个 skill 的 `SKILL.md` 与本文档 `README.md` 做完整复核。
 - `references/**` 等其余 Markdown（包括 `EXAMPLES.md`）做抽样复核。
 - 逐字节复制的文件与产物契约由 `scripts/check-skills-zh.js`、`scripts/check-docs-contract.js` 做机械校验，避免人工遗漏。
 

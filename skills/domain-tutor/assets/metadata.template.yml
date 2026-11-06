@@ -1,0 +1,8 @@
+# Template: <root>/<domain>/metadata.yml
+# Four lines, copied once per domain. Used for idempotent resumption: if skill/version differ,
+# re-read the skill before writing anything into the library.
+# Update `version` and `updated` only when the skill stamp changes, not after every session.
+
+skill: domain-tutor
+version: 1
+updated: <YYYY-MM-DD>

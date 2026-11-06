@@ -1,0 +1,5 @@
+interface:
+  display_name: "领域导师"
+  short_description: "为任意学习领域构建并续接一个四层级学习库"
+policy:
+  allow_implicit_invocation: false

@@ -1,0 +1,109 @@
+# Template: <root>/<domain>/graph.yml
+# Copy to <root>/<domain>/graph.yml at `start`. This file is the single source of truth for state.
+# Machine-readable only: no prose, no teaching. Replace every <...>.
+# Update in place after every sitting; never fork state into README.md or a session note.
+
+version: 1
+domain: <kebab-case>              # stable after creation; matches the directory name
+display_name: <human name>
+language: <BCP-47 or plain name>  # language concept pages are written in, e.g. zh-CN
+updated: <YYYY-MM-DD>
+tier_current: 2                   # the tier the learner has been promoted into (1-4); changed only by exam
+
+# Tier assignment is computed from prerequisite closure, not chosen to balance the graph:
+#   tier(c) = 1 if c has no prerequisite, else min(4, max(tier(p)) + 1).
+# A concept in tier n implies every concept it depends on sits in tiers 1..n. Tiers are stages
+# of the field, not the learner's current level.
+tiers:
+  - id: 1
+    name: Novice
+    display_name: "<localized name>"
+    milestone: "Can name the parts of the loop and say what feedback does"
+    typical_mistakes: ["confuses negative feedback with the loop itself", "places the sensor after the actuator"]
+    self_test: "What does a feedback loop compare, and what does it do with the difference?"
+    gate:
+      min_level: L2
+      max_calibration_error: 0.3
+    concepts: [feedback-loop]
+  - id: 2
+    name: Beginner
+    display_name: "<localized name>"
+    milestone: "Can reproduce a worked example for a new gain"
+    typical_mistakes: ["substitutes a number into G(s) without checking the input type"]
+    self_test: "Given a plant and a controller, what is the closed-loop transfer function?"
+    gate:
+      min_level: L2
+      max_calibration_error: 0.3
+    concepts: [transfer-function]
+  - id: 3
+    name: Practitioner
+    display_name: "<localized name>"
+    milestone: "<what proves this tier is done>"
+    typical_mistakes: ["<mistake>"]
+    self_test: "<one question that precedes the tier>"
+    gate:
+      min_level: L2
+      max_calibration_error: 0.3
+    concepts: [<concept-id>]
+  - id: 4
+    name: Adept
+    display_name: "<localized name>"
+    milestone: "<what proves this tier is done>"
+    typical_mistakes: ["<mistake>"]
+    self_test: "<one question that precedes the tier>"
+    gate:
+      min_level: L2
+      max_calibration_error: 0.3
+    concepts: [<concept-id>]
+
+# Edge types: prerequisite (to hold `to`, you first hold `from`) |
+# composes (from comprises to; whole -> part) | contrasts (alternatives or easily confused) |
+# applies (from is applied within to). Only `prerequisite` affects tier arithmetic.
+# One edge per relation the learner must know. The same pair may carry more than one relation.
+edges:
+  - from: feedback-loop
+    to: transfer-function
+    type: prerequisite
+  - from: transfer-function
+    to: feedback-loop
+    type: applies
+
+# next_review: null until the concept has recorded evidence. After that, the date the next review
+# is due, set from the interval table by level after grading (L0/L1 1 day, L2 3 days, L3 7 days,
+# L4 21 days). A null with recorded evidence is treated as due now. A failed review drops one
+# level and resets the interval to the new level's value.
+# `level` is L0-L4; `confidence` is the learner's self-rating 0-1, asked before grading;
+# `accuracy` is measured 0-1 (mean of the last three observations).
+# Evidence quotes are dated and verbatim. `sources` holds ids from sources.md or short citations.
+# `verified` is verified when the claim is traceable to a retrieved source at section/URL level,
+# and inferred otherwise. Record observations, never a verdict such as "mastered".
+concepts:
+  - id: feedback-loop
+    canonical: Feedback loop
+    aliases: [closed loop, loop]
+    one_line: "The output is measured, compared with the reference, and the difference drives the input."
+    tier: 1
+    level: L2
+    confidence: 0.6
+    accuracy: 0.7
+    evidence:
+      - "2026-10-28: 'the measured output is subtracted from the setpoint, and the error goes back through the controller'"
+    misconceptions: []
+    next_review: 2026-11-04
+    sources: [s1]
+    verified: verified
+  - id: transfer-function
+    canonical: Transfer function
+    aliases: [plant transfer function, G(s)]
+    one_line: "A ratio of output to input in the Laplace domain, valid only at zero initial conditions."
+    tier: 2
+    level: L1
+    confidence: 0.4
+    accuracy: 0.5
+    evidence:
+      - "2026-10-31: 'it is output over input after the Laplace transform' — correct ratio, but could not say why initial conditions are zeroed"
+    misconceptions:
+      - "thinks it applies to any input, including a running system with stored energy"
+    next_review: null
+    sources: [s2]
+    verified: inferred

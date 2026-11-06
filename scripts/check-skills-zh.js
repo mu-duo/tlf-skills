@@ -32,6 +32,10 @@ const LINK_SKIP_PREFIXES = [
   "../../current/",
 ];
 
+// Template files whose relative links describe the rendered artifact inside a learner's
+// library (for example `<domain>/README.md` pointing at `spine.md`), not this repository.
+const LINK_SKIP_SOURCES = ["domain-tutor/assets/"];
+
 const failures = [];
 const categories = [];
 
@@ -319,6 +323,7 @@ category("translated Markdown relative links", () => {
     if (ext !== ".md" && ext !== ".markdown") continue;
     // Copied Markdown is verbatim from skills/ and may contain template examples.
     if (rel !== "README.md" && isCopied(rel)) continue;
+    if (LINK_SKIP_SOURCES.some((prefix) => rel.startsWith(prefix))) continue;
 
     const absolute = path.join(ZH_ROOT, rel);
     const text = fs.readFileSync(absolute, "utf8");

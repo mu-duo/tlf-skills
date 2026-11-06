@@ -27,6 +27,7 @@ const FIRST_PARTY_DEP_KINDS = {
   "docs-docx-view": "docs-docx-view",
   "lite-task": "lite-task",
   "repo-read-assistant": "repo-read-assistant",
+  "domain-tutor": "domain-tutor",
 };
 const FIRST_PARTY_NAMES = [MAIN_SKILL].concat(Object.keys(FIRST_PARTY_DEP_KINDS));
 const FIRST_PARTY_SET = new Set(FIRST_PARTY_NAMES);
@@ -39,6 +40,7 @@ const KNOWN_LOCAL_KINDS = new Set([
   "docs-docx-view",
   "lite-task",
   "repo-read-assistant",
+  "domain-tutor",
 ]);
 
 function depKind(name) {
@@ -87,7 +89,7 @@ function usage() {
       "用法说明：运行 `npx @tanlinfeng/project-docs-workflow@<version> install` 选择安装器/源码版本",
       "（`npm i` 只是把包装进 node_modules，不会运行本工具）。所选旧版本自带它当时的安装器，",
       "行为可能与当前不同，这里只保证兼容、不承诺升级。",
-      "普通安装只同步本包自带的第一方 skill（project-docs-workflow、doc-opt、docs-html-view、docs-docx-view、lite-task、repo-read-assistant）：",
+      "普通安装只同步本包自带的第一方 skill（project-docs-workflow、doc-opt、docs-html-view、docs-docx-view、lite-task、repo-read-assistant、domain-tutor）：",
       "缺失则安装；已由本包接管则用当前包内版本全量替换（会移除其中多余/过期文件）；",
       "未接管条目、符号链接（含悬空）默认保留。依赖全部内嵌：能力来自主 skill 的 references/deps/，",
       "不安装、不更新、也不调用任何外部 skill。",

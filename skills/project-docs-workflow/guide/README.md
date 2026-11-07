@@ -148,7 +148,7 @@ init 由你点名触发。它会先读 `docs/agents/metadata.yml` 判定状态�
 - Created: AGENTS.md, docs/agents/*, docs/product/*, docs/current/00-README.md
 - Aligned: （无）
 - Diff: （无）
-- Metadata: — → 5.12.0（updated）
+- Metadata: — → 5.13.0（updated）
 - Legacy drift: （无）
 - Next: 选定 Current 基线 → 填写 01-requirements
 ```

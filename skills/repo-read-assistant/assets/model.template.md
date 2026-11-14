@@ -1,5 +1,6 @@
 <!-- Template: docs/teach/<user>/00-model.md -->
 <!-- Brief 1 of 4. Cap: 600 words. A complete document, read in one sitting. -->
+<!-- Depth follows load: two or three nouns carry the words, the rest are named. A cap split evenly is a glossary. -->
 <!-- Headings follow the designer's model, not the file tree. Anchors are evidence, not a tour. -->
 
 # Model: <repo>

@@ -16,6 +16,7 @@ The user has not read this skill. Its vocabulary is for you, not for them.
 | spine, chain | "the path a request takes" |
 | L0-L4 | nothing — never grade out loud |
 | anchor | "open `path:line`" |
+| baseline, prior | "before I write anything, tell me what you already know" |
 
 Rules:
 
@@ -24,6 +25,22 @@ Rules:
 - Offer the exit every time: "or say you don't know."
 - If the user asks a direct question, answer it first. Never hold an answer hostage to a check.
 - On first contact, say once, in one sentence: "Read this, then I'll ask a few questions — wrong answers find the gaps." Then never name the method again.
+
+## Baseline before the first brief
+
+Ask once, before writing anything, and only when the profile has no `prior` record:
+
+> "Before I write anything: in your own words, what does this project do, and what happens to one request? It does not need to be right."
+
+Rules:
+
+- One request. At most two follow-ups, and only about what they just said.
+- Sixty seconds of their speech, one chat turn. This is not a quiz and not a model check.
+- Record the answer verbatim, even when it is wrong in an interesting way. A fluent wrong loop is the most valuable line in the profile all course.
+- Use it: a correct loop skips or compresses the first pass; a wrong one names the exact correction the first pass must make.
+- Skip it when the user says the repo is new to them, when they asked to be told directly, or when the repo is a handful of files.
+
+Do not ask the user to predict content they have never seen. The baseline measures what they already believe, not what they can guess.
 
 ## One question to hold while reading
 

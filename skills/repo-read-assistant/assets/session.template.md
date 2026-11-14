@@ -20,11 +20,20 @@ Duration: <minutes>
 - Concepts due for review: <ids>
 - pending_explanations carried in: <count>
 
+## Baseline (first session only)
+
+- Asked: > <the request, verbatim>
+- User's answer: > <verbatim>
+- Read as: <loop correct | fluent but wrong | no model>
+- Effect: <skipped 00 / 00 now starts by correcting X>
+
 ## The brief
 
 - Path: `docs/teach/<user>/<file>.md`
 - Written as: <new document | delta against <doc>>
 - Length: <word count> against cap <cap>
+- Depth: <the 2-3 load-bearing items given detail; what was named in passing>
+- Wrong first guess: <expected ... | found ... | anchor>
 - Deliberately ignores: <the simplification contract, verbatim from the brief>
 
 ## Handover

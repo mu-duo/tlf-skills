@@ -11,6 +11,12 @@ density: normal                # low | normal | high —— 只影响节奏；�
 mode: tutor                    # tour | tutor | drill
 updated: <YYYY-MM-DD>
 
+prior:                         # 在第一份 brief 之前测量一次；未知是一个值，不是零
+  assessed: null               # YYYY-MM-DD | null
+  method: none                 # baseline teach-back | 自报 | none
+  transcript: []               # 原样记录，每个回答一条
+  effect: null                 # 「跳过 00-model.md：回路已经正确」/「00 从接缝纠正开始」
+
 curriculum:                    # 四份 brief，从粗到细
   model:      { status: todo, path: 00-model.md }      # todo | active | done
   map:        { status: todo, path: 01-map.md }
@@ -23,6 +29,7 @@ concepts:
     canonical: <name>
     aliases: []
     anchor: <brief 章节或 path:line>
+    source: taught            # taught | prior —— 受教之前测量到的先前知识同样算证据
     level: L0                 # L0 unknown | L1 locate | L2 explain | L3 predict | L4 apply
     confidence: 0.0           # 用户自评 0-1
     accuracy: 0.0             # 实测 0-1

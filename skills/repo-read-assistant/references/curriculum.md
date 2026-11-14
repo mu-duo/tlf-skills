@@ -2,6 +2,19 @@
 
 Four briefs, coarse to fine. Each is a complete document for one layer, written to be read in one sitting. Caps are caps: if a brief will not fit, the detail belongs one layer lower, or the layer needs splitting — never more compression.
 
+## Importance before depth
+
+Coarse to fine sets resolution. It does not say where the words go, and an even split is the default failure: five to eight nouns at sixty words each is a glossary with arrows.
+
+Before writing any brief:
+
+1. List the concepts it will touch.
+2. Mark each **load-bearing** (on the core loop, owning a seam, enforcing a contract) or **peripheral** (config, tooling, one-off scripts, names that appear once).
+3. Give the load-bearing ones the detail, an anchor, and one worked example; name the peripheral ones in a line, or drop them.
+4. Fit the result inside the cap by cutting peripheral material, never by thinning the load-bearing parts.
+
+Test: "if the reader had this concept wrong, what would break?" Nothing breaks — peripheral. Expect two or three concepts to carry most of a brief. The whiteboard test still covers the whole model, so this changes the density of the picture, not its extent.
+
 ## Session to brief mapping
 
 | Session | Brief | Mode allowed | Supporting artifacts |
@@ -18,8 +31,18 @@ Every brief follows the same top-level contract:
 
 1. One-paragraph summary, first thing on the page.
 2. "What this layer deliberately ignores" — the simplification contract.
-3. The body: anchored `path:line`, each claim `verified` / `inferred`, headings that follow the model rather than the file tree.
-4. Three "after reading you should be able to answer" questions that test the model.
+3. One or two wrong first guesses: what the stated intent predicted, what the code does, both anchored.
+4. The body: anchored `path:line`, each claim `verified` / `inferred`, headings that follow the model rather than the file tree, depth allocated by load (see *Importance before depth*).
+5. Three "after reading you should be able to answer" questions that test the model.
+
+## Before the first brief: a baseline
+
+Ask once, before writing anything, when the profile has no `prior` record: "In your own words, what does this project do, and what happens to one request?" Record the answer verbatim, grade it as evidence (`references/rubric.md`), and let it decide where `00-model.md` starts.
+
+- Loop already right, in the right order: skip or compress `00`, say why, record the skip as evidence.
+- Loop wrong but fluent: that is the first correction `00` makes, and the highest-value line in the profile all course.
+- No model at all: write `00` without further probing.
+- Never turn the baseline into a quiz. One request, at most two follow-ups on what they said, sixty seconds of their speech.
 
 ## 00-model.md — what was the designer building?
 
@@ -27,7 +50,7 @@ Cap: 600 words. This is the only brief normally short enough to inline in chat.
 
 Read before writing:
 
-- `README`, `CONTEXT.md`, `docs/product/*`, `AGENTS.md` — stated purpose.
+- `README`, `CONTEXT.md`, `docs/product/*`, `AGENTS.md` — stated purpose, held as a hypothesis to test against the code, never copied as fact.
 - The oldest and newest commits, plus `git log --oneline --reverse | head -20` — what the project was before it was this.
 - Manifests and runtime version pins — the shape of the constraints.
 - CI, Dockerfile, deploy config — what the team could not change.
@@ -52,6 +75,8 @@ Section skeleton:
 7. Seams: where the system is cut and what crosses.
 8. Deliberate omissions: what the designer chose not to do, and which strange structure it explains.
 9. Three questions.
+
+Where the guess usually fails is the loop or the constraints: the README describes a flow the code does not implement that way, or the product doc names a feature that was later removed. Keep 0-2 pairs — expected, then found, the finding anchored — and drop the rest.
 
 Self-check question pattern (the three at the end):
 
@@ -95,7 +120,7 @@ Section skeleton:
 7. Boundaries: what crosses each one, and in what shape.
 8. Focus and fallback: what the user said they will change first, and whether that path is peripheral.
 9. Not in scope: packages or features deliberately excluded.
-10. Corrections: wrong first guesses, kept as evidence.
+10. Corrections: the user's wrong first guesses and the brief's own — expected, found, anchored. These are evidence, not asides.
 11. Three questions.
 
 Self-check question pattern:
@@ -140,6 +165,8 @@ Section skeleton:
 8. At most one diagram, only if it carries an edge prose cannot.
 9. Three questions.
 
+The wrong first guess here usually comes from the architecture doc: it names an abstraction or a seam the code no longer honours. Check the seam against the code before repeating the doc; if the doc lost, say so in one line.
+
 Self-check question pattern:
 
 - "Why is <abstraction> separate from its caller, and what would get worse if it were merged?"
@@ -180,6 +207,8 @@ Section skeleton:
 6. Operational trade-offs: what is fast to fix versus correct to fix; known traps.
 7. Link to `runbook.md` rather than repeating it.
 8. Three questions.
+
+The wrong first guess here is about failure handling: the README promises a retry, a fallback, or a health check the code does not have.
 
 Self-check question pattern:
 

@@ -1,5 +1,6 @@
 <!-- Template: docs/teach/<user>/01-map.md -->
 <!-- Brief 2 of 4. Cap: 1500 words. A complete document, read in one sitting. -->
+<!-- Depth follows load: detail the hops and seams that carry the chain; name the rest in a line. -->
 <!-- The map densifies the model with addresses. It is not a table of contents. -->
 <!-- The chain (the "spine") lives here. Every hop needs path:line and a status until walked. -->
 

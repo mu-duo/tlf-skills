@@ -11,6 +11,12 @@ density: normal                # low | normal | high — pace only; never change
 mode: tutor                    # tour | tutor | drill
 updated: <YYYY-MM-DD>
 
+prior:                         # measured once, before the first brief; unknown is a value, not a zero
+  assessed: null               # YYYY-MM-DD | null
+  method: none                 # baseline teach-back | self-report | none
+  transcript: []               # verbatim, one entry per answer
+  effect: null                 # "skipped 00-model.md: loop already correct" / "00 starts by correcting the seam"
+
 curriculum:                    # four briefs, coarse to fine
   model:      { status: todo, path: 00-model.md }      # todo | active | done
   map:        { status: todo, path: 01-map.md }
@@ -23,6 +29,7 @@ concepts:
     canonical: <name>
     aliases: []
     anchor: <brief section or path:line>
+    source: taught            # taught | prior — prior knowledge measured before teaching counts as evidence
     level: L0                 # L0 unknown | L1 locate | L2 explain | L3 predict | L4 apply
     confidence: 0.0           # user self-rating 0-1
     accuracy: 0.0             # measured 0-1

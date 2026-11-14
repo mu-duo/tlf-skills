@@ -74,6 +74,17 @@ Both sound incremental. They are opposites.
 
 Disclosure hides; elaboration densifies. Every brief must state what it simplified, or the crude model silently becomes a wrong model.
 
+### Within a layer, depth follows load
+
+Elaboration sets resolution; it does not say where to spend it. A cap split evenly across five to eight nouns is a glossary with arrows. Rank before writing:
+
+- **Load-bearing** — sits on the core loop, owns a seam, or enforces a contract. Wrong in the reader's head, something breaks. Gets the words, an anchor, and one worked example.
+- **Peripheral** — config, tooling, one-off scripts, names that appear once. One line, a list entry, or nothing.
+
+The test: "if the reader had this wrong, what would break?" Nothing breaks, it is peripheral. Expect two or three concepts to carry most of a brief and the rest to be named rather than explained.
+
+This ranks how much each part of the whole receives, not which parts appear: the loop is still drawn whole and crude at `00-model.md`. Cut peripheral material to fit the cap; never thin the load-bearing parts to fit it.
+
 ## 7. The four briefs
 
 | File | Question it answers | Length cap | Reader can afterwards |
@@ -89,10 +100,11 @@ Every brief contains, in this order:
 
 1. **A one-paragraph summary at the very top** — "if you read only one paragraph".
 2. **What this layer deliberately ignores** — the simplification contract. Without it the crude model becomes a wrong model.
-3. **The body**, anchored to `path:line` and marked `verified` or `inferred`.
-4. **Three "after reading you should be able to answer" questions** — testing the model, not recall.
+3. **One or two wrong first guesses** — what the stated intent (README, PRD, architecture note) predicts, and what the code actually does. Mark the guess `inferred`, the finding `verified`. Where intent and code disagree is usually the most useful paragraph in the brief, and it is where the PRD earns its place: as a hypothesis, never as a fact.
+4. **The body**, anchored to `path:line` and marked `verified` or `inferred`, with depth allocated by load (§6), not by an even split of the cap.
+5. **Three "after reading you should be able to answer" questions** — testing the model, not recall.
 
-Brief-level anti-overload: summary first; headings follow the model, not the file tree; no exhaustive symbol lists; no code dumps.
+Brief-level anti-overload: summary first; headings follow the model, not the file tree; depth follows load; no exhaustive symbol lists; no code dumps.
 
 ## 8. Delivery rule
 
@@ -103,12 +115,14 @@ Brief-level anti-overload: summary first; headings follow the model, not the fil
 ## 9. Session loop
 
 1. **Resume** from `profile.yml` and the last session note.
-2. **Pick the next brief.** Reuse any existing doc (for example a large architecture note) as a source; write only the missing layer or a delta.
-3. **Write or refresh the brief** as a complete document.
-4. **Hand it over:** path, why this layer next, one question to hold while reading.
-5. **Check the model** after reading: three questions — locate something, predict the impact of a change, explain why a design choice was made and what it costs.
-6. **Correct the model:** edit the brief at the exact point the user's model was wrong. Do not append a new essay.
-7. **Update state:** `profile.yml` (evidence, confidence, accuracy, next review) and the session note.
+2. **Take a baseline, once.** Until the profile has a `prior` record, ask the user to say in their own words what the project does and what happens to one request. Record the words verbatim, grade them as evidence, and let the result set the first brief's starting point and what it may skip. Skip the baseline when the user says the repo is new to them, when they asked to be told directly, or when the repo is a handful of files — a probe to someone who knows nothing is theatre.
+3. **Pick the next brief.** Reuse any existing doc (for example a large architecture note) as a source; write only the missing layer or a delta.
+4. **Rank before writing:** load-bearing concepts get the detail and an anchor, peripheral ones are named in a line. The cap is a budget to allocate, not to divide.
+5. **Write or refresh the brief** as a complete document.
+6. **Hand it over:** path, why this layer next, one question to hold while reading.
+7. **Check the model** after reading: three questions — locate something, predict the impact of a change, explain why a design choice was made and what it costs.
+8. **Correct the model:** edit the brief at the exact point the user's model was wrong. Do not append a new essay.
+9. **Update state:** `profile.yml` (prior, evidence, confidence, accuracy, next review) and the session note.
 
 ## 10. Budget
 
@@ -116,6 +130,7 @@ Brief-level anti-overload: summary first; headings follow the model, not the fil
 | --- | --- | --- |
 | Scope | one complete layer | one check or one correction |
 | Length | caps above | <=150 words |
+| Depth | 2-3 load-bearing items in detail; the rest named | — |
 | Code | <=3 short blocks | 0 |
 | Questions | 3 self-check questions at the end | 1 |
 | Reading time | 8-15 min | — |
@@ -139,6 +154,8 @@ The user has not read this file. Every term here — brief, layer, model check, 
 Record `confidence` (the user's 0-1 self-rating) and `accuracy` (measured 0-1) per concept. Accuracy drives the level; the gap drives what to review next. Overconfidence matters more than ignorance: the user who thinks they understand the core loop is the one who breaks it.
 
 Store evidence: the user's actual words, the actual error. Never a verdict like "mastered". A correct but incoherent model — right facts, wrong relations — caps at L2. Grading rules and review scheduling are in `references/rubric.md`.
+
+Prior knowledge is measured, not assumed. A concept the user held before teaching is still a level, marked `source: prior`; a concept nobody has assessed is unknown — a reason to probe, not a reason to teach from zero. The teacher's blind spot is "I do not know what they already know", and `profile.yml` must have a field that says so rather than an empty one that reads as zero.
 
 ## 13. Artifacts
 
@@ -171,6 +188,8 @@ Ask: "Which part are you most likely to change first after taking over?" Store t
 - No answer: fall back to the highest-user-value entrypoint, and say explicitly that it is a fallback. Never silently pick.
 - Peripheral `focus`: warn that it bypasses the core, and plan a second pass through the core.
 
+`focus` measures intent, not level. Run the baseline (step 2 of the session loop) separately: a user can be fluent in the area they most want to change, or blind in it, and the two questions must not be collapsed into one.
+
 Per-archetype entrypoint hunting is in `references/repo-archetypes.md`.
 
 ## 16. Hard constraints
@@ -188,6 +207,9 @@ Run before every reply. Any failed box means cut, not shorten.
 - [ ] Is the chat turn <=150 words?
 - [ ] Did I dump a long brief into chat? (Only a one-page brief may be inlined.)
 - [ ] Is every new claim anchored and marked `verified` / `inferred`?
+- [ ] Does the brief put its words where the load is — two or three items detailed, the rest named?
+- [ ] Was a baseline taken before the first brief, or deliberately skipped with a reason?
+- [ ] Does a stated intent appear only as an `inferred` guess, never as a fact?
 - [ ] Does the brief end with three questions that test the model rather than recall?
 - [ ] Did I say an internal term out loud (brief, layer, spine, budget, L0-L4)?
 - [ ] Would someone who never read this skill understand the chat turn?
@@ -210,11 +232,14 @@ The user can:
 - Skipping the omissions section, so deliberate choices read as accidents.
 - Trusting the README over the code; dumping a table of 20 terms; treating a nod as mastery.
 - Restating existing docs as an architecture essay; guessing the chain in an event-driven repo.
+- Dividing a cap evenly: every noun gets a paragraph and nothing is load-bearing.
+- Teaching a layer the user already holds because nobody asked what they knew first.
+- Reading an empty profile field as evidence of ignorance.
 
 ## 20. References
 
-- `references/curriculum.md` — per-brief playbooks: reads, section skeleton, cap, self-check questions, done test, omissions; and how to reuse an existing doc.
-- `references/questioning.md` — the question to hold while reading, model checks after reading, teach-back, overload, downgrades.
-- `references/rubric.md` — grading L0-L4, evidence records, calibration, review schedule.
+- `references/curriculum.md` — per-brief playbooks: reads, section skeleton, cap, self-check questions, done test, omissions; depth ranking, the pre-session-1 baseline, and how to reuse an existing doc.
+- `references/questioning.md` — the baseline before the first brief, the question to hold while reading, model checks after reading, teach-back, overload, downgrades.
+- `references/rubric.md` — grading L0-L4, grading a baseline, evidence records, calibration, review schedule.
 - `references/repo-archetypes.md` — archetype identification and where the chain runs.
 - `assets/` — templates for the four briefs, runbook, glossary, session note, and profile.

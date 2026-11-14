@@ -1,5 +1,6 @@
 <!-- Template: docs/teach/<user>/02-structure.md -->
 <!-- Brief 3 of 4. Cap: 2500 words. The densest layer; still under 15 minutes of reading. -->
+<!-- Depth follows load: 2-3 abstractions get the contract and the trade-off; the rest are named. -->
 <!-- Every abstraction must have been touched by the chain in 01-map.md. No new abstractions. -->
 <!-- At most three short code blocks for the whole brief. No symbol dumps. -->
 

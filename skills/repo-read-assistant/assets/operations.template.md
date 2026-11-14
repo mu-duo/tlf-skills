@@ -1,5 +1,6 @@
 <!-- Template: docs/teach/<user>/03-operations.md -->
 <!-- Brief 4 of 4. Cap: 2000 words. A complete document, read in one sitting. -->
+<!-- Depth follows load: the failures a reader will actually hit get the detail; the rest get a row. -->
 <!-- Link runbook.md; do not duplicate it. Every failure path must be specific to this repo. -->
 
 # Operations: <repo>

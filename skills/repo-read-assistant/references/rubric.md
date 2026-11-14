@@ -21,6 +21,16 @@ Grading rules:
 - **Prediction comes after reading.** The user reads the brief, then predicts the impact of a change. L3 is assessed there, not as a guess made before any model exists. A prediction made after seeing the answer is not evidence.
 - **Application must include blast radius.** Naming edited files is L3-level recall; L4 requires the consequences.
 
+## Grading a baseline
+
+The baseline answer is evidence like any other, with three differences.
+
+- It grades prior knowledge: mark the concept `source: prior` and leave `next_review` null until it has been tested after teaching.
+- A miss is not a failure. The user has not been taught yet; what the answer measures is where the first brief starts.
+- A confident, fluent, wrong loop is the highest-value record in the profile. Quote it whole, set `confidence` from how they said it, `accuracy: 0.0`, and name the correction the first brief must make. It is also the first `drill` candidate after that brief.
+
+An unassessed concept is not `L0`. It is unknown, and unknown means probe before teaching — never assume a blank slate. Never record a baseline as the level a concept ends at; the baseline is the "before" column, not a verdict.
+
 ## Evidence records
 
 Store the observation, not the label. A level without evidence cannot be re-graded, and the next agent inherits a claim it cannot trust.
